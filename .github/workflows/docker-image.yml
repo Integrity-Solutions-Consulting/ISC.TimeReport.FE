@@ -27,12 +27,7 @@ jobs:
 
       - name: Cleanup old container  
         run: |
-          try {
-            docker rm -f isc-time-report-fe-production -ErrorAction Stop
-          }
-          catch {
-            Write-Host "✔︎ container not present, skipping"
-          }
+          docker rm -f isc-time-report-fe 2>$null
 
       - name: Cleanup old image  
         run: |
