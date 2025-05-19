@@ -27,19 +27,21 @@ jobs:
 
       - name: Cleanup old container  
         run: |
-          docker rm -f isc-time-report-fe 2>$null
+          # stop & remove old container if it exists
+          if (docker ps -a -q --filter "name=isc-time-report-fe" | Where-Object {$_}) {
+            docker rm -f isc-time-report-fe
+          }
 
       - name: Cleanup old image  
         run: |
           # remove old image(s) with this tag (if you're reusing the same tag)
           docker image rm -f isc-time-report-fe:${{ env.TIMESTAMP }} 2>$null || Write-Host "no old image"
 
-        
       - name: Build Docker image
         run: |
           docker build -f Dockerfile -t isc-time-report-fe:$env:TIMESTAMP .
 
-      - name: Run Docker container
+      - name: Run Docker container (detached)
         run: |
-          docker run -d --rm -p 80:80 isc-time-report-fe:$env:TIMESTAMP
+          docker run -d --rm --name isc-time-report-fe -p 80:80 isc-time-report-fe:$env:TIMESTAMP
 
