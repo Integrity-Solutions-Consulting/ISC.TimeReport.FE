@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 import { Customer } from '../../interfaces/customer.interface';
 import { CustomerService } from '../../services/customer.service';
 
@@ -6,7 +7,10 @@ import { CustomerService } from '../../services/customer.service';
   selector: 'customer-list',
   standalone: true,
   templateUrl: './customer-list.component.html',
-  styleUrl: './customer-list.component.scss'
+  styleUrl: './customer-list.component.scss',
+  imports: [
+    MatCardModule
+  ]
 })
 export class CustomerListComponent implements OnInit{
   private _customerService = inject(CustomerService);
