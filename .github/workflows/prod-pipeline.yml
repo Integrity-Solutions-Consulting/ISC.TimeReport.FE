@@ -1,5 +1,5 @@
 
-name: ISC.TimeReport.FE-PRO-CI/CD
+name: ISC.TimeReport.FE-DEV-CI/CD
 
 on:
   push:
