@@ -24,6 +24,19 @@ jobs:
 
       - name:  show GITHUB_WORKSPACE
         run: Write-Host "Workspace  $env:GITHUB_WORKSPACE"
+
+      - name: Cleanup old container  
+        run: |
+          # stop & remove old container if it exists
+          if (docker ps -a -q --filter "name=isc-time-report-fe" | Where-Object {$_}) {
+            docker rm -f isc-time-report-fe
+          }
+
+      - name: Cleanup old image  
+        run: |
+          # remove old image(s) with this tag (if you're reusing the same tag)
+          docker image rm -f isc-time-report-fe:${{ env.TIMESTAMP }} 2>$null || Write-Host "no old image"
+
         
       - name: Build Docker image
         run: |
