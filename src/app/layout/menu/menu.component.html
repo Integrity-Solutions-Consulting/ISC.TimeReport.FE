@@ -1,0 +1,9 @@
+<div id="menu-container">
+  <nav>
+    <ul>
+      @for (option of options; track option) {
+        <li> <a routerLink="{{option}}">{{ $index + 1 }}. {{ option }}</a></li>
+      }
+    </ul>
+  </nav>
+</div>
