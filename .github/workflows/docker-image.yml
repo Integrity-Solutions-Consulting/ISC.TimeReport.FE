@@ -27,9 +27,11 @@ jobs:
 
       - name: Cleanup old container  
         run: |
-          # stop & remove old container if it exists
-          if (docker ps -a -q --filter "name=isc-time-report-fe" | Where-Object {$_}) {
-            docker rm -f isc-time-report-fe
+          try {
+            docker rm -f isc-time-report-fe-production -ErrorAction Stop
+          }
+          catch {
+            Write-Host "✔︎ container not present, skipping"
           }
 
       - name: Cleanup old image  
