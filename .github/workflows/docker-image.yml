@@ -7,18 +7,26 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-and-run:
     runs-on: self-hosted
+    defaults:
+      run:
+        shell: pwsh
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set timestamp
-        shell: pwsh
         run: |
           $timestamp = Get-Date -UFormat %s
           echo "TIMESTAMP=$timestamp" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag my-image-name:${{ env.TIMESTAMP }}
+      - name: Build Docker image
+        run: |
+          docker build -f Dockerfile -t my-image-name:$env:TIMESTAMP .
+
+      - name: Run Docker container
+        run: |
+          docker run --rm my-image-name:$env:TIMESTAMP
 
