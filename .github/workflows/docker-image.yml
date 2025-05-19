@@ -22,6 +22,9 @@ jobs:
           $timestamp = Get-Date -UFormat %s
           echo "TIMESTAMP=$timestamp" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
+      - name:  show GITHUB_WORKSPACE
+        run: Write-Host "Workspace  $env:GITHUB_WORKSPACE"
+        
       - name: Build Docker image
         run: |
           docker build -f Dockerfile -t my-image-name:$env:TIMESTAMP .
