@@ -31,5 +31,5 @@ jobs:
 
       - name: Run Docker container
         run: |
-          docker run -d --rm isc-time-report-fe:$env:TIMESTAMP
+          docker run -d --rm -p 80:80 isc-time-report-fe:$env:TIMESTAMP
 
