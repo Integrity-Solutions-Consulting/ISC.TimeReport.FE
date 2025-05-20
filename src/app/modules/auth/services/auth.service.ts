@@ -2,14 +2,16 @@ import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { environment } from "../../../../environments/environment";
 import { Observable } from "rxjs";
-import { SuccessResponse } from "../../../shared/interfaces/response.interface";
+import { LoginRequest, AuthResponse } from "../interfaces/auth.interface";
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
-export class CustomerService{
-    private _httpClient = inject(HttpClient);
-    urlBase: string = environment.URL_API;
+export class AuthService {
+  private _httpClient = inject(HttpClient);
+  private urlBase: string = environment.URL_BASE;
 
-
+  login(credentials: LoginRequest): Observable<AuthResponse> {
+    return this._httpClient.post<AuthResponse>(`${this.urlBase}/api/Auth/login`, credentials);
+  }
 }
