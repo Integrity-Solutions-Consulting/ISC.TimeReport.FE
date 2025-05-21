@@ -5,8 +5,11 @@ export interface CustomerRequest{
 }
 
 export interface Customer{
-    id:     number;
-    name:   string;
-    phone:  string;
-    email:  string;
+    id:               number;
+    idtype:           number;
+    idnumber:         string;
+    commercialname:   string;
+    companyname:      string;
+    phone:            string;
+    email:            string;
 }

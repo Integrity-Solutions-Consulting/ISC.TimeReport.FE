@@ -1,107 +1,64 @@
-.form-container {
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
-  background-color: --secondary;
-  min-height: 100vh;
-
-  @media (max-width: 600px) {
-    padding: 1rem;
-  }
-}
-
-.form-card {
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  width: 100%;
-  max-width: 1200px;
-  padding: 2rem;
-
-  @media (max-width: 600px) {
-    padding: 1.5rem;
-  }
-}
-
-.form-title {
-  color: --primary;
-  margin-bottom: 2rem;
+.h2 {
+  color: rgb(0, 0, 0);
+  margin-bottom: 20px;
   text-align: center;
-  font-weight: 500;
-  font-size: 1.75rem;
 }
 
-.form-grid {
-  display: grid;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.form-field {
-  padding-bottom: 0;
-  background-color: white;
+.customer-form {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: --primary;
   border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
-  padding: 0.5em 0.75em 0 0.75em;
-  
-  .mat-input-element {
-    font-size: 1rem;
-    padding: 0.5em 0;
-  }
-  
-  .mat-form-field-label {
-    color: rgba(0, 0, 0, 0.6);
-  }
-  
-  &.mat-form-field-invalid {
-    .mat-form-field-label {
-      color: #f44336;
+  .form-group {
+    margin-bottom: 20px;
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+
+      &:focus {
+        outline: none;
+        border-color: --secondary;
+        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+      }
+    }
+
+    .error-message {
+      color: #d9534f;
+      font-size: 14px;
+      margin-top: 5px;
     }
   }
-}
 
-.form-error {
-  color: #f44336;
-  font-size: 0.85rem;
-  margin-top: 0.5rem;
-}
+  .submit-button {
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
 
-.form-actions {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  
-  @media (max-width: 600px) {
-    flex-direction: column;
-  }
-}
+    &:hover {
+      background-color: #357ab8;
+    }
 
-.submit-button {
-  background-color: --primary;
-  padding: 0.5rem 2rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  
-  &:hover {
-    transform: translateY(-2px);
-  }
-}
-
-.cancel-button {
-  background-color: --secondary;
-  color: rgba(0, 0, 0, 0.6);
-  
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.04);
-  }
-}
-
-.mat-form-field {
-  transition: all 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-2px);
+    &:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
   }
 }
