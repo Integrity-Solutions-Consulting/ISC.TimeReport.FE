@@ -1,0 +1,23 @@
+header{
+    width: 100vw;
+    margin: 0%;
+    background-color: var(--secondary);
+}
+
+main{
+    display: flex;
+    width: 100%;
+    min-height: 100%;
+}
+
+#menu-container{
+    width: 20%;
+    min-height: 100%;
+    margin: 0%;
+    background-color: var(--secondary);
+}
+
+#content-container{
+    width: 80%;
+    min-height: 100%;
+}
