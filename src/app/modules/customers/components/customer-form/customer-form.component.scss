@@ -1,5 +1,5 @@
 .h2 {
-  color: rgb(0, 0, 0);
+  color: --primary;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -43,7 +43,7 @@
   }
 
   .submit-button {
-    background-color: #4a90e2;
+    background-color: var(--primary);
     color: white;
     border: none;
     padding: 10px 20px;
@@ -53,12 +53,13 @@
     transition: background-color 0.3s;
 
     &:hover {
-      background-color: #357ab8;
+      background-color: var(--tertiary);
     }
 
     &:disabled {
-      background-color: #cccccc;
+      background-color: var(--light);
       cursor: not-allowed;
+      color: #0d0d0d;
     }
   }
 }

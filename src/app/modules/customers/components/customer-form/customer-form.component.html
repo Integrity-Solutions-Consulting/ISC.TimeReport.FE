@@ -56,7 +56,13 @@
         <span *ngIf="customerForm.get('email')?.errors?.['email']">Ingrese un correo electrónico válido</span>
       </div>
     </div>
+    <custom-input-label
+      label="Nombre Completo"
+      placeholder="Nombre Completo"
+      class="form-control"
+    ></custom-input-label>
 
     <button type="submit" class="submit-button" [disabled]="customerForm.invalid">Guardar</button>
+    <custom-button></custom-button>
   </form>
 </div>

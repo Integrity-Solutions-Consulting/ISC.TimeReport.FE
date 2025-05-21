@@ -2,6 +2,8 @@ import { Component, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button.component';
+import { CustomInputLabelComponent } from '../../../../shared/components/custom-input-label/custom-input-label.component';
 import { merge } from 'rxjs';
 
 @Component({
@@ -11,7 +13,9 @@ import { merge } from 'rxjs';
   styleUrl: './customer-form.component.scss',
   imports: [
     ReactiveFormsModule,
-    CommonModule
+    CommonModule,
+    CustomButtonComponent,
+    CustomInputLabelComponent
   ]
 })
 export class CustomerFormComponent {

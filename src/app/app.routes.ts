@@ -10,7 +10,7 @@ export const routes: Routes = [
         loadChildren: ()=> import('./modules/auth/auth.routes').then((m) => m.authRoutes),
     },
     {
-        path: 'customer',
-        loadChildren: ()=> import('./modules/customers/customers.routes').then((m) => m.customersRoutes),
+        path: 'menu',
+        loadChildren: ()=> import('./modules/menu/menu.routes').then((m) => m.menuRoutes),
     },
 ];
