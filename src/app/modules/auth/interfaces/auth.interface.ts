@@ -1,13 +1,16 @@
 export interface LoginRequest {
-  email: string;
-  password: string;
+  Username: string;
+  Password: string;
 }
 
 export interface AuthResponse {
-  token: string;
-  user: {
-    id: number;
-    name: string;
-    email: string;
+  code: number;
+  message: string;
+  data: {
+    token: string;
+    username: string;
+    names: string | null;
+    surnames: string | null;
+    email: string | null;
   };
 }
