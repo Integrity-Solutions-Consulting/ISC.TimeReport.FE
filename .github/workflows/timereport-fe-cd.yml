@@ -29,11 +29,11 @@ jobs:
 
       - name: Compilar la aplicación Angular
         run: |
-          npm run build -- --configuration=development --base-href /time-report/
+          npm run build -- --configuration=development --base-href /time-report.fe/
 
       - name: Detener la aplicación en IIS
         run: |
-          $destination = 'C:\inetpub\wwwroot\time-report'
+          $destination = 'C:\inetpub\wwwroot\time-report.fe'
           if (Test-Path $destination) {
             New-Item -ItemType File -Path "$destination\app_offline.htm" -Force
           } else {
@@ -43,11 +43,11 @@ jobs:
       - name: Desplegar archivos al servidor IIS
         run: |
           $source = "dist/isc.time-report.fe/browser"
-          $destination = "C:\inetpub\wwwroot\time-report"
+          $destination = "C:\inetpub\wwwroot\time-report.fe"
           Remove-Item -Recurse -Force "$destination\*" -ErrorAction SilentlyContinue
           Copy-Item -Path "$source\*" -Destination $destination -Recurse -Force
 
       - name: Iniciar la aplicación en IIS
         run: |
-          $appPath = "C:\inetpub\wwwroot\time-report"
+          $appPath = "C:\inetpub\wwwroot\time-report.fe"
           Remove-Item "$appPath\app_offline.htm" -Force -ErrorAction SilentlyContinue
