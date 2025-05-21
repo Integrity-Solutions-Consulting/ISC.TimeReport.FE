@@ -33,8 +33,12 @@ jobs:
 
       - name: Detener la aplicación en IIS
         run: |
-          $appPath = "C:\inetpub\wwwroot\time-report"
-          New-Item -Path "$appPath\app_offline.htm" -ItemType File -Force
+          $destination = 'C:\inetpub\wwwroot\time-report'
+          if (Test-Path $destination) {
+            New-Item -ItemType File -Path "$destination\app_offline.htm" -Force
+          } else {
+            New-Item -ItemType Directory -Path $destination -Force
+          }
 
       - name: Desplegar archivos al servidor IIS
         run: |
