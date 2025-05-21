@@ -1,68 +1,62 @@
 <div>
   <h2>Registro de Clientes</h2>
-  <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="customer-form">
-    <div class="form-group">
-      <label for="identificationType">Tipo de Identificación</label>
-      <select id="identificationType" formControlName="identificationType" class="form-control">
-        <option value="">Seleccione un tipo</option>
-        <option *ngFor="let type of identificationTypes" [value]="type.id">{{ type.name }}</option>
-      </select>
-      <div *ngIf="customerForm.get('identificationType')?.invalid && customerForm.get('identificationType')?.touched" class="error-message">
-        Este campo es requerido
+    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="customer-form">
+      <div class="form-group">
+        <label for="identificationType">Tipo de Identificación</label>
+        <select id="identificationType" formControlName="identificationType" class="form-control">
+          <option value="">Seleccione un tipo</option>
+          <option *ngFor="let type of identificationTypes" [value]="type.id">{{ type.name }}</option>
+        </select>
+        <div *ngIf="customerForm.get('identificationType')?.invalid && customerForm.get('identificationType')?.touched" class="error-message">
+          Este campo es requerido
+        </div>
       </div>
-    </div>
 
-    <div class="form-group">
-      <label for="identificationNumber">Número de Identificación</label>
-      <input id="identificationNumber" type="text" formControlName="identificationNumber" class="form-control">
-      <div *ngIf="customerForm.get('identificationNumber')?.invalid && customerForm.get('identificationNumber')?.touched" class="error-message">
-        <span *ngIf="customerForm.get('identificationNumber')?.errors?.['required']">Este campo es requerido</span>
-        <span *ngIf="customerForm.get('identificationNumber')?.errors?.['pattern']">
-          {{ getIdentificationNumberErrorMessage() }}
-        </span>
+      <div class="form-group">
+        <label for="identificationNumber">Número de Identificación</label>
+        <input id="identificationNumber" type="text" formControlName="identificationNumber" class="form-control">
+        <div *ngIf="customerForm.get('identificationNumber')?.invalid && customerForm.get('identificationNumber')?.touched" class="error-message">
+          <span *ngIf="customerForm.get('identificationNumber')?.errors?.['required']">Este campo es requerido</span>
+          <span *ngIf="customerForm.get('identificationNumber')?.errors?.['pattern']">
+            {{ getIdentificationNumberErrorMessage() }}
+          </span>
+        </div>
       </div>
-    </div>
 
-    <div class="form-group">
-      <label for="commercialName">Nombre Comercial</label>
-      <input id="commercialName" type="text" formControlName="commercialName" class="form-control">
-      <div *ngIf="customerForm.get('commercialName')?.invalid && customerForm.get('commercialName')?.touched" class="error-message">
-        Este campo es requerido
+      <div class="form-group">
+        <label for="commercialName">Nombre Comercial</label>
+        <input id="commercialName" type="text" formControlName="commercialName" class="form-control">
+        <div *ngIf="customerForm.get('commercialName')?.invalid && customerForm.get('commercialName')?.touched" class="error-message">
+          Este campo es requerido
+        </div>
       </div>
-    </div>
 
-    <div class="form-group">
-      <label for="businessName">Razón Social</label>
-      <input id="businessName" type="text" formControlName="businessName" class="form-control">
-      <div *ngIf="customerForm.get('businessName')?.invalid && customerForm.get('businessName')?.touched" class="error-message">
-        Este campo es requerido
+      <div class="form-group">
+        <label for="companyName">Razón Social</label>
+        <input id="companyName" type="text" formControlName="companyName" class="form-control">
+        <div *ngIf="customerForm.get('companyName')?.invalid && customerForm.get('companyName')?.touched" class="error-message">
+          Este campo es requerido
+        </div>
       </div>
-    </div>
 
-    <div class="form-group">
-      <label for="phoneNumber">Número de Teléfono Celular</label>
-      <input id="phoneNumber" type="tel" formControlName="phoneNumber" class="form-control">
-      <div *ngIf="customerForm.get('phoneNumber')?.invalid && customerForm.get('phoneNumber')?.touched" class="error-message">
-        <span *ngIf="customerForm.get('phoneNumber')?.errors?.['required']">Este campo es requerido</span>
-        <span *ngIf="customerForm.get('phoneNumber')?.errors?.['pattern']">Ingrese un número de teléfono válido (10-15 dígitos)</span>
+      <div class="form-group">
+        <label for="cellPhoneNumber">Número de Teléfono Celular</label>
+        <input id="cellPhoneNumber" type="tel" formControlName="cellPhoneNumber" class="form-control">
+        <div *ngIf="customerForm.get('cellPhoneNumber')?.invalid && customerForm.get('cellPhoneNumber')?.touched" class="error-message">
+          <span *ngIf="customerForm.get('cellPhoneNumber')?.errors?.['required']">Este campo es requerido</span>
+          <span *ngIf="customerForm.get('cellPhoneNumber')?.errors?.['pattern']">Ingrese un número de teléfono válido (10-15 dígitos)</span>
+        </div>
       </div>
-    </div>
 
-    <div class="form-group">
-      <label for="email">Correo Electrónico</label>
-      <input id="email" type="email" formControlName="email" class="form-control">
-      <div *ngIf="customerForm.get('email')?.invalid && customerForm.get('email')?.touched" class="error-message">
-        <span *ngIf="customerForm.get('email')?.errors?.['required']">Este campo es requerido</span>
-        <span *ngIf="customerForm.get('email')?.errors?.['email']">Ingrese un correo electrónico válido</span>
+      <div class="form-group">
+        <label for="email">Correo Electrónico</label>
+        <input id="email" type="email" formControlName="email" class="form-control">
+        <div *ngIf="customerForm.get('email')?.invalid && customerForm.get('email')?.touched" class="error-message">
+          <span *ngIf="customerForm.get('email')?.errors?.['required']">Este campo es requerido</span>
+          <span *ngIf="customerForm.get('email')?.errors?.['email']">Ingrese un correo electrónico válido</span>
+        </div>
       </div>
-    </div>
-    <custom-input-label
-      label="Nombre Completo"
-      placeholder="Nombre Completo"
-      class="form-control"
-    ></custom-input-label>
 
-    <button type="submit" class="submit-button" [disabled]="customerForm.invalid">Guardar</button>
-    <custom-button></custom-button>
-  </form>
+      <button type="submit" class="submit-button" [disabled]="customerForm.invalid">Guardar</button>
+    </form>
 </div>

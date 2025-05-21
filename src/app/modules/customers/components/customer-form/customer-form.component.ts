@@ -1,10 +1,12 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button.component';
 import { CustomInputLabelComponent } from '../../../../shared/components/custom-input-label/custom-input-label.component';
 import { merge } from 'rxjs';
+import { CustomContainerComponent } from '../../../../shared/components/custom-container/custom-container.component';
+import { CustomerService } from '../../services/customer.service';
 
 @Component({
   selector: 'customer-form',
@@ -14,8 +16,6 @@ import { merge } from 'rxjs';
   imports: [
     ReactiveFormsModule,
     CommonModule,
-    CustomButtonComponent,
-    CustomInputLabelComponent
   ]
 })
 export class CustomerFormComponent {
@@ -26,13 +26,19 @@ export class CustomerFormComponent {
     { id: 3, name: 'Pasaporte' }
   ];
 
+  private customerService = inject(CustomerService);
+
+  isSubmitting = signal(false);
+  errorMessage = signal<string | null>(null);
+  successMessage = signal<string | null>(null);
+
   constructor(private fb: FormBuilder) {
     this.customerForm = this.fb.group({
       identificationType: ['', Validators.required],
       identificationNumber: ['', [Validators.required, Validators.pattern(/^[0-9]+$/)]],
       commercialName: ['', Validators.required],
-      businessName: ['', Validators.required],
-      phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{10,15}$/)]],
+      companyName: ['', Validators.required],
+      cellPhoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{10,15}$/)]],
       email: ['', [Validators.required, Validators.email]]
     });
 
@@ -63,8 +69,26 @@ export class CustomerFormComponent {
 
   onSubmit() {
     if (this.customerForm.valid) {
-      console.log('Formulario enviado:', this.customerForm.value);
-      // Aquí puedes enviar los datos a tu API
+      this.isSubmitting.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
+    const formData = this.customerForm.value;
+
+    console.log('Formulario enviado:', formData);
+    console.log('Datos a enviar:', JSON.stringify(formData, null, 2));
+
+    this.customerService.createCustomer(formData).subscribe({
+      next: (response) => {
+        this.isSubmitting.set(false);
+        this.successMessage.set('Cliente creado exitosamente');
+        this.customerForm.reset();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        this.errorMessage.set(err.message || 'Error al crear cliente');
+      }
+    });
     } else {
       this.customerForm.markAllAsTouched();
     }
