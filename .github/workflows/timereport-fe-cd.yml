@@ -47,6 +47,11 @@ jobs:
           Remove-Item -Recurse -Force "$destination\*" -ErrorAction SilentlyContinue
           Copy-Item -Path "$source\*" -Destination $destination -Recurse -Force
 
+      - name: Agregar configuración web
+        run: |
+          Copy-Item -Path "web.config" -Destination C:\inetpub\wwwroot\time-report.fe -Recurse -Force
+
+
       - name: Iniciar la aplicación en IIS
         run: |
           $appPath = "C:\inetpub\wwwroot\time-report.fe"
