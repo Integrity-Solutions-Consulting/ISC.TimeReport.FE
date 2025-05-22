@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-menu',
+  selector: 'menu',
   standalone: true,
   imports:[
     RouterLink
@@ -11,5 +11,5 @@ import { RouterLink } from '@angular/router';
   styleUrl: './menu.component.scss'
 })
 export class MenuComponent {
-  public options:string[] = ['/customer/manage', '/customer'];
+  public options:string[] = ['/menu/customers/manage', '/menu/customers'];
 }

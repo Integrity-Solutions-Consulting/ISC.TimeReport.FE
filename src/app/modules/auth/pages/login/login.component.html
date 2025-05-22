@@ -1,3 +1,31 @@
-<div>
-  <h1>Login</h1>
+<div class="login-container">
+  <div class="login-box">
+    <h2>Bienvenido</h2>
+    <img src="assets/img/logo-isc.webp" alt="Logo" class="logo">
+
+    <form [formGroup]="loginForm" (ngSubmit)="login()">
+      <input
+        class="login-fields"
+        type="text"
+        formControlName="Username"
+        placeholder="Usuario"
+        [class.invalid]="loginForm.get('Username')?.invalid && loginForm.get('Username')?.touched"
+      />
+
+      <input
+        class="login-fields"
+        type="Password"
+        formControlName="Password"
+        placeholder="Contraseña"
+        [class.invalid]="loginForm.get('Password')?.invalid && loginForm.get('Password')?.touched"
+      />
+
+      <button type="submit">Login</button>
+
+      <div class="links">
+        <a href="#">¿Perdiste tu contraseña?</a>
+        <a href="#">¿No tienes Cuenta? Regístrate</a>
+      </div>
+    </form>
+  </div>
 </div>

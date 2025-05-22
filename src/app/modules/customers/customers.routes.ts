@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { ListCustomersPage } from './pages/list-customers/list-customers.component';
+import { ListCustomersPage } from './pages/list-customers/list-customers.page';
 import { ManageCustomerPage } from './pages/manage-customer/manage-customer.component';
 
 export const customersRoutes: Routes = [
@@ -8,7 +8,7 @@ export const customersRoutes: Routes = [
         component: ListCustomersPage,
     },
     {
-        path: 'manage',
-        component: ManageCustomerPage,
+          path: 'manage',
+          component: ManageCustomerPage,
     },
 ];
