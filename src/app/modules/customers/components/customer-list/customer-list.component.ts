@@ -3,6 +3,22 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { Customer } from '../../interfaces/customer.interface';
 import { CustomerService } from '../../services/customer.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogActions,
+  MatDialogClose,
+  MatDialogContent,
+  MatDialogRef,
+  MatDialogTitle,
+} from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { CustomerEditModalComponent } from '../customer-edit-modal/customer-edit-modal.component';
+import { SuccessResponse } from '../../../../shared/interfaces/response.interface';
+
 
 @Component({
   selector: 'customer-list',
@@ -11,70 +27,91 @@ import { CustomerService } from '../../services/customer.service';
   styleUrl: './customer-list.component.scss',
   imports: [
     MatCardModule,
-    MatTableModule
+    MatTableModule,
+    MatProgressSpinnerModule,
+    CommonModule,
+    MatIconModule,
+    MatDialogTitle,
+    MatDialogContent,
+    MatDialogActions,
+    MatDialogClose,
   ]
 })
 export class CustomerListComponent implements OnInit{
-  private _customerService = inject(CustomerService);
+
+  private customerService = inject(CustomerService);
+  readonly dialog = inject(MatDialog);
+  readonly snackBar = inject(MatSnackBar);
+
+  displayedColumns: string[] = ['idtype', 'idnumber', 'commercialname', 'companyname', 'phone', 'email', 'options'];
+
+  customers: Customer[] = [];
+
+  isLoading = true;
+  errorMessage = '';
 
   ngOnInit(): void {
-    this._customerService.getCustomers().subscribe({
-      next: (res) => {
-        this.customers = res.data;
+    this.loadCustomers();
+  }
+
+  readonly identificationTypesMap: {[key: string]: string} = {
+    '1': 'Cédula',
+    '2': 'RUC',
+    '3': 'Pasaporte',
+  };
+
+  loadCustomers(): void {
+    this.customerService.getCustomers().subscribe({
+      next: (response: Customer[]) => {
+        console.log(response)
+        this.customers = response;
+        console.log(this.customers)
       },
-      error:(err)=>{
+      error: (err) => {
+        console.error('Error al cargar clientes:', err);
+      }
+    });
+    console.log(this.customers);
+  }
+
+  openEditModal(customer: any): void {
+    if (!customer.id) {
+      console.error('El cliente no tiene ID:', customer);
+      this.snackBar.open('Error: El cliente no tiene ID válido', 'Cerrar', { duration: 5000 });
+      return;
+    }
+    const dialogRef = this.dialog.open(CustomerEditModalComponent, {
+      width: '600px',
+      data: {
+        customer: { id: customer.id,
+        identificationType: customer.identificationType,
+        identificationNumber: customer.identificationNumber,
+        commercialName: customer.commercialName,
+        companyName: customer.companyName,
+        cellPhoneNumber: customer.cellPhoneNumber,
+        email: customer.email
+        },
+        identificationTypes: this.identificationTypesMap
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Datos a enviar:', result);
+        this.customerService.updateCustomer(result.id, result).subscribe(
+          () => {
+            this.loadCustomers();
+          },
+          (error) => {
+            console.error('Error updating customer:', error);
+          }
+        );
       }
     });
   }
 
-  getIdentificationTypeName(idtype: number): string {
-      switch(idtype) {
-        case 1: return 'Cédula';
-        case 2: return 'RUC';
-        case 3: return 'Pasaporte';
-        default: return 'Desconocido';
-      }
+  getIdentificationTypeName(idtype: string): string {
+    return this.identificationTypesMap[idtype] || 'Desconocido';
   }
-
-  displayedColumns: string[] = ['id', 'idtype', 'idnumber', 'commercialname', 'companyname', 'phone', 'email'];
-
-  customers: Customer[] = [
-    {
-      id:1,
-      idtype: 2,
-      idnumber: '999999999001',
-      commercialname:'Banco Guayaquil',
-      companyname: 'Banco Guayaquil',
-      phone:'999999999',
-      email:'info@bancoguayaquil.com'
-    },
-    {
-      id:2,
-      idtype: 2,
-      idnumber: '999999999001',
-      commercialname:'Banco Pichincha',
-      companyname: 'Banco Pichincha',
-      phone:'999999999',
-      email:'info@bancopichincha.com'
-    },
-    {
-      id:3,
-      idtype: 1,
-      idnumber: '999999999001',
-      commercialname:'Banco Bolivariano',
-      companyname: 'Banco Bolivariano',
-      phone:'999999999',
-      email:'info@bancobolivariano.com'
-    },
-    {
-      id:4,
-      idtype: 3,
-      idnumber: '999999999001',
-      commercialname:'Banco Pacífico',
-      companyname: 'Banco Pacífico',
-      phone:'999999999',
-      email:'info@bancopacifico.com'
-    }
-  ];
 
 }
