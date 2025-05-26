@@ -6,7 +6,7 @@ export interface CustomerRequest{
 
 export interface Customer{
     id:               number;
-    idtype:           number;
+    idtype:           string;
     idnumber:         string;
     commercialname:   string;
     companyname:      string;

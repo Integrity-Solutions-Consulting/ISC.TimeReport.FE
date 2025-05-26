@@ -17,3 +17,45 @@ th.mat-header-cell {
 td.mat-cell {
   padding: 8px 16px;
 }
+
+.loading-spinner {
+  margin: 50px auto;
+}
+
+.error-message {
+  color: #f44336;
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.no-data {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.list-container {
+  padding: 20px;
+  position: relative;
+  min-height: 200px;
+}
+
+.edit-button {
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+/* Muestra el botón al hacer hover en la fila */
+tr.mat-mdc-row:hover td.mat-mdc-cell .edit-button {
+  opacity: 1;
+}
+
+/* Estilo adicional para las filas */
+.mat-row {
+  transition: background-color 0.3s ease;
+}
+
+.mat-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}

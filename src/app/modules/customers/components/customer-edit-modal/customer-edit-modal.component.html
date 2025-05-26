@@ -1,0 +1,68 @@
+<h2 mat-dialog-title>Editar Cliente</h2>
+<div mat-dialog-content>
+  <form [formGroup]="editForm">
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Tipo de Identificación</mat-label>
+      <mat-select formControlName="idtype" required>
+        <mat-option *ngFor="let type of data.identificationTypes" [value]="type.value">
+          {{type.name}}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="editForm.get('idtype')?.hasError('required')">
+        Este campo es requerido
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Número de Identificación</mat-label>
+      <input matInput formControlName="idnumber" required>
+      <mat-error *ngIf="editForm.get('idnumber')?.hasError('required')">
+        Este campo es requerido
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Nombre Comercial</mat-label>
+      <input matInput formControlName="commercialname" required>
+      <mat-error *ngIf="editForm.get('commercialname')?.hasError('required')">
+        Este campo es requerido
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Nombre de la Compañía</mat-label>
+      <input matInput formControlName="companyname" required>
+      <mat-error *ngIf="editForm.get('companyname')?.hasError('required')">
+        Este campo es requerido
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Teléfono Móvil</mat-label>
+      <input matInput formControlName="phone" required>
+      <mat-error *ngIf="editForm.get('phone')?.errors?.['required']">
+        Este campo es requerido
+      </mat-error>
+      <mat-error *ngIf="editForm.get('phone')?.errors?.['pattern']">
+        Solo se permiten números
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Correo Electrónico</mat-label>
+      <input matInput formControlName="email" required>
+      <mat-error *ngIf="editForm.get('email')?.errors?.['required']">
+        Este campo es requerido
+      </mat-error>
+      <mat-error *ngIf="editForm.get('email')?.errors?.['email']">
+        Ingrese un correo válido
+      </mat-error>
+    </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!editForm.valid">
+    Guardar Cambios
+  </button>
+</div>
