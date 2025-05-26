@@ -63,15 +63,12 @@ export class CustomerListComponent implements OnInit{
   loadCustomers(): void {
     this.customerService.getCustomers().subscribe({
       next: (response: Customer[]) => {
-        console.log(response)
         this.customers = response;
-        console.log(this.customers)
       },
       error: (err) => {
         console.error('Error al cargar clientes:', err);
       }
     });
-    console.log(this.customers);
   }
 
   openEditModal(customer: any): void {
@@ -97,7 +94,6 @@ export class CustomerListComponent implements OnInit{
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log('Datos a enviar:', result);
         this.customerService.updateCustomer(result.id, result).subscribe(
           () => {
             this.loadCustomers();

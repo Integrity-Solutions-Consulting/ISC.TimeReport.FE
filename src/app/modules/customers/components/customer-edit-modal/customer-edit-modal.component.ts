@@ -59,7 +59,6 @@ export class CustomerEditModalComponent {
         cellPhoneNumber: this.editForm.value.phone,
         email: this.editForm.value.email
       };
-      console.log(updatedCustomer);
       this.dialogRef.close(updatedCustomer);
     }
   }
