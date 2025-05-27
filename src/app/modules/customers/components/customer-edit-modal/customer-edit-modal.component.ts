@@ -1,10 +1,21 @@
 import { Component, Inject } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogActions,
+  MatDialogClose,
+  MatDialogContent,
+  MatDialogRef,
+  MatDialogTitle,
+} from '@angular/material/dialog';
 import { Data } from '@angular/router';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-customer-edit-modal',
@@ -15,11 +26,22 @@ import { Data } from '@angular/router';
     ReactiveFormsModule,
     CommonModule,
     MatFormFieldModule,
-    MatOptionModule
+    MatOptionModule,
+    MatInputModule,
+    MatSelectModule,
+    MatDialogContent,
+    MatDialogTitle,
+    MatDialogActions,
+    MatButtonModule
   ]
 })
 export class CustomerEditModalComponent {
   editForm: FormGroup;
+  identificationTypes = [
+    { id: '1', name: 'Cédula' },
+    { id: '2', name: 'RUC' },
+    { id: '3', name: 'Pasaporte' }
+  ];
   private customerId: number;
 
   constructor(

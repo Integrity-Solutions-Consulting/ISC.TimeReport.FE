@@ -1,62 +1,89 @@
-<div>
-  <h2>Registro de Clientes</h2>
-    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="customer-form">
-      <div class="form-group">
-        <label for="identificationType">Tipo de Identificación</label>
-        <select id="identificationType" formControlName="identificationType" class="form-control">
-          <option value="">Seleccione un tipo</option>
-          <option *ngFor="let type of identificationTypes" [value]="type.id">{{ type.name }}</option>
-        </select>
-        <div *ngIf="customerForm.get('identificationType')?.invalid && customerForm.get('identificationType')?.touched" class="error-message">
-          Este campo es requerido
-        </div>
-      </div>
+<mat-card appearance="outlined" class="mat-card">
+  <mat-card-content>
+    <h2>Registro de Clientes</h2>
+    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="customer-form-two">
 
-      <div class="form-group">
-        <label for="identificationNumber">Número de Identificación</label>
-        <input id="identificationNumber" type="text" formControlName="identificationNumber" class="form-control">
-        <div *ngIf="customerForm.get('identificationNumber')?.invalid && customerForm.get('identificationNumber')?.touched" class="error-message">
-          <span *ngIf="customerForm.get('identificationNumber')?.errors?.['required']">Este campo es requerido</span>
-          <span *ngIf="customerForm.get('identificationNumber')?.errors?.['pattern']">
-            {{ getIdentificationNumberErrorMessage() }}
-          </span>
-        </div>
-      </div>
+      <mat-form-field appearance="fill" class="full-width form-control">
+        <mat-label for="identificationType">Tipo de Identificación</mat-label>
+        <mat-select formControlName="identificationType">
+          @for (type of identificationTypes; track type){
+            <mat-option [value]="type.id">{{ type.name }}</mat-option>
+          }
+        </mat-select>
+        <mat-error>
+          @if(customerForm.get('identificationType')?.invalid && customerForm.get('identificationType')?.touched){
+            Este campo es requerido
+          }
+        </mat-error>
+      </mat-form-field>
 
-      <div class="form-group">
-        <label for="commercialName">Nombre Comercial</label>
-        <input id="commercialName" type="text" formControlName="commercialName" class="form-control">
-        <div *ngIf="customerForm.get('commercialName')?.invalid && customerForm.get('commercialName')?.touched" class="error-message">
-          Este campo es requerido
-        </div>
-      </div>
+      <mat-form-field appearance="fill" class="full-width form-control">
+        <mat-label for="identificationNumber">Número de Identificación</mat-label>
+        <input matInput formControlName="identificationNumber" required (blur)="updateIdentificationNumberErrorMessage()"/>
+        @if (customerForm.get('identificationNumber')?.invalid && customerForm.get('identificationNumber')?.touched) {
+          <mat-error>
+            @if (customerForm.get('identificationNumber')?.errors?.['required']) {
+              Este campo es requerido
+            }
+            @if (customerForm.get('identificationNumber')?.errors?.['pattern']) {
+              {{ getIdentificationNumberErrorMessage() }}
+            }
+          </mat-error>
+        }
+      </mat-form-field>
 
-      <div class="form-group">
-        <label for="companyName">Razón Social</label>
-        <input id="companyName" type="text" formControlName="companyName" class="form-control">
-        <div *ngIf="customerForm.get('companyName')?.invalid && customerForm.get('companyName')?.touched" class="error-message">
-          Este campo es requerido
-        </div>
-      </div>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label for="commercialName">Nombre Comercial</mat-label>
+        <input matInput formControlName="commercialName" required/>
+        @if (customerForm.get('commercialName')?.invalid && customerForm.get('commercialName')?.touched) {
+          <mat-error>
+            Este campo es requerido
+          </mat-error>
+        }
+      </mat-form-field>
 
-      <div class="form-group">
-        <label for="cellPhoneNumber">Número de Teléfono Celular</label>
-        <input id="cellPhoneNumber" type="tel" formControlName="cellPhoneNumber" class="form-control">
-        <div *ngIf="customerForm.get('cellPhoneNumber')?.invalid && customerForm.get('cellPhoneNumber')?.touched" class="error-message">
-          <span *ngIf="customerForm.get('cellPhoneNumber')?.errors?.['required']">Este campo es requerido</span>
-          <span *ngIf="customerForm.get('cellPhoneNumber')?.errors?.['pattern']">Ingrese un número de teléfono válido (10-15 dígitos)</span>
-        </div>
-      </div>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label for="companyName">Razón Social</mat-label>
+        <input matInput formControlName="companyName" required/>
+        @if (customerForm.get('companyName')?.invalid && customerForm.get('companyName')?.touched) {
+          <mat-error>
+            Este campo es requerido
+          </mat-error>
+        }
+      </mat-form-field>
 
-      <div class="form-group">
-        <label for="email">Correo Electrónico</label>
-        <input id="email" type="email" formControlName="email" class="form-control">
-        <div *ngIf="customerForm.get('email')?.invalid && customerForm.get('email')?.touched" class="error-message">
-          <span *ngIf="customerForm.get('email')?.errors?.['required']">Este campo es requerido</span>
-          <span *ngIf="customerForm.get('email')?.errors?.['email']">Ingrese un correo electrónico válido</span>
-        </div>
-      </div>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label for="cellPhoneNumber">Teléfono Celular</mat-label>
+        <input matInput formControlName="cellPhoneNumber" required/>
+        @if (customerForm.get('cellPhoneNumber')?.invalid && customerForm.get('cellPhoneNumber')?.touched) {
+          <mat-error>
+            @if (customerForm.get('cellPhoneNumber')?.errors?.['required']) {
+              Este campo es requerido
+            }
+            @if (customerForm.get('cellPhoneNumber')?.errors?.['pattern']){
+              Ingrese un número de teléfono válido (10-15 dígitos)
+            }
+          </mat-error>
+        }
+      </mat-form-field>
 
-      <button type="submit" class="submit-button" [disabled]="customerForm.invalid">Guardar</button>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label for="email">Correo Electrónico</mat-label>
+        <input matInput formControlName="email" required/>
+        @if (customerForm.get('email')?.invalid && customerForm.get('email')?.touched) {
+          <mat-error>
+            @if (customerForm.get('email')?.errors?.['required']) {
+              Este campo es requerido
+            }
+            @if (customerForm.get('email')?.errors?.['email']){
+              Ingrese un correo electrónico válido
+            }
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <custom-button text="Guardar" type="submit" [disabled]="customerForm.invalid"></custom-button>
+
     </form>
-</div>
+  </mat-card-content>
+</mat-card>

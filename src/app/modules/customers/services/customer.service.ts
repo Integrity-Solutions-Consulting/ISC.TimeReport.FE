@@ -30,7 +30,6 @@ export class CustomerService{
         id: Number(id),
         ...updateCustomerRequest
       };
-      console.log('Enviando actualización:', requestBody);
       return this._httpClient.put<SuccessResponse<Customer>>(`${this.urlBase}/api/customer/update/${id}`, requestBody);
     }
 }
