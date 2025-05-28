@@ -1,5 +1,5 @@
 export interface LoginRequest {
-  Username: string;
+  email: string;
   Password: string;
 }
 
@@ -8,9 +8,8 @@ export interface AuthResponse {
   message: string;
   data: {
     token: string;
-    username: string;
+    email: string;
     names: string | null;
     surnames: string | null;
-    email: string | null;
   };
 }
