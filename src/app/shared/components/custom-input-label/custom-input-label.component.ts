@@ -1,26 +1,49 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component, forwardRef, Input } from '@angular/core';
+import { ControlContainer, FormControl, FormGroup, NG_VALUE_ACCESSOR, NgForm } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'custom-input-label',
   standalone: true,
-  imports: [CommonModule, FormsModule],
   templateUrl: './custom-input-label.component.html',
-  styleUrls: ['./custom-input-label.component.scss']
+  viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],
+  imports: [
+    MatFormFieldModule,
+    MatInputModule
+  ],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => CustomInputLabelComponent),
+      multi: true
+    }
+  ]
 })
 export class CustomInputLabelComponent {
-  @Input() label: string = '';
-  @Input() placeholder: string = '';
-  @Input() type: string = 'text';
-  @Input() value: string = '';
-  @Input() disabled: boolean = false;
-  @Input() required: boolean = false;
+  @Input() formGroup!: FormGroup;
+  @Input() controlName!: string;
+  @Input() label!: string;
+  @Input() required = false;
+  @Input() type = 'text';
+  @Input() placeholder = '';
+  @Input() errorMessage = '';
 
-  @Output() valueChange = new EventEmitter<string>();
+  internalValue: any = '';
 
-  onInputChange(event: any) {
-    this.value = event.target.value;
-    this.valueChange.emit(this.value);
+  onChange: (value: any) => void = () => {};
+
+  onTouched: () => void = () => {};
+
+  writeValue(value: any): void {
+    this.internalValue = value;
+  }
+
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+    this.onTouched = fn;
   }
 }

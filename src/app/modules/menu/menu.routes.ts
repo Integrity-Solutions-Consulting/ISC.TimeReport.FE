@@ -9,8 +9,12 @@ export const menuRoutes: Routes = [
         children:[
           {
             path: 'customers',
-            loadChildren: ()=> import('../customers/customers.routes').then((m) => m.customersRoutes),
+            loadChildren: () => import('../customers/customers.routes').then((m) => m.customersRoutes),
           },
+          {
+            path: 'leaders',
+            loadChildren: () => import('../leaders/leaders.routes').then((m) => m.PoepleRoutes)
+          }
         ]
     },
 ];

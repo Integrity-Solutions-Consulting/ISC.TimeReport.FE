@@ -11,5 +11,5 @@ import { RouterLink } from '@angular/router';
   styleUrl: './menu.component.scss'
 })
 export class MenuComponent {
-  public options:string[] = ['/menu/customers/manage', '/menu/customers'];
+  public options:string[] = ['/menu/customers/manage', '/menu/customers', '/menu/leaders', '/menu/leaders/manage'];
 }
