@@ -1,0 +1,70 @@
+<div class="list-container">
+  <table mat-table [dataSource]="leaders" class="mat-elevation-z8">
+
+    <ng-container matColumnDef="idtype">
+      <th mat-header-cell *matHeaderCellDef> Tipo </th>
+      <td mat-cell *matCellDef="let element">{{getIdentificationTypeName(element.identificationType)}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="idnumber">
+      <th mat-header-cell *matHeaderCellDef> Identificación </th>
+      <td mat-cell *matCellDef="let element">{{element.identificationNumber}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="leadertype">
+      <th mat-header-cell *matHeaderCellDef> Tipo de Líder </th>
+      <td mat-cell *matCellDef="let element">{{getLeaderTypeName(element.leaderType)}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="names">
+      <th mat-header-cell *matHeaderCellDef> Nombres </th>
+      <td mat-cell *matCellDef="let element">{{element.names}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="surnames">
+      <th mat-header-cell *matHeaderCellDef> Apellidos </th>
+      <td mat-cell *matCellDef="let element">{{element.surnames}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="gender">
+      <th mat-header-cell *matHeaderCellDef> Tipo de Líder </th>
+      <td mat-cell *matCellDef="let element">{{getGenderTypeName(element.gender)}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="phone">
+      <th mat-header-cell *matHeaderCellDef> Teléfono Móvil </th>
+      <td mat-cell *matCellDef="let element">{{element.cellPhoneNumber}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="position">
+      <th mat-header-cell *matHeaderCellDef> Cargo </th>
+      <td mat-cell *matCellDef="let element">{{element.position}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="pemail">
+      <th mat-header-cell *matHeaderCellDef> Correo Personal </th>
+      <td mat-cell *matCellDef="let element">{{element.personalEmail}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="cemail">
+      <th mat-header-cell *matHeaderCellDef> Correo Corporativo </th>
+      <td mat-cell *matCellDef="let element">{{element.corporateEmail}}</td>
+    </ng-container>
+    <ng-container matColumnDef="address">
+      <th mat-header-cell *matHeaderCellDef> Dirección </th>
+      <td mat-cell *matCellDef="let element">{{element.homeAddress}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="options">
+      <th mat-header-cell *matHeaderCellDef> Acciones </th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-icon-button class="edit-button" matTooltip="Editar">
+          O
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</div>

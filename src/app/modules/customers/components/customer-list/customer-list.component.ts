@@ -1,7 +1,7 @@
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { Component, inject, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
 import { Customer } from '../../interfaces/customer.interface';
 import { CustomerService } from '../../services/customer.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';

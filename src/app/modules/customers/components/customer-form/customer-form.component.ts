@@ -4,7 +4,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button.component';
-import { CustomInputLabelComponent } from '../../../../shared/components/custom-input-label/custom-input-label.component';
 import { merge } from 'rxjs';
 import { CustomContainerComponent } from '../../../../shared/components/custom-container/custom-container.component';
 import { CustomerService } from '../../services/customer.service';
@@ -12,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
+import { CustomInputLabelComponent } from '../../../../shared/components/custom-input-label/custom-input-label.component';
 
 @Component({
   selector: 'customer-form',
@@ -25,11 +25,12 @@ import { MatCardModule } from '@angular/material/card';
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
-    MatCardModule
+    MatCardModule,
+    CustomInputLabelComponent
   ]
 })
 export class CustomerFormComponent {
-  customerForm: FormGroup;
+  formGroup: FormGroup;
 
   identificationTypes = [
     { id: '1', name: 'Cédula' },
@@ -46,7 +47,7 @@ export class CustomerFormComponent {
   successMessage = signal<string | null>(null);
 
   constructor(private fb: FormBuilder) {
-    this.customerForm = this.fb.group({
+    this.formGroup = this.fb.group({
       identificationType: ['', Validators.required],
       identificationNumber: ['', [Validators.required, Validators.pattern(/^[0-9]+$/)]],
       commercialName: ['', Validators.required],
@@ -55,8 +56,11 @@ export class CustomerFormComponent {
       email: ['', [Validators.required, Validators.email]]
     });
 
-    this.customerForm.get('identificationType')?.valueChanges.subscribe(value => {
-      const identificationNumberControl = this.customerForm.get('identificationNumber');
+    console.log(this.fb)
+    console.log(this.formGroup)
+
+    this.formGroup.get('identificationType')?.valueChanges.subscribe(value => {
+      const identificationNumberControl = this.formGroup.get('identificationNumber');
 
       if (value === 1) { // Cédula
         identificationNumberControl?.setValidators([
@@ -76,16 +80,18 @@ export class CustomerFormComponent {
       }
 
       identificationNumberControl?.updateValueAndValidity();
+      console.log(this.formGroup)
     });
   }
 
   onSubmit() {
-    if (this.customerForm.valid) {
+    console.log(this.formGroup)
+    if (this.formGroup.valid) {
       this.isSubmitting.set(true);
       this.errorMessage.set(null);
       this.successMessage.set(null);
 
-      const formData = this.customerForm.value;
+      const formData = this.formGroup.value;
 
       console.log('Formulario enviado:', formData);
       console.log('Datos a enviar:', JSON.stringify(formData, null, 2));
@@ -94,7 +100,7 @@ export class CustomerFormComponent {
         next: (response) => {
           this.isSubmitting.set(false);
           this.successMessage.set('Cliente creado exitosamente');
-          this.customerForm.reset();
+          this.formGroup.reset();
         },
         error: (err) => {
           this.isSubmitting.set(false);
@@ -102,12 +108,12 @@ export class CustomerFormComponent {
         }
       });
       } else {
-        this.customerForm.markAllAsTouched();
+        this.formGroup.markAllAsTouched();
     }
   }
 
   updateIdentificationNumberErrorMessage() {
-    const control = this.customerForm.get('identificationNumber');
+    const control = this.formGroup.get('identificationNumber');
 
     if (control?.hasError('required')) {
       this.identificationNumberErrorMessage = 'Este campo es requerido';
@@ -119,7 +125,7 @@ export class CustomerFormComponent {
   }
 
   getIdentificationNumberErrorMessage(): string {
-    const identificationType = this.customerForm.get('identificationType')?.value;
+    const identificationType = this.formGroup.get('identificationType')?.value;
 
     if (!identificationType) return 'Seleccione primero un tipo de identificación';
 

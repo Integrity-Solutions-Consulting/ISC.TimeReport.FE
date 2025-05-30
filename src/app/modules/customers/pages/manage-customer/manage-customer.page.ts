@@ -4,11 +4,12 @@ import { CustomerFormComponent } from '../../components/customer-form/customer-f
 @Component({
   selector: 'manage-customer',
   standalone: true,
-  imports:[
-    CustomerFormComponent
-  ],
-  templateUrl: './manage-customer.component.html',
-  styleUrl: './manage-customer.component.scss'
+  imports: [
+    CustomerFormComponent,
+
+],
+  templateUrl: './manage-customer.page.html',
+  styleUrl: './manage-customer.page.scss'
 })
 export class ManageCustomerPage {
 }
