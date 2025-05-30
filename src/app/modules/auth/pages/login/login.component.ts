@@ -46,6 +46,10 @@ export class LoginPage implements OnInit {
     login(): void {
     if (this.loginForm.invalid) {
       this.mensajeError = 'El Email o la contraseña son Incorrectos.';
+        this.mostrarError = true;
+        setTimeout(() => {
+          this.mostrarError = false;
+        }, 4000);
       this.mostrarError = true;
       this.loginForm.markAllAsTouched();
       return;
@@ -60,7 +64,6 @@ export class LoginPage implements OnInit {
         this.router.navigate(['/menu/customers/manage']);
       },
       error: (err) => {
-        // Aquí puedes personalizar los mensajes según el error
         if (err.status === 401) {
           this.mensajeError = 'Usuario o contraseña incorrectos.';
           this.loginForm.reset();
