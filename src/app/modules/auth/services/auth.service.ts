@@ -14,4 +14,9 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this._httpClient.post<AuthResponse>(`${this.urlBase}/api/Auth/login`, credentials);
   }
+
+  getMenusByRoles(roles: string[]): Observable<string[]> {
+  return this._httpClient.post<string[]>('https://.com/api/menus/roles', { roles });
+}
+
 }

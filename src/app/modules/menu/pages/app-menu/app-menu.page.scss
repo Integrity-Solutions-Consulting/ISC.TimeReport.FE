@@ -1,23 +1,29 @@
-header{
-    width: 100vw;
-    margin: 0%;
-    background-color: var(--secondary);
+header {
+  width: 100vw;
+  margin: 0;
+  background-color: var(--primary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-main{
-    display: flex;
-    width: 100%;
-    min-height: 100%;
+main {
+  display: flex;
+  width: 100%;
+  min-height: calc(100vh - 60px); // ajusta según altura del header
+  overflow: hidden;
 }
 
-#menu-container{
-    width: 20%;
-    min-height: 100%;
-    margin: 0%;
-    background-color: var(--secondary);
+#menu-container {
+  width: 250px;
+  min-height: 100%;
+  background-color: var(--secondary);
+  flex-shrink: 0;
 }
 
-#content-container{
-    width: 80%;
-    min-height: 100%;
+#content-container {
+  flex: 1;
+  padding: 2rem;
+  background-color: var(--light);
+  overflow-y: auto;
 }

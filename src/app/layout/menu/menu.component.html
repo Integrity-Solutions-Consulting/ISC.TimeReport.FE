@@ -1,9 +1,7 @@
 <div id="menu-container">
-  <nav>
-    <ul>
-      @for (option of options; track option) {
-        <li> <a routerLink="{{option}}">{{ $index + 1 }}. {{ option }}</a></li>
-      }
-    </ul>
-  </nav>
+  <ul>
+    <li *ngFor="let menu of options">
+      <a [routerLink]="menu.rutaMenu">{{ menu.nombreMenu }}</a>
+    </li>
+  </ul>
 </div>

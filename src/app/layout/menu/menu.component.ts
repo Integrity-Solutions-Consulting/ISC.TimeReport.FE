@@ -1,15 +1,38 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'menu',
   standalone: true,
-  imports:[
-    RouterLink
+  imports: [
+    RouterLink,
+    CommonModule
   ],
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.scss'
 })
-export class MenuComponent {
-  public options:string[] = ['/menu/customers/manage', '/menu/customers', '/menu/leaders', '/menu/leaders/manage'];
+export class MenuComponent implements OnInit {
+
+  public options: { nombreMenu: string; rutaMenu: string }[] = [];
+
+  ngOnInit(): void {
+    const rawMenus = localStorage.getItem('menus');
+    console.log('Raw from localStorage:', rawMenus);
+
+    const parsedMenus = rawMenus ? JSON.parse(rawMenus) : [];
+
+    this.options = parsedMenus.map((item: any) => {
+      const ruta = item.rutaMenu.startsWith('/menu/')
+        ? item.rutaMenu
+        : `/menu/${item.rutaMenu.replace(/^\/+/, '')}`; // quita '/' inicial si hay y le agrega '/menu/'
+
+      return {
+        nombreMenu: item.nombreMenu,
+        rutaMenu: ruta
+      };
+    });
+
+    console.log('Opciones cargadas:', this.options);
+  }
 }

@@ -7,7 +7,6 @@ import { Router } from '@angular/router';
 import { LoadingComponent } from '../../components/login-loading/login-loading.component';
 import { AlertaComponent } from '../../components/alerta/alerta.component';
 
-
 @Component({
   selector: 'LoginPage',
   standalone: true,
@@ -32,25 +31,20 @@ export class LoginPage implements OnInit {
   formInvalid = false;
   isLoading = false;
 
-
-
   loginForm!: FormGroup;
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    Password: ['', [Validators.required, Validators.minLength(8)]]
+      email: ['', [Validators.required]],
+      Password: ['', [Validators.required]]
     });
   }
 
-    login(): void {
+  login(): void {
     if (this.loginForm.invalid) {
       this.mensajeError = 'El Email o la contraseña son Incorrectos.';
-        this.mostrarError = true;
-        setTimeout(() => {
-          this.mostrarError = false;
-        }, 4000);
       this.mostrarError = true;
+      setTimeout(() => this.mostrarError = false, 4000);
       this.loginForm.markAllAsTouched();
       return;
     }
@@ -59,25 +53,26 @@ export class LoginPage implements OnInit {
 
     this.authService.login(credentials).subscribe({
       next: (response) => {
-        localStorage.setItem('token', response.data.token);
+        const { token, roles, menus } = response.data;
+
+        localStorage.setItem('token', token);
+        localStorage.setItem('roles', JSON.stringify(roles));
+        localStorage.setItem('menus', JSON.stringify(menus));
+
         this.loginForm.reset();
-        this.router.navigate(['/menu/customers/manage']);
+        this.router.navigate(['/menu']);
       },
       error: (err) => {
         if (err.status === 401) {
           this.mensajeError = 'Usuario o contraseña incorrectos.';
-          this.loginForm.reset();
         } else if (err.status === 404) {
           this.mensajeError = 'El usuario no existe.';
-          this.loginForm.reset();
         } else {
           this.mensajeError = 'Ocurrió un error inesperado. Intenta de nuevo.';
-          this.loginForm.reset();
         }
+        this.loginForm.reset();
         this.mostrarError = true;
-        setTimeout(() => {
-          this.mostrarError = false;
-        }, 4000);
+        setTimeout(() => this.mostrarError = false, 4000);
       }
     });
   }
