@@ -1,31 +1,38 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'menu',
   standalone: true,
-  imports:[
+  imports: [
     RouterLink,
     CommonModule
   ],
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.scss'
 })
-export class MenuComponent {
-  public staticOptions: string[] = ['/menu/customers/manage', '/menu/customers']; // menús fijos
-  public dynamicOptions: string[] = []; // menús según rol
-  public options: string[] = []; // combinación
+export class MenuComponent implements OnInit {
 
-  ngOnInit() {
-    const menus = localStorage.getItem('menus');
-    if (menus) {
-      this.dynamicOptions = JSON.parse(menus);
-    }
+  public options: { nombreMenu: string; rutaMenu: string }[] = [];
 
-    // Unir ambos sin duplicados
-    const set = new Set([...this.staticOptions, ...this.dynamicOptions]);
-    this.options = Array.from(set);
+  ngOnInit(): void {
+    const rawMenus = localStorage.getItem('menus');
+    console.log('Raw from localStorage:', rawMenus);
+
+    const parsedMenus = rawMenus ? JSON.parse(rawMenus) : [];
+
+    this.options = parsedMenus.map((item: any) => {
+      const ruta = item.rutaMenu.startsWith('/menu/')
+        ? item.rutaMenu
+        : `/menu/${item.rutaMenu.replace(/^\/+/, '')}`; // quita '/' inicial si hay y le agrega '/menu/'
+
+      return {
+        nombreMenu: item.nombreMenu,
+        rutaMenu: ruta
+      };
+    });
+
+    console.log('Opciones cargadas:', this.options);
   }
 }
-

@@ -3,7 +3,8 @@
   background-color: #1e2a38;
   color: #fff;
   height: 100vh;
-  width: 220px;
+  width: 240px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 
   ul {
     list-style: none;
@@ -12,20 +13,26 @@
   }
 
   li {
-    margin: 0.5rem 0;
+    margin-bottom: 0.5rem;
 
     a {
       text-decoration: none;
-      color: #fff;
+      color: #ffffffcc;
       font-weight: 500;
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       padding: 0.75rem 1rem;
       border-radius: 8px;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, color 0.2s ease;
 
       &:hover {
         background-color: #3c4f65;
-        color: #e0e0e0;
+        color: #ffffff;
+      }
+
+      &:active {
+        background-color: #506683;
       }
     }
   }

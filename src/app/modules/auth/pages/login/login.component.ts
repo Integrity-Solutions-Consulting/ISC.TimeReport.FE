@@ -7,9 +7,6 @@ import { Router } from '@angular/router';
 import { LoadingComponent } from '../../components/login-loading/login-loading.component';
 import { AlertaComponent } from '../../components/alerta/alerta.component';
 
-import { jwtDecode } from 'jwt-decode';
-
-
 @Component({
   selector: 'LoginPage',
   standalone: true,
@@ -38,8 +35,8 @@ export class LoginPage implements OnInit {
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      Password: ['', [Validators.required, Validators.minLength(8)]]
+      email: ['', [Validators.required]],
+      Password: ['', [Validators.required]]
     });
   }
 
@@ -47,9 +44,7 @@ export class LoginPage implements OnInit {
     if (this.loginForm.invalid) {
       this.mensajeError = 'El Email o la contraseña son Incorrectos.';
       this.mostrarError = true;
-      setTimeout(() => {
-        this.mostrarError = false;
-      }, 4000);
+      setTimeout(() => this.mostrarError = false, 4000);
       this.loginForm.markAllAsTouched();
       return;
     }
@@ -58,30 +53,14 @@ export class LoginPage implements OnInit {
 
     this.authService.login(credentials).subscribe({
       next: (response) => {
-        const token = response.data.token;
+        const { token, roles, menus } = response.data;
+
         localStorage.setItem('token', token);
-
-        // ✅ PASO 4: Decodificar token para obtener roles
-        const decodedToken: any = jwtDecode(token);
-        const roles = decodedToken?.roles || []; // Ajusta el campo según tu backend
-
         localStorage.setItem('roles', JSON.stringify(roles));
+        localStorage.setItem('menus', JSON.stringify(menus));
 
-        // ✅ PASO 5: Llamar al backend para obtener los menús del usuario
-        this.authService.getMenusByRoles(roles).subscribe({
-          next: (menus) => {
-            localStorage.setItem('menus', JSON.stringify(menus));
-            this.loginForm.reset();
-            this.router.navigate(['/menu']);
-          },
-          error: (err) => {
-            this.mensajeError = 'Error al obtener los menús disponibles.';
-            this.mostrarError = true;
-            setTimeout(() => {
-              this.mostrarError = false;
-            }, 4000);
-          }
-        });
+        this.loginForm.reset();
+        this.router.navigate(['/menu']);
       },
       error: (err) => {
         if (err.status === 401) {
@@ -93,9 +72,7 @@ export class LoginPage implements OnInit {
         }
         this.loginForm.reset();
         this.mostrarError = true;
-        setTimeout(() => {
-          this.mostrarError = false;
-        }, 4000);
+        setTimeout(() => this.mostrarError = false, 4000);
       }
     });
   }

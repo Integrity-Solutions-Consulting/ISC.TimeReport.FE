@@ -1,7 +1,7 @@
 <div id="menu-container">
   <ul>
-    <li *ngFor="let option of options; let i = index">
-      <a [routerLink]="option">{{ i + 1 }}. {{ option }}</a>
+    <li *ngFor="let menu of options">
+      <a [routerLink]="menu.rutaMenu">{{ menu.nombreMenu }}</a>
     </li>
   </ul>
 </div>

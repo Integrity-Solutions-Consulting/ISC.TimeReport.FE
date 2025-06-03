@@ -1,4 +1,4 @@
 export const environment = {
     URL_API:'https://github.com',
-    URL_BASE: 'https://localhost:44392'
+    URL_BASE: 'https://192.168.100.149/time-report.be'
 };

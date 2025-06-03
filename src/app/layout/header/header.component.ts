@@ -13,7 +13,7 @@ export class HeaderComponent {
   constructor(private router: Router) {}
 
   logout() {
-    localStorage.clear(); // o localStorage.removeItem('token') si usas token
+    localStorage.clear();
     this.router.navigate(['/auth/login']);
   }
 }
