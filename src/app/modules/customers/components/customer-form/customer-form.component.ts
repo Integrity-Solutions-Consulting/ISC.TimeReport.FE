@@ -26,7 +26,6 @@ import { CustomInputLabelComponent } from '../../../../shared/components/custom-
     MatSelectModule,
     MatInputModule,
     MatCardModule,
-    CustomInputLabelComponent
   ]
 })
 export class CustomerFormComponent {

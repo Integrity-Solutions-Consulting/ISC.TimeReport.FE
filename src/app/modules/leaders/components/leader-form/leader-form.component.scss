@@ -1,0 +1,80 @@
+.h2 {
+  color: --primary;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.mat-card {
+  margin: 20px;
+}
+
+.customer-form-two {
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.customer-form {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: --primary;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .form-group {
+    margin-bottom: 20px;
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+
+      &:focus {
+        outline: none;
+        border-color: --secondary;
+        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+      }
+    }
+
+    .error-message {
+      color: #d9534f;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+  }
+
+  .submit-button {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: var(--tertiary);
+    }
+
+    &:disabled {
+      background-color: var(--light);
+      cursor: not-allowed;
+      color: #0d0d0d;
+    }
+  }
+}

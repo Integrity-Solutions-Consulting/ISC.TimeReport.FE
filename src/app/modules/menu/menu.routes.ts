@@ -16,7 +16,7 @@ export const menuRoutes: Routes = [
           },
           {
             path: 'leaders',
-            loadChildren: () => import('../leaders/leaders.routes').then((m) => m.PoepleRoutes)
+            loadChildren: () => import('../leaders/leaders.routes').then((m) => m.LeaderRoutes)
           }
         ]
     },

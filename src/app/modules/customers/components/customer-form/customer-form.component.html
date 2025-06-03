@@ -42,15 +42,15 @@
         }
       </mat-form-field>
 
-
-
-      <custom-input-label
-        label="Razón Social"
-        formControlName="companyName"
-        [required]="true"
-      >
-
-      </custom-input-label>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label for="companyName">Razón Social</mat-label>
+        <input matInput formControlName="companyName" required/>
+        @if (formGroup.get('companyName')?.invalid && formGroup.get('companyName')?.touched) {
+          <mat-error>
+            Este campo es requerido
+          </mat-error>
+        }
+      </mat-form-field>
 
       <mat-form-field appearance="fill" class="full-width">
         <mat-label for="cellPhoneNumber">Teléfono Celular</mat-label>

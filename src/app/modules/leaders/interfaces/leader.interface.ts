@@ -1,14 +1,34 @@
-export interface Leader{
+export interface LeaderwPerson {
+  identificationType: string;
+  identificationNumber: string;
+  names: string;
+  surnames: string;
+  cellPhoneNumber?: string;
+  position?: string;
+  personalEmail?: string;
+  corporateEmail: string;
+  homeAddress?: string;
+  leaderType: string;
+  projectCode: string;
+  customerCode: string;
+}
+
+export interface Leader {
     id:               number;
-    idtype:           string;
-    idnumber:         string;
-    leadertype:       string;
-    names:            string;
-    surnames:         string;
-    gender:           string;
-    phone:            string;
-    position:         string;
-    pemail:           string;
-    cemail:           string;
-    address:          string;
+    leaderType:       string;
+    projectCode:      string;
+    customerCode:     string;
+    idPerson:         number;
+}
+
+export interface Person {
+  identificationType: string;
+  identificationNumber: string;
+  names: string;
+  surnames: string;
+  cellPhoneNumber: string;
+  position: string;
+  personalEmail: string;
+  corporateEmail: string;
+  homeAddress: string;
 }
