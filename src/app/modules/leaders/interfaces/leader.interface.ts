@@ -19,6 +19,17 @@ export interface Leader {
     projectCode:      string;
     customerCode:     string;
     idPerson:         number;
+    person: {
+      identificationType: string;
+      identificationNumber: string;
+      names: string;
+      surnames: string;
+      cellPhoneNumber: string;
+      position: string;
+      personalEmail: string;
+      corporateEmail: string;
+      homeAddress: string;
+    };
 }
 
 export interface Person {

@@ -23,4 +23,16 @@ export class LeadersService {
     return this._httpClient.post<SuccessResponse<Leader>>(`${this.urlBase}/api/leader/create`, createLeaderRequest);
   }
 
+  updateLeader(id: number, updateLeaderRequest: LeaderwPerson): Observable<SuccessResponse<Leader>> {
+    if (id === undefined || id === null || isNaN(id)) {
+      throw new Error('ID de cliente no válido: ' + id);
+    };
+    const requestBody = {
+      id: Number(id),
+
+      ...updateLeaderRequest
+    };
+    return this._httpClient.put<SuccessResponse<Leader>>(`${this.urlBase}/api/leader/update/${id}`, requestBody);
+  }
+
 }

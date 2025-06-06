@@ -59,3 +59,20 @@ tr.mat-mdc-row:hover td.mat-mdc-cell .edit-button {
 .mat-row:hover {
   background-color: rgba(0, 0, 0, 0.04);
 }
+
+.search-field {
+  width: 50%;
+  margin: 16px 0;
+}
+
+.list-container {
+  padding: 16px;
+}
+
+.top-items {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
