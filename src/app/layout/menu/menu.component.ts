@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'menu',
+  selector: 'menu-timereport',
   standalone: true,
   imports: [
     RouterLink,
-    CommonModule
+    CommonModule,
+    RouterModule
   ],
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.scss'
