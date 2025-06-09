@@ -1,12 +1,11 @@
 #header-container {
-  width: 90%;
-  background-color: #154a91; // azul profesional
   color: white;
   padding: 0.75rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); // sombra suave
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  min-height: 20%;
 
   .logo {
     font-size: 1.3rem;

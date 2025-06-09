@@ -4,34 +4,102 @@
   [visible]="mostrarError"
 ></app-alerta>
 
-
 <div class="login-container">
-  <div class="login-box">
-    <h2>Bienvenido</h2>
-    <div class="login-box-logo">
-      <img src="assets/img/logo-isc.webp" alt="Logo" class="logo">
+  <!-- Left Panel - Login Form -->
+  <div class="login-panel">
+    <div class="login-content">
+      <!-- Logo -->
+      <div class="logo-container">
+        <img src="assets/img/logo-isc.webp" alt="Integrity Solutions" class="logo">
+      </div>
+
+      <!-- Title -->
+      <h1 class="login-title">Iniciar Sesión</h1>
+
+      <!-- Login Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="login()" class="login-form">
+        
+        <div class="error-message" *ngIf="formInvalid">
+          Por favor, complete todos los campos obligatorios.
+        </div>
+
+        <!-- Email Field -->
+        <div class="form-group">
+          <label for="email" class="form-label">Correo electrónico</label>
+          <input 
+            id="email"
+            type="email" 
+            formControlName="email" 
+            placeholder="email@gmail.com"
+            class="form-input"
+            [class.invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" 
+          />
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="password" class="form-label">Contraseña</label>
+          <div class="password-container">
+            <input 
+              id="password"
+              [type]="showPassword ? 'text' : 'password'" 
+              formControlName="Password" 
+              placeholder="Contraseña"
+              class="form-input"
+              [class.invalid]="loginForm.get('Password')?.invalid && loginForm.get('Password')?.touched" 
+            />
+            <button 
+              type="button" 
+              class="password-toggle"
+              (click)="togglePasswordVisibility()"
+            >
+              <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg *ngIf="showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember Me Checkbox -->
+        <div class="form-options">
+          <label class="checkbox-container">
+            <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe">
+            <span class="checkmark"></span>
+            Recuerda mis datos
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="login-button" [disabled]="isLoading">
+          Iniciar Sesión
+        </button>
+
+        <!-- Forgot Password Link -->
+        <div class="forgot-password">
+          <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
+        </div>
+      </form>
     </div>
+  </div>
 
-
-    <form [formGroup]="loginForm" (ngSubmit)="login()">
-
-      <div class="error-message" *ngIf="formInvalid">
-        Por favor, complete todos los campos obligatorios.
+  <!-- Right Panel - Branding -->
+  <div class="branding-panel">
+    <div class="branding-content">
+      <div class="branding-image">
+        <img src="/placeholder.svg?height=400&width=600" alt="Integrity Solutions Team" class="brand-image">
       </div>
-
-
-
-      <input class="login-fields" type="text" formControlName="email" placeholder="Email"
-        [class.invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" />
-
-      <input class="login-fields" type="Password" formControlName="Password" placeholder="Contraseña"
-        [class.invalid]="loginForm.get('Password')?.invalid && loginForm.get('Password')?.touched" />
-
-      <button type="submit">Login</button>
-
-      <div class="links">
-        <a href="#">¿Perdiste tu contraseña?</a>
+      <div class="branding-text">
+        <h2 class="brand-title">Integrity Solutions</h2>
+        <p class="brand-description">
+          Nuestras líneas de negocios, proporcionan a nuestros clientes el respaldo apropiado en la busqueda de soluciones 
+          integrales a nivel empresarial, junto con la experiencia de nuestros consultores y el compromiso de calidad brindada.
+        </p>
       </div>
-    </form>
+    </div>
   </div>
 </div>

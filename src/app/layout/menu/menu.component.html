@@ -1,7 +1,17 @@
 <div id="menu-container">
+  <div class="logo-header">
+    <img src="assets/img/logo-isc.webp" alt="Logo Integrity" class="logo-img" />
+    <div class="logo-text">
+      TimeReport<span class="logo-dot">.</span>
+    </div>
+  </div>
+
   <ul>
     <li *ngFor="let menu of options">
-      <a [routerLink]="menu.rutaMenu">{{ menu.nombreMenu }}</a>
+      <a 
+      [routerLink]="menu.rutaMenu"
+      routerLinkActive="active-link"
+    >{{ menu.nombreMenu }}</a>
     </li>
   </ul>
 </div>
