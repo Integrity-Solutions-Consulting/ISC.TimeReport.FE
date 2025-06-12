@@ -18,21 +18,21 @@
 
       <!-- Login Form -->
       <form [formGroup]="loginForm" (ngSubmit)="login()" class="login-form">
-        
+
         <div class="error-message" *ngIf="formInvalid">
           Por favor, complete todos los campos obligatorios.
         </div>
 
         <!-- Email Field -->
         <div class="form-group">
-          <label for="email" class="form-label">Correo electrónico</label>
-          <input 
-            id="email"
-            type="email" 
-            formControlName="email" 
+          <label for="username" class="form-label">Correo electrónico</label>
+          <input
+            id="username"
+            type="email"
+            formControlName="username"
             placeholder="email@gmail.com"
             class="form-input"
-            [class.invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" 
+            [class.invalid]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched"
           />
         </div>
 
@@ -40,16 +40,16 @@
         <div class="form-group">
           <label for="password" class="form-label">Contraseña</label>
           <div class="password-container">
-            <input 
+            <input
               id="password"
-              [type]="showPassword ? 'text' : 'password'" 
-              formControlName="Password" 
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="Password"
               placeholder="Contraseña"
               class="form-input"
-              [class.invalid]="loginForm.get('Password')?.invalid && loginForm.get('Password')?.touched" 
+              [class.invalid]="loginForm.get('Password')?.invalid && loginForm.get('Password')?.touched"
             />
-            <button 
-              type="button" 
+            <button
+              type="button"
               class="password-toggle"
               (click)="togglePasswordVisibility()"
             >
@@ -96,7 +96,7 @@
       <div class="branding-text">
         <h2 class="brand-title">Integrity Solutions</h2>
         <p class="brand-description">
-          Nuestras líneas de negocios, proporcionan a nuestros clientes el respaldo apropiado en la busqueda de soluciones 
+          Nuestras líneas de negocios, proporcionan a nuestros clientes el respaldo apropiado en la busqueda de soluciones
           integrales a nivel empresarial, junto con la experiencia de nuestros consultores y el compromiso de calidad brindada.
         </p>
       </div>

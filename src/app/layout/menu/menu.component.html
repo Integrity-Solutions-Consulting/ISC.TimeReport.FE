@@ -8,10 +8,10 @@
 
   <ul>
     <li *ngFor="let menu of options">
-      <a 
-      [routerLink]="menu.rutaMenu"
+      <a
+      [routerLink]="menu.modulePath"
       routerLinkActive="active-link"
-    >{{ menu.nombreMenu }}</a>
+    >{{ menu.moduleName }}</a>
     </li>
   </ul>
 </div>

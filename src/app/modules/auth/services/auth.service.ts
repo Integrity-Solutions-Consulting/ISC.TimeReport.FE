@@ -13,6 +13,7 @@ export class AuthService {
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this._httpClient.post<AuthResponse>(`${this.urlBase}/api/Auth/login`, credentials);
+    //return this._httpClient.post<AuthResponse>(`localhost:44392/api/Auth/login`, credentials);
   }
 
   getMenusByRoles(roles: string[]): Observable<string[]> {
