@@ -30,7 +30,7 @@ export class LoginPage implements OnInit {
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
-      email: ["", [Validators.required, Validators.email]],
+      username: ["", [Validators.required, Validators.email]],
       Password: ["", [Validators.required, Validators.minLength(6)]],
     })
 
@@ -63,18 +63,20 @@ export class LoginPage implements OnInit {
 
     // Handle remember me functionality
     if (this.rememberMe) {
-      localStorage.setItem("rememberedEmail", credentials.email)
+      localStorage.setItem("rememberedEmail", credentials.username)
     } else {
       localStorage.removeItem("rememberedEmail")
     }
 
+    console.log(credentials)
+
     this.authService.login(credentials).subscribe({
       next: (response) => {
-        const { token, roles, menus } = response.data
+        const { token, roles, modules } = response.data
 
         localStorage.setItem("token", token)
         localStorage.setItem("roles", JSON.stringify(roles))
-        localStorage.setItem("menus", JSON.stringify(menus))
+        localStorage.setItem("modules", JSON.stringify(modules))
 
         this.loginForm.reset()
         this.isLoading = false

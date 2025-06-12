@@ -1,5 +1,5 @@
 export interface LoginRequest {
-  email: string;
+  username: string;
   Password: string;
 }
 
@@ -13,7 +13,7 @@ export interface AuthResponse {
     corr: string | null;
     token: string;
     roles: Role[];
-    menus: Menu[];
+    modules: Modules[];
   };
 }
 
@@ -22,8 +22,8 @@ export interface Role {
   rolName: string;
 }
 
-export interface Menu {
+export interface Modules {
   id: number;
-  nombreMenu: string;
-  rutaMenu: string;
+  moduleName: string;
+  modulePath: string;
 }

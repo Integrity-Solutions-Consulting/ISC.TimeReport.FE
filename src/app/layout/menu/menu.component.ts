@@ -15,22 +15,22 @@ import { CommonModule } from '@angular/common';
 })
 export class MenuComponent implements OnInit {
 
-  public options: { nombreMenu: string; rutaMenu: string }[] = [];
+  public options: { moduleName: string; modulePath: string }[] = [];
 
   ngOnInit(): void {
-    const rawMenus = localStorage.getItem('menus');
+    const rawMenus = localStorage.getItem('modules');
     console.log('Raw from localStorage:', rawMenus);
 
     const parsedMenus = rawMenus ? JSON.parse(rawMenus) : [];
 
     this.options = parsedMenus.map((item: any) => {
-      const ruta = item.rutaMenu.startsWith('/menu/')
+      const ruta = item.modulePath.startsWith('/menu/')
         ? item.rutaMenu
-        : `/menu/${item.rutaMenu.replace(/^\/+/, '')}`; // quita '/' inicial si hay y le agrega '/menu/'
+        : `/menu/${item.modulePath.replace(/^\/+/, '')}`; // quita '/' inicial si hay y le agrega '/menu/'
 
       return {
-        nombreMenu: item.nombreMenu,
-        rutaMenu: ruta
+        moduleName: item.moduleName,
+        modulePath: ruta
       };
     });
 
