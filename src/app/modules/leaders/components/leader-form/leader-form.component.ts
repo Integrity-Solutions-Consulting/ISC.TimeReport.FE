@@ -10,6 +10,7 @@ import { Leader, Person } from '../../interfaces/leader.interface';
 import { LeadersService } from '../../services/leaders.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { CustomInputLabelComponent } from '../../../../shared/components/custom-input-label/custom-input-label.component';
 
 @Component({
   selector: 'leader-form',

@@ -17,6 +17,14 @@ export const menuRoutes: Routes = [
           {
             path: 'leaders',
             loadChildren: () => import('../leaders/leaders.routes').then((m) => m.LeaderRoutes)
+          },
+          {
+            path: 'persons',
+            loadChildren: () => import('../persons/persons.routes').then((m) => m.personsRoutes)
+          },
+          {
+            path: 'employees',
+            loadChildren: () => import('../employees/employees.routes').then((m) => m.employeesRoutes)
           }
         ]
     },

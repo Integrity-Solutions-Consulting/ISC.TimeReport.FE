@@ -1,0 +1,48 @@
+<div class="form-grid" [formGroup]="employeeForm">
+    <div class="form-row">
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Código del Empleado</mat-label>
+            <input matInput type="text">
+        </mat-form-field>
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Tipo de Contrato</mat-label>
+            <mat-select formControlName="contractType">
+                @for (type of contractTypes; track type) {
+                  <mat-option [value]="type.value">{{type.viewValue}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+    </div>
+    <div class="form-row">
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Fecha de Contratación</mat-label>
+            <input matInput [matDatepicker]="picker1" formControlName="hireDate">
+            <mat-hint>MM/DD/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
+            <mat-datepicker #picker1></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Fecha de Terminación</mat-label>
+            <input matInput [matDatepicker]="picker2" formControlName="terminationDate">
+            <mat-hint>MM/DD/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
+            <mat-datepicker #picker2></mat-datepicker>
+        </mat-form-field>
+    </div>
+    <div class="form-row">
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Departamento</mat-label>
+            <input matInput type="text" formControlName="department">
+        </mat-form-field>
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Correo Corporativo</mat-label>
+            <input matInput type="text" formControlName="corporateEmail">
+        </mat-form-field>
+        <mat-form-field floatLabel="always" class="form-field" appearance="outline">
+            <mat-label>Salario</mat-label>
+            <input matInput type="number" class="dollar-right-align" placeholder="0" formControlName="salary" />
+            <span matTextPrefix>$&nbsp;</span>
+            <span matTextSuffix>.00</span>
+        </mat-form-field>
+    </div>
+</div>
