@@ -1,6 +1,4 @@
-<div class="list-container">
-
-  <h4>Líderes</h4>
+<div class="mat-elevation-z8">
 
   <div class="top-items">
     <mat-form-field appearance="outline" class="search-field">
@@ -19,10 +17,10 @@
     </a>
   </div>
 
-  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort>
+  <table mat-table [dataSource]="dataSource" matSort style="border-radius: 8px 8px 0 0; overflow: hidden;">
 
     <ng-container matColumnDef="select">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+      <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox (change)="$event ? toggleAll() : null"
                       [checked]="selection.hasValue() && isAllSelected()"
                       [indeterminate]="selection.hasValue() && !isAllSelected()">
@@ -62,16 +60,16 @@
     </ng-container>
 
     <ng-container matColumnDef="options">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> Acciones </th>
+      <th mat-header-cell *matHeaderCellDef> Acciones </th>
       <td mat-cell *matCellDef="let element">
         <button mat-icon-button class="edit-button" (click)="openEditModal(element)" matTooltip="Editar">
           <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="edit"></mat-icon>
         </button>
-        <button mat-icon-button class="edit-button" matTooltip="Visualizar">
-          <mat-icon>visibility</mat-icon>
+        <button mat-icon-button class="view-button" matTooltip="Visualizar">
+          <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="visibility"></mat-icon>
         </button>
-        <button mat-icon-button class="edit-button" matTooltip="Eliminar">
-          <mat-icon>delete</mat-icon>
+        <button mat-icon-button class="delete-button" matTooltip="Eliminar">
+          <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="delete"></mat-icon>
         </button>
       </td>
     </ng-container>

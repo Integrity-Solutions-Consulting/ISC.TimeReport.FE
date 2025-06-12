@@ -1,12 +1,15 @@
-table {
-  width: 100%;
-  margin: 20px 0;
+.mat-table, .mat-paginator {
+  box-shadow: none !important;
+}
+
+.mat-paginator {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .mat-elevation-z8 {
-  box-shadow: 0 5px 5px -3px rgba(0,0,0,.2),
-              0 8px 10px 1px rgba(0,0,0,.14),
-              0 3px 14px 2px rgba(0,0,0,.12);
+  box-shadow: 0 5px 5px -3px rgba(0,0,0,.2);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 th.mat-header-cell {
@@ -36,7 +39,6 @@ td.mat-cell {
 }
 
 .list-container {
-  padding: 20px;
   position: relative;
   min-height: 200px;
 }
@@ -44,10 +46,31 @@ td.mat-cell {
 .edit-button {
   opacity: 0;
   transition: opacity 0.1s ease;
+  color: var(--primary)
+}
+
+.view-button {
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  color: green;
+}
+
+.delete-button {
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  color: red;
 }
 
 /* Muestra el botón al hacer hover en la fila */
 tr.mat-mdc-row:hover td.mat-mdc-cell .edit-button {
+  opacity: 1;
+}
+
+tr.mat-mdc-row:hover td.mat-mdc-cell .view-button {
+  opacity: 1;
+}
+
+tr.mat-mdc-row:hover td.mat-mdc-cell .delete-button {
   opacity: 1;
 }
 
@@ -62,7 +85,6 @@ tr.mat-mdc-row:hover td.mat-mdc-cell .edit-button {
 
 .search-field {
   width: 50%;
-  margin: 16px 0;
 }
 
 .list-container {
@@ -71,8 +93,28 @@ tr.mat-mdc-row:hover td.mat-mdc-cell .edit-button {
 
 .top-items {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin: 10px 0 20px 0;
   width: 100%;
+}
+
+@media (min-width: 768px) {
+  .top-items {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+@media (min-width: 600px) {
+  .search-field {
+    min-width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mat-elevation-z8 {
+    overflow-x: auto;
+    display: block;
+  }
 }

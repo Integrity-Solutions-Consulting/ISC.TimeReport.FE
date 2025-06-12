@@ -32,7 +32,7 @@ export class CustomerPaginatorIntl implements MatPaginatorIntl {
   changes = new Subject<void>();
 
   firstPageLabel = `Primera Página`;
-  itemsPerPageLabel = `Elementos por Página:`;
+  itemsPerPageLabel = `Registros por Página:`;
   lastPageLabel = `Última Página`;
 
   nextPageLabel = 'Página Siguiente ';

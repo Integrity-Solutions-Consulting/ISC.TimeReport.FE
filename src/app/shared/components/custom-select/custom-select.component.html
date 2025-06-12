@@ -1,0 +1,17 @@
+<div>
+  <mat-form-field>
+    <mat-label>{{ label }}</mat-label>
+    <mat-select
+      [formControl]="control"
+      [placeholder]="placeholder"
+      [required]="required"
+    >
+      @for (item of options; track getTrackBy(item)) {
+        <mat-option [value]="getValue(item)">{{ getDisplay(item) }}</mat-option>
+      }
+    </mat-select>
+    <!--@if (showErrors && control?.invalid && control?.touched) {
+      <mat-error>{{ errorMessage || 'Este campo es requerido' }}</mat-error>
+  }-->
+  </mat-form-field>
+</div>

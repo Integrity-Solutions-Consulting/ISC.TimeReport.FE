@@ -1,9 +1,12 @@
 import { Component, Input } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'custom-button',
   standalone: true,
-  imports: [],
+  imports: [
+    MatButtonModule
+  ],
   templateUrl: './custom-button.component.html',
   styleUrl: './custom-button.component.scss'
 })

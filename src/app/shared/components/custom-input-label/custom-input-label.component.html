@@ -1,10 +1,19 @@
-<div>
-  <mat-form-field appearance="fill" class="full-width">
-    <mat-label>{{ label }}</mat-label>
+<div style="width: 100%;">
+  <mat-form-field appearance="fill">
+    <mat-label *ngIf="label">{{ label }}</mat-label>
     <input
       matInput
-      formControlName="controlName"
+      [placeholder]="placeholder"
       [required]="required"
+      [formControl]="control"
+      [type]="type"
     >
+    <mat-hint *ngIf="hint">{{ hint }}</mat-hint>
+      @if (control.hasError('email') && !control.hasError('required')) {
+        <mat-error>{{ invalidEmailMessage }}</mat-error>
+      }
+      @if (control.hasError('required')) {
+        <mat-error>{{ requiredMessage }}</mat-error>
+      }
   </mat-form-field>
 </div>

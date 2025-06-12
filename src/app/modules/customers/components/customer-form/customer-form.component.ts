@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
 import { CustomInputLabelComponent } from '../../../../shared/components/custom-input-label/custom-input-label.component';
+import { CustomSelectComponent } from '../../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'customer-form',
@@ -30,6 +31,9 @@ import { CustomInputLabelComponent } from '../../../../shared/components/custom-
 })
 export class CustomerFormComponent {
   formGroup: FormGroup;
+
+  emailControl = new FormControl(Validators.required, Validators.email);
+  stringControl = new FormControl(Validators.required,Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*$/));
 
   identificationTypes = [
     { id: '1', name: 'Cédula' },
