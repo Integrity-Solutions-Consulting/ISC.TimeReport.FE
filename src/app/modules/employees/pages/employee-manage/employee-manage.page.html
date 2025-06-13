@@ -1,8 +1,12 @@
-<h4>Crear Empleado</h4>
+<!--<h4>Crear Empleado</h4>
 <form (ngSubmit)="onSubmit()">
-  <person-form></person-form>
-  <employee-form></employee-form>
+  <person-form #personForm></person-form>
+  <employee-form #employeeForm></employee-form>
   <div class="button-container">
-      <custom-button text="Guardar"></custom-button>
+    <custom-button text="Guardar" mat-flat-button color="primary" type="submit"
+            [disabled]="!personForm?.valid || !employeeForm?.valid">
+    </custom-button>
   </div>
-</form>
+</form>-->
+
+<employee-form></employee-form>

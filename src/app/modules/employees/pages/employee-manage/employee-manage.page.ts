@@ -5,6 +5,7 @@ import { CustomButtonComponent } from '../../../../shared/components/custom-butt
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { EmployeeService } from '../../services/employee.service';
 import { CommonModule } from '@angular/common';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'employee-manage',
@@ -13,49 +14,64 @@ import { CommonModule } from '@angular/common';
     CommonModule,
     ReactiveFormsModule,
     EmployeeFormComponent,
-    PersonFormComponent,
-    CustomButtonComponent
+    MatSnackBarModule
   ],
   templateUrl: './employee-manage.page.html',
   styleUrl: './employee-manage.page.scss'
 })
 export class EmployeeManagePage {
-  constructor(private employeeService: EmployeeService) {}
 
-  @ViewChild(PersonFormComponent) personFormComponent!: PersonFormComponent;
-  @ViewChild(EmployeeFormComponent) employeeFormComponent!: EmployeeFormComponent;
+  @ViewChild('personForm') personForm!: PersonFormComponent;
+  @ViewChild('employeeForm') employeeForm!: EmployeeFormComponent;
 
-  onSubmit() {
-    if (this.personFormComponent.personForm.valid &&
-        this.employeeFormComponent.employeeForm.valid) {
+  constructor(
+    private employeeService: EmployeeService,
+    private snackBar: MatSnackBar
+  ) {}
 
-      const employeeData = {
-        ...this.personFormComponent.personForm.value,
-        ...this.employeeFormComponent.employeeForm.value
+  onSubmit(): void {
+
+    console.log('Formulario enviado');
+
+    if (!this.personForm || !this.employeeForm) {
+      console.error('Formularios no inicializados');
+      return;
+    }
+
+    console.log('Estado de validación:');
+    console.log('PersonForm válido:', this.personForm.valid);
+    console.log('EmployeeForm válido:', this.employeeForm.valid);
+
+    console.log('Datos de PersonForm:', this.personForm.value);
+    console.log('Datos de EmployeeForm:', this.employeeForm.value);
+
+    if (this.personForm.valid && this.employeeForm.valid) {
+      const formData = {
+        ...this.personForm.value,
+        ...this.employeeForm.value,
+        identificationTypeId: this.personForm.value.identificationType,
+        genderID: this.personForm.value.gender,
+        nationalityID: this.personForm.value.nationality
       };
 
-      this.saveToLocalStorage(employeeData);
+      // Eliminar propiedades que no necesita el backend
+      delete formData.identificationType;
+      delete formData.gender;
+      delete formData.nationality;
 
-      console.log('Datos a enviar al servicio:', employeeData);
+      console.log('Datos que se enviarán al servicio:', formData);
 
-      this.employeeService.createEmployee(employeeData).subscribe({
-        next: (response) => {
-          console.log('Empleado creado', response);
+      console.log(formData)
+
+      this.employeeService.createEmployee(formData).subscribe({
+        next: () => {
+          this.snackBar.open('Empleado creado con éxito', 'Cerrar', { duration: 3000 });
         },
-        error: (error) => {
-          console.error('Error al crear empleado', error);
+        error: (err) => {
+          console.error('Error:', err);
+          this.snackBar.open('Error al crear empleado', 'Cerrar', { duration: 3000 });
         }
       });
     }
-  }
-
-  private saveToLocalStorage(data: any): void {
-    // Convertir a string (Local Storage solo guarda strings)
-    const dataString = JSON.stringify(data);
-
-    // Guardar bajo una clave específica (ej: 'employeeFormData')
-    localStorage.setItem('employeeFormData', dataString);
-
-    console.log('Datos guardados en Local Storage:', data);
   }
 }

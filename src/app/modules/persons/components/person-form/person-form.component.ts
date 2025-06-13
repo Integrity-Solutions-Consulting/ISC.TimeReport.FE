@@ -49,6 +49,16 @@ export class PersonFormComponent {
   //@Input() parentForm!: FormGroup;
   personForm!: FormGroup;
 
+  // Definir la propiedad 'valid' como pública
+  public get valid(): boolean {
+    return this.personForm.valid;
+  }
+
+  // Definir la propiedad 'value' como pública
+  public get value(): any {
+    return this.personForm.value;
+  }
+
   constructor(private fb: FormBuilder) {}
 
   ngOnInit() {
@@ -65,6 +75,25 @@ export class PersonFormComponent {
       email: [''],
       address: [''],
     });
+  }
+
+  // Resto de la implementación de ControlValueAccessor...
+  writeValue(obj: any): void {
+    if (obj) {
+      this.personForm.patchValue(obj, { emitEvent: false });
+    }
+  }
+
+  registerOnChange(fn: any): void {
+    this.personForm.valueChanges.subscribe(fn);
+  }
+
+  registerOnTouched(fn: any): void {
+    this.personForm.valueChanges.subscribe(fn);
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    isDisabled ? this.personForm.disable() : this.personForm.enable();
   }
 
   types: IdentificationTypeid[] = [
