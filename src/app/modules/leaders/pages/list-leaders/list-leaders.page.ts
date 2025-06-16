@@ -1,12 +1,14 @@
 import { Component } from '@angular/core';
 import { Leader } from '../../interfaces/leader.interface';
 import { LeaderListComponent } from '../../components/leader-list/leader-list.component';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'list-leaders',
   standalone: true,
   imports: [
-    LeaderListComponent
+    LeaderListComponent,
+    MatCardModule,
   ],
   templateUrl: './list-leaders.page.html',
   styleUrl: './list-leaders.page.scss'

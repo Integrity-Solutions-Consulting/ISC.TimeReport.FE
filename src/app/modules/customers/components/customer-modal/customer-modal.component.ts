@@ -19,8 +19,8 @@ import { MatButtonModule } from '@angular/material/button';
 @Component({
   selector: 'app-customer-edit-modal',
   standalone: true,
-  templateUrl: './customer-edit-modal.component.html',
-  styleUrls: ['./customer-edit-modal.component.scss'],
+  templateUrl: './customer-modal.component.html',
+  styleUrls: ['./customer-modal.component.scss'],
   imports: [
     ReactiveFormsModule,
     CommonModule,
@@ -34,8 +34,12 @@ import { MatButtonModule } from '@angular/material/button';
     MatButtonModule
   ]
 })
-export class CustomerEditModalComponent {
-  editForm: FormGroup;
+export class CustomerModalComponent {
+
+  customerForm!: FormGroup;
+
+  isEditMode: boolean = false;
+
   identificationTypes = [
     { id: '1', name: 'Cédula' },
     { id: '2', name: 'RUC' },
@@ -44,21 +48,30 @@ export class CustomerEditModalComponent {
   private customerId: number;
 
   constructor(
-    public dialogRef: MatDialogRef<CustomerEditModalComponent>,
+    public dialogRef: MatDialogRef<CustomerModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private fb: FormBuilder
   ) {
-    this.customerId = data.customer.id;
-    this.editForm = this.fb.group({
-      idtype: [data.customer.identificationType, Validators.required],
-      idnumber: [data.customer.identificationNumber, Validators.required],
-      commercialname: [data.customer.commercialName, Validators.required],
-      companyname: [data.customer.companyName, Validators.required],
-      phone: [data.customer.cellPhoneNumber, [
+    const customerData = data?.customer || {};
+
+    this.customerId = customerData.id || null;
+    this.isEditMode = !!customerData.id;
+
+    this.initializeForm(customerData);
+
+  }
+
+  private initializeForm(customerData: any): void {
+    this.customerForm = this.fb.group({
+      idtype: [customerData.identificationType, Validators.required],
+      idnumber: [customerData.cdentificationNumber, Validators.required],
+      commercialname: [customerData.commercialName, Validators.required],
+      companyname: [customerData.companyName, Validators.required],
+      phone: [customerData.cellPhoneNumber, [
         Validators.required,
         Validators.pattern(/^[0-9]+$/)
       ]],
-      email: [data.customer.email, [
+      email: [customerData.email, [
         Validators.required,
         Validators.email
       ]]
@@ -70,15 +83,15 @@ export class CustomerEditModalComponent {
   }
 
   onSubmit(): void {
-    if (this.editForm.valid) {
+    if (this.customerForm.valid) {
       const updatedCustomer = {
         id: this.customerId,
-        identificationType: this.editForm.value.idtype,
-        identificationNumber: this.editForm.value.idnumber,
-        commercialName: this.editForm.value.commercialname,
-        companyName: this.editForm.value.companyname,
-        cellPhoneNumber: this.editForm.value.phone,
-        email: this.editForm.value.email
+        identificationType: this.customerForm.value.idtype,
+        identificationNumber: this.customerForm.value.idnumber,
+        commercialName: this.customerForm.value.commercialname,
+        companyName: this.customerForm.value.companyname,
+        cellPhoneNumber: this.customerForm.value.phone,
+        email: this.customerForm.value.email
       };
       console.log(updatedCustomer);
       this.dialogRef.close(updatedCustomer);

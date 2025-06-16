@@ -1,6 +1,8 @@
-<h2 mat-dialog-title>Editar Cliente</h2>
+<h4 mat-dialog-title style="margin: 10px;">
+  {{ isEditMode ? 'Editar Cliente' : 'Crear Nuevo Cliente' }}
+</h4>
 <mat-dialog-content>
-  <form [formGroup]="editForm" (ngSubmit)="onSubmit()" class="customer-form">
+  <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="customer-form">
 
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Tipo de Identificación</mat-label>
@@ -29,7 +31,7 @@
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Teléfono Móvil</mat-label>
       <input matInput formControlName="phone">
-      <mat-error *ngIf="editForm.get('phone')?.hasError('pattern')">
+      <mat-error *ngIf="customerForm.get('phone')?.hasError('pattern')">
         Formato de teléfono inválido
       </mat-error>
     </mat-form-field>
@@ -37,7 +39,7 @@
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Correo Electrónico</mat-label>
       <input matInput formControlName="email">
-      <mat-error *ngIf="editForm.get('email')?.hasError('email')">
+      <mat-error *ngIf="customerForm.get('email')?.hasError('email')">
         Formato de email inválido
       </mat-error>
     </mat-form-field>
@@ -46,5 +48,5 @@
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-raised-button style="background-color: var(--primary); color: var(--light)" (click)="onSubmit()" [disabled]="!editForm.valid">Guardar</button>
+  <button mat-raised-button style="background-color: var(--primary); color: var(--light)" (click)="onSubmit()" [disabled]="!customerForm.valid">Guardar</button>
 </mat-dialog-actions>

@@ -17,7 +17,7 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CustomerEditModalComponent } from '../customer-edit-modal/customer-edit-modal.component';
+import { CustomerModalComponent } from '../customer-modal/customer-modal.component';
 import { SuccessResponse } from '../../../../shared/interfaces/response.interface';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,7 +40,7 @@ export class CustomerPaginatorIntl implements MatPaginatorIntl {
 
   getRangeLabel(page: number, pageSize: number, length: number): string {
     if (length === 0) {
-      return `Página 1 of 1`;
+      return `Página 1 de 1`;
     }
     const amountPages = Math.ceil(length / pageSize);
     return `Página ${page + 1} de ${amountPages}`;
@@ -76,7 +76,7 @@ export class CustomerListComponent implements OnInit{
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
 
-  displayedColumns: string[] = ['select', 'idtype', 'idnumber', 'commercialname', 'companyname', 'phone', 'email', 'options'];
+  displayedColumns: string[] = ['idtype', 'idnumber', 'commercialname', 'companyname', 'phone', 'email', 'options'];
 
   selection = new SelectionModel<any>(true, []);
 
@@ -128,7 +128,7 @@ export class CustomerListComponent implements OnInit{
       this.snackBar.open('Error: El cliente no tiene ID válido', 'Cerrar', { duration: 5000 });
       return;
     }
-    const dialogRef = this.dialog.open(CustomerEditModalComponent, {
+    const dialogRef = this.dialog.open(CustomerModalComponent, {
       width: '600px',
       data: {
         customer: { id: customer.id,
@@ -187,6 +187,37 @@ export class CustomerListComponent implements OnInit{
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
+
+  openCreateDialog(): void {
+    const dialogRef = this.dialog.open(CustomerModalComponent, {
+      width: '500px',
+      disableClose: true,
+      data: { project: null }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.customerService.createCustomer(result);
+        this.snackBar.open("Cliente creado con éxito", "Cerrar", {duration: 5000})
+      } else {
+        this.snackBar.open("Ocurrió un error", "Cerrar", {duration: 5000})
+      }
+    });
+  }
+
+  openEditDialog(customer: Customer): void {
+    const dialogRef = this.dialog.open(CustomerModalComponent, {
+      width: '500px',
+      disableClose: true,
+      data: { customer } // Pasamos el elemento a editar
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.customerService.updateCustomer(customer.id, result);
+      }
+    });
   }
 
 }

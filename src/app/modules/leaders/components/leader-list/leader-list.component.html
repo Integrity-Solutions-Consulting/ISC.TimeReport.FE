@@ -1,4 +1,4 @@
-<div class="mat-elevation-z8">
+<div>
 
   <div class="top-items">
     <mat-form-field appearance="outline" class="search-field">
@@ -11,15 +11,15 @@
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
 
-    <a mat-flat-button href="menu/leaders/manage" style="background-color: var(--primary);">
-      <mat-icon>add</mat-icon>
-      Agregar Nuevo
-    </a>
+    <button mat-flat-button style="background-color: var(--primary);" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Agregar Nuevo
+    </button>
   </div>
 
   <table mat-table [dataSource]="dataSource" matSort style="border-radius: 8px 8px 0 0; overflow: hidden;">
 
-    <ng-container matColumnDef="select">
+    <!--<ng-container matColumnDef="select">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox (change)="$event ? toggleAll() : null"
                       [checked]="selection.hasValue() && isAllSelected()"
@@ -32,7 +32,7 @@
                      [checked]="selection.isSelected(row)">
         </mat-checkbox>
       </td>
-    </ng-container>
+    </ng-container>-->
 
     <ng-container matColumnDef="idtype">
       <th mat-header-cell *matHeaderCellDef mat-sort-header> Tipo </th>
@@ -62,7 +62,7 @@
     <ng-container matColumnDef="options">
       <th mat-header-cell *matHeaderCellDef> Acciones </th>
       <td mat-cell *matCellDef="let element">
-        <button mat-icon-button class="edit-button" (click)="openEditModal(element)" matTooltip="Editar">
+        <button mat-icon-button class="edit-button" (click)="openEditDialog(element)" matTooltip="Editar">
           <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="edit"></mat-icon>
         </button>
         <button mat-icon-button class="view-button" matTooltip="Visualizar">
