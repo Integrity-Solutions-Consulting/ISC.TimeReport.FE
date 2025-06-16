@@ -5,7 +5,7 @@ import { Leader, LeaderwPerson } from '../../interfaces/leader.interface';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { LeaderEditModalComponent } from '../leader-edit-modal/leader-edit-modal.component';
+import { LeaderModalComponent } from '../leader-modal/leader-modal.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -29,7 +29,7 @@ export class LeaderPaginatorIntl implements MatPaginatorIntl {
 
   getRangeLabel(page: number, pageSize: number, length: number): string {
     if (length === 0) {
-      return `Página 1 of 1`;
+      return `Página 1 de 1`;
     }
     const amountPages = Math.ceil(length / pageSize);
     return `Página ${page + 1} de ${amountPages}`;
@@ -69,7 +69,7 @@ export class LeaderListComponent implements OnInit{
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  displayedColumns: string[] = ['select', 'idtype', 'idnumber', 'leadertype', 'names', 'surnames', 'options'];
+  displayedColumns: string[] = ['idtype', 'idnumber', 'leadertype', 'names', 'surnames', 'options'];
 
   selection = new SelectionModel<any>(true, []);
 
@@ -107,59 +107,36 @@ export class LeaderListComponent implements OnInit{
     }
   }
 
-  openEditModal(leader: any): void {
-      if (!leader.id) {
-        console.error('El líder no tiene ID:', leader);
-        this.snackBar.open('Error: El cliente no tiene ID válido', 'Cerrar', { duration: 5000 });
-        return;
-      }
-      const dialogRef = this.dialog.open(LeaderEditModalComponent, {
-        width: '600px',
-        data: {
-          leader: { id: leader.id,
-          identificationType: leader.identificationType,
-          identificationNumber: leader.identificationNumber,
-          names: leader.names,
-          surnames: leader.surnames,
-          gender: leader.gender,
-          cellPhoneNumber: leader.cellPhoneNumber,
-          position: leader.position,
-          pemail: leader.personalEmail,
-          cemail: leader.corporateEmail,
-          homeAddress: leader.homeAddress,
-          leaderType: leader.leaderType,
-          projectCode: leader.projectCode,
-          customerCode: leader.customerCode
-          },
-          identificationTypes: [
-            { value: '1', name: 'Cédula' },
-            { value: '2', name: 'RUC' },
-            { value: '3', name: 'Pasaporte' }
-          ],
-          leaderTypes: [
-            { value: '1', name: 'Integrity' },
-            { value: '2', name: 'Externo' },
-          ],
-          genders: [
-            { value: 'M', name: 'Masculino' },
-            { value: 'F', name: 'Femenino' }
-          ]
-        }
-      });
+  openCreateDialog(): void {
+    const dialogRef = this.dialog.open(LeaderModalComponent, {
+      width: '500px',
+      disableClose: true,
+      data: { project: null }
+    });
 
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          this.leaderService.updateLeader(result.id, result).subscribe(
-            () => {
-              this.loadLeaders();
-            },
-            (error) => {
-              console.error('Error updating customer:', error);
-            }
-          );
-        }
-      });
-    }
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.leaderService.createLeader(result);
+        this.snackBar.open("Líder creado con éxito", "Cerrar", {duration: 5000})
+      } else {
+        this.snackBar.open("Ocurrió un error", "Cerrar", {duration: 5000})
+      }
+    });
+  }
+
+  openEditDialog(leader: Leader): void {
+        const dialogRef = this.dialog.open(LeaderModalComponent, {
+          width: '500px',
+          disableClose: true,
+          data: { leader } // Pasamos el elemento a editar
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+          if (result) {
+            this.leaderService.updateLeader(leader.id, result);
+          }
+        });
+      }
 
   getIdentificationTypeName(idtype: string): string {
     return this.identificationTypesMap[idtype] || 'Desconocido';

@@ -9,10 +9,10 @@ export const menuRoutes: Routes = [
         component: AppMenuPage,
         children:[
           {
-            path: 'customers',
+            path: 'clients',
             loadChildren: () => import('../customers/customers.routes').then((m) => m.customersRoutes),
-            canActivate: [RoleGuard],
-            data: { roles: ['admin'] }
+            //canActivate: [RoleGuard],
+            //data: { roles: ['Administrador'] }
           },
           {
             path: 'leaders',
@@ -25,6 +25,10 @@ export const menuRoutes: Routes = [
           {
             path: 'employees',
             loadChildren: () => import('../employees/employees.routes').then((m) => m.employeesRoutes)
+          },
+          {
+            path: 'projects',
+            loadChildren: () => import('../projects/projects.routes').then((m) => m.projectsRoutes)
           }
         ]
     },

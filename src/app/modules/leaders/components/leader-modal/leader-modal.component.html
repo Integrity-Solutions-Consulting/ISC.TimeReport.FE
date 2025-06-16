@@ -1,7 +1,10 @@
+<h4 mat-dialog-title style="margin: 10px;">
+  {{ isEditMode ? 'Editar Líder' : 'Crear Nuevo Líder' }}
+</h4>
 <mat-dialog-content>
-    <form [formGroup]="editForm" class="">
+    <form [formGroup]="leaderForm" class="">
 
-        <mat-form-field appearance="fill" class="full-width">
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Tipo de Identificación</mat-label>
             <mat-select formControlName="idtype">
               @for (type of identificationTypes; track type) {
@@ -10,22 +13,22 @@
             </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="full-width">
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Número de Identificación</mat-label>
             <input matInput formControlName="idnumber">
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="full-width">
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Nombres</mat-label>
             <input matInput formControlName="names">
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="full-width">
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Apellidos</mat-label>
             <input matInput formControlName="surnames">
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="full-width">
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Género</mat-label>
             <mat-select formControlName="gender">
               @for (type of genders; track type) {
@@ -34,41 +37,36 @@
             </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="full-width">
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Teléfono Móvil</mat-label>
             <input matInput formControlName="phone">
-            <mat-error *ngIf="editForm.get('phone')?.hasError('pattern')">
+            <mat-error *ngIf="leaderForm.get('phone')?.hasError('pattern')">
               Formato de teléfono inválido
             </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Cargo</mat-label>
-            <input matInput formControlName="position">
-        </mat-form-field>
-
-        <mat-form-field appearance="fill" class="full-width">
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Correo Personal</mat-label>
             <input matInput formControlName="pemail">
-            <mat-error *ngIf="editForm.get('pemail')?.hasError('email')">
+            <mat-error *ngIf="leaderForm.get('pemail')?.hasError('email')">
               Formato de email inválido
             </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="full-width">
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Correo Corporativo</mat-label>
             <input matInput formControlName="cemail">
-            <mat-error *ngIf="editForm.get('cemail')?.hasError('email')">
+            <mat-error *ngIf="leaderForm.get('cemail')?.hasError('email')">
               Formato de email inválido
             </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="full-width">
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Dirección Domicilio</mat-label>
             <input matInput formControlName="homeAddress">
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="full-width">
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Tipo de Líder</mat-label>
             <mat-select formControlName="leaderType">
               @for (type of leaderTypes; track type) {
@@ -77,12 +75,12 @@
             </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="full-width">
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Código Proyecto</mat-label>
             <input matInput formControlName="projectCode">
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="full-width">
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Código Cliente</mat-label>
             <input matInput formControlName="customerCode">
         </mat-form-field>
@@ -91,5 +89,5 @@
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-button (click)="onCancel()" >Cancelar</button>
-  <button mat-raised-button style="background-color: var(--primary); color: var(--light)" (click)="onSubmit()" [disabled]="!editForm.valid">Guardar</button>
+  <button mat-raised-button style="background-color: var(--primary); color: var(--light)" (click)="onSubmit()" [disabled]="!leaderForm.valid">Guardar</button>
 </mat-dialog-actions>

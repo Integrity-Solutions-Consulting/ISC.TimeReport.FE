@@ -1,0 +1,66 @@
+<h4 mat-dialog-title style="margin: 10px;">
+  {{ isEditMode ? 'Editar Proyecto' : 'Crear Nuevo Proyecto' }}
+</h4>
+<mat-dialog-content>
+    <form [formGroup]="projectForm" class="full-width">
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Estado del Proyecto</mat-label>
+            <mat-select formControlName="projectStatus">
+              @for (code of projectCodes; track code) {
+                <mat-option [value]="code.id">{{code.name}}</mat-option>
+              }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Cliente</mat-label>
+            <mat-select formControlName="clientId">
+              @for (code of clients; track code) {
+                <mat-option [value]="code.id">{{code.name}}</mat-option>
+              }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Código</mat-label>
+            <input matInput formControlName="code">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="name">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Descripción</mat-label>
+            <textarea matInput formControlName="description"></textarea>
+        </mat-form-field>
+
+        <mat-form-field class="full-width" appearance="outline">
+            <mat-label>Fecha de Inicio</mat-label>
+            <input matInput [matDatepicker]="picker1" formControlName="startDate">
+            <mat-hint>MM/DD/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
+            <mat-datepicker #picker1></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field class="full-width" appearance="outline">
+            <mat-label>Fecha de Terminación</mat-label>
+            <input matInput [matDatepicker]="picker2" formControlName="endDate">
+            <mat-hint>MM/DD/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
+            <mat-datepicker #picker2></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Presupuesto</mat-label>
+            <input matInput formControlName="budget" type="number">
+        </mat-form-field>
+
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button (click)="onCancel()" >Cancelar</button>
+  <button mat-raised-button style="background-color: var(--primary); color: var(--light)" (click)="onSubmit()" [disabled]="!projectForm.valid">Guardar</button>
+</mat-dialog-actions>

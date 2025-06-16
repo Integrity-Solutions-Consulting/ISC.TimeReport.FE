@@ -1,18 +1,39 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ViewChild } from '@angular/core';
+import { Component, inject, Injectable, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { Employee } from '../../interfaces/employee.interface';
 import { EmployeeService } from '../../services/employee.service';
 import { SelectionModel } from '@angular/cdk/collections';
+import { Subject } from 'rxjs';
+
+@Injectable()
+export class LeaderPaginatorIntl implements MatPaginatorIntl {
+  changes = new Subject<void>();
+
+  firstPageLabel = `Primera Página`;
+  itemsPerPageLabel = `Registros por Página:`;
+  lastPageLabel = `Última Página`;
+
+  nextPageLabel = 'Página Siguiente ';
+  previousPageLabel = 'Página Anterior';
+
+  getRangeLabel(page: number, pageSize: number, length: number): string {
+    if (length === 0) {
+      return `Página 1 de 1`;
+    }
+    const amountPages = Math.ceil(length / pageSize);
+    return `Página ${page + 1} de ${amountPages}`;
+  }
+}
 
 @Component({
   selector: 'employee-list',

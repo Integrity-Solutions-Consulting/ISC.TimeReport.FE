@@ -8,7 +8,7 @@ export const customersRoutes: Routes = [
         component: ListCustomersPage,
     },
     {
-          path: 'manage',
-          component: ManageCustomerPage,
+        path: 'manage',
+        component: ManageCustomerPage,
     },
 ];
