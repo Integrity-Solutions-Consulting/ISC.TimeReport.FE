@@ -12,9 +12,10 @@ import { Subject } from 'rxjs';
 import { ProjectService } from '../../services/project.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { Project } from '../../interfaces/project.interface';
+import { ApiResponse, Project } from '../../interfaces/project.interface';
 import { SelectionModel } from '@angular/cdk/collections';
 import { ProjectModalComponent } from '../project-modal/project-modal.component';
+import { CommonModule } from '@angular/common';
 
 @Injectable()
 export class ProjectPaginatorIntl implements MatPaginatorIntl {
@@ -40,6 +41,7 @@ export class ProjectPaginatorIntl implements MatPaginatorIntl {
   selector: 'list-project',
   standalone: true,
   imports: [
+    CommonModule,
     MatTableModule,
     MatCardModule,
     MatCheckboxModule,
@@ -69,7 +71,7 @@ export class ListProjectComponent implements OnInit{
 
     loading = false;
 
-    dataSource: MatTableDataSource<Project> = new MatTableDataSource<Project>();
+    dataSource: MatTableDataSource<Project> = new MatTableDataSource<Project>([]);
 
     @ViewChild(MatSort) sort!: MatSort;
     @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -94,12 +96,19 @@ export class ListProjectComponent implements OnInit{
 
     loadProjects(): void {
       this.projectService.getProjects().subscribe({
-        next: (response: Project[]) => {
-          this.projects = response;
-          this.dataSource.data = this.projects;
+        next: (response) => {
+          if (response?.items) {
+            this.dataSource = new MatTableDataSource<Project>(response.items);
+            this.dataSource.paginator = this.paginator;
+            this.dataSource.sort = this.sort;
+          } else {
+            console.error('La respuesta del API no tiene la estructura esperada:', response);
+            this.dataSource = new MatTableDataSource<Project>([]); // Tabla vacía como fallback
+          }
         },
         error: (err) => {
           console.error('Error al cargar proyectos:', err);
+          this.dataSource = new MatTableDataSource<Project>([]); // Tabla vacía en caso de error
         }
       });
     }
@@ -161,12 +170,12 @@ export class ListProjectComponent implements OnInit{
       const dialogRef = this.dialog.open(ProjectModalComponent, {
         width: '500px',
         disableClose: true,
-        data: { project } // Pasamos el elemento a editar
+        data: { project }
       });
 
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
-          this.projectService.updateProject(project.projectId, result);
+          this.projectService.updateProject(project.projectId!, result);
         }
       });
     }
