@@ -1,38 +1,52 @@
-import { CommonModule, formatDate } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { provideNativeDateAdapter } from '@angular/material/core';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { ProjectService } from '../../services/project.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { Project } from '../../interfaces/project.interface';
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'project-modal',
   standalone: true,
-  providers: [provideNativeDateAdapter()],
   imports: [
-    ReactiveFormsModule,
-    CommonModule,
-    MatButtonModule,
-    MatDatepickerModule,
-    MatDialogActions,
-    MatDialogContent,
     MatFormFieldModule,
+    MatDialogModule,
     MatSelectModule,
-    MatInputModule
+    MatInputModule,
+    MatDatepickerModule,
+    ReactiveFormsModule,
+    MatButtonModule
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [provideNativeDateAdapter()],
+  selector: 'app-project-modal',
   templateUrl: './project-modal.component.html',
-  styleUrl: './project-modal.component.scss'
+  styleUrls: ['./project-modal.component.scss']
 })
-export class ProjectModalComponent {
-
+export class ProjectModalComponent implements OnInit {
   projectForm!: FormGroup;
-
   isEditMode: boolean = false;
+
+  constructor(
+    private fb: FormBuilder,
+    private projectService: ProjectService,
+    private dialogRef: MatDialogRef<ProjectModalComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {
+    this.projectForm = this.fb.group({
+      projectStatusId: ['', Validators.required],
+      clientId: ['', Validators.required],
+      code: ['', [Validators.required, Validators.maxLength(50)]],
+      name: ['', [Validators.required, Validators.maxLength(150)]],
+      description: [''],
+      startDate: ['', Validators.required],
+      endDate: ['', Validators.required],
+      budget: ['', [Validators.required, Validators.min(0)]]
+    });
+  }
 
   projectCodes = [
     { id: 1, name: 'Planificación' },
@@ -54,55 +68,80 @@ export class ProjectModalComponent {
     { id: 7, name: 'Donde Sea' }
   ];
 
-  constructor(
-      public dialogRef: MatDialogRef<ProjectModalComponent>,
-      @Inject(MAT_DIALOG_DATA) public data: any,
-      private fb: FormBuilder
-    ) {
-      this.projectForm = this.fb.group({
-          projectStatus: [''],
-          clientId: [''],
-          code: [''],
-          name: [''],
-          description: [''],
-          startDate: [''],
-          endDate: [''],
-          actualStartDate: [null],
-          endStartDate: [null],
-          budget: [''],
-      });
-
-      if (data && data.project) {
+  ngOnInit(): void {
+    // Si hay datos, estamos en modo edición
+    if (this.data && this.data.project) {
       this.isEditMode = true;
-      this.projectForm.patchValue({
-        ...data.project,
-        startDate: data.project.startDate ? formatDate(data.project.startDate, 'yyyy-MM-dd', 'en-US') : null,
-        endDate: data.project.endDate ? formatDate(data.project.endDate, 'yyyy-MM-dd', 'en-US') : null
-      });
+      this.patchFormValues(this.data.project);
     }
-    }
+  }
 
-  onCancel(): void {
+
+  patchFormValues(project: any) {
+    this.projectForm.patchValue({
+      projectStatusId: project.projectStatusID,
+      clientId: project.clientID,
+      code: project.code,
+      name: project.name,
+      description: project.description,
+      startDate: new Date(project.startDate),
+      endDate: new Date(project.endDate),
+      budget: project.budget
+    });
+  }
+
+  onSubmit() {
+    if (this.projectForm.valid) {
+      const formValue = this.projectForm.value;
+
+      // Validación de fechas
+      if (new Date(formValue.endDate) < new Date(formValue.startDate)) {
+        alert('La fecha de fin no puede ser anterior a la fecha de inicio');
+        return;
+      }
+
+      const projectData: Project = {
+        clientID: formValue.clientId,
+        projectStatusID: formValue.projectStatusId,
+        code: formValue.code,
+        name: formValue.name,
+        description: formValue.description,
+        startDate: formValue.startDate?.toISOString(),
+        endDate: formValue.endDate?.toISOString(),
+        actualStartDate: formValue.startDate?.toISOString() || null,
+        actualEndDate: formValue.endDate?.toISOString() || null,
+        budget: formValue.budget
+      };
+
+      if (this.isEditMode && this.data?.project?.projectId) {
+        projectData.projectId = this.data.project.projectId;
+      }
+
+      if (this.isEditMode) {
+        // Modo edición
+        this.projectService.updateProject(this.data.project.projectId, projectData).subscribe({
+          next: (response) => {
+            this.dialogRef.close(response);
+          },
+          error: (err) => {
+            console.error('Error al actualizar proyecto:', err);
+          }
+        });
+      } else {
+        // Modo creación
+        this.projectService.createProject(projectData).subscribe({
+          next: (response) => {
+            this.dialogRef.close(response);
+          },
+          error: (err) => {
+            console.error('Error al crear proyecto:', err);
+          }
+        });
+      }
+    }
+  }
+
+  onCancel() {
     this.dialogRef.close();
   }
-
-  onSubmit(): void {
-    if (this.projectForm.valid) {
-      const project = {
-        projectStatusID: this.projectForm.value.projectStatus,
-        clientID: this.projectForm.value.clientId,
-        code: this.projectForm.value.code,
-        name: this.projectForm.value.name,
-        description: this.projectForm.value.description,
-        startDate: this.projectForm.value.startDate,
-        endDate: this.projectForm.value.endDate,
-        actualStartDate: this.projectForm.value.startDate,
-        actualEndDate: this.projectForm.value.endDate,
-        budget: this.projectForm.value.budget,
-      };
-      console.log(project);
-      this.dialogRef.close(project);
-    }
-  }
-
 }

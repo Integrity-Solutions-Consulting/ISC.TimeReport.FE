@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { Project } from '../interfaces/project.interface';
-import { Observable } from 'rxjs';
+import { ApiResponse, Project } from '../interfaces/project.interface';
+import { Observable, tap } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 
 @Injectable({
@@ -14,15 +14,13 @@ export class ProjectService {
 
     constructor(private http: HttpClient) { }
 
-    getProjects():Observable<Project[]>{
-              return this.http.get<Project[]>(
-                  `${this.urlBase}/api/Project/GetAllProjects`
-                );
+    getProjects(): Observable<ApiResponse> {
+      return this.http.get<ApiResponse>(`${this.urlBase}api/Project/GetAllProjects`);
     }
 
     createProject(createProjectRequest: Project): Observable<SuccessResponse<Project>> {
       console.log(createProjectRequest);
-      return this.http.post<SuccessResponse<Project>>(`${this.urlBase}/api/Project/CreateProject`, createProjectRequest);
+      return this.http.post<SuccessResponse<Project>>(`${this.urlBase}api/Project/CreateProject`, createProjectRequest);
     }
 
     updateProject(id: number, updateProjectRequest: Project): Observable<SuccessResponse<Project>> {
