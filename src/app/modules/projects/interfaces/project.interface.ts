@@ -1,5 +1,5 @@
 export interface Project {
-  projectId?: number,
+  id?: number,
   clientID: number,
   projectStatusID: number,
   code: string,
@@ -13,9 +13,9 @@ export interface Project {
 }
 
 export interface ApiResponse {
-  items: Project[];       // Array de proyectos
-  totalItems: number;     // Total de ítems
-  pageNumber: number;     // Página actual
-  pageSize: number;       // Ítems por página
-  totalPages: number;     // Total de páginas
+  items: Project[];
+  totalItems: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
 }

@@ -1,4 +1,4 @@
-import { customersRoutes } from './../customers/customers.routes';
+import { clientsRoutes } from '../clients/clients.routes';
 import { Routes } from '@angular/router';
 import { AppMenuPage } from './pages/app-menu/app-menu.page';
 import { RoleGuard } from '../../shared/guards/role.guard';
@@ -10,7 +10,7 @@ export const menuRoutes: Routes = [
         children:[
           {
             path: 'clients',
-            loadChildren: () => import('../customers/customers.routes').then((m) => m.customersRoutes),
+            loadChildren: () => import('../clients/clients.routes').then((m) => m.clientsRoutes),
             //canActivate: [RoleGuard],
             //data: { roles: ['Administrador'] }
           },
@@ -29,6 +29,10 @@ export const menuRoutes: Routes = [
           {
             path: 'projects',
             loadChildren: () => import('../projects/projects.routes').then((m) => m.projectsRoutes)
+          },
+          {
+            path: 'activities',
+            loadChildren: () => import('../activities/activities.routes').then((m) => m.activitiesRoutes)
           }
         ]
     },

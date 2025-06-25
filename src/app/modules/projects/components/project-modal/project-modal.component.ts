@@ -29,12 +29,13 @@ import { MatButtonModule } from '@angular/material/button';
 export class ProjectModalComponent implements OnInit {
   projectForm!: FormGroup;
   isEditMode: boolean = false;
+  projectId: number | null = null;
 
   constructor(
     private fb: FormBuilder,
     private projectService: ProjectService,
     private dialogRef: MatDialogRef<ProjectModalComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: { project?: Project }
   ) {
     this.projectForm = this.fb.group({
       projectStatusId: ['', Validators.required],
@@ -69,23 +70,41 @@ export class ProjectModalComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    // Si hay datos, estamos en modo edición
-    if (this.data && this.data.project) {
+    this.initForm();
+
+    if (this.data?.project) {
       this.isEditMode = true;
+      /*this.projectId = this.data.project.projectId;*/
       this.patchFormValues(this.data.project);
     }
   }
 
+  private initForm(): void {
+    this.projectForm = this.fb.group({
+      clientId: ['', Validators.required],
+      projectStatusId: ['', Validators.required],
+      code: [''],
+      name: ['', Validators.required],
+      description: [''],
+      startDate: ['', Validators.required],
+      endDate: ['', Validators.required],
+      actualStartDate: [null],
+      actualEndDate: [null],
+      budget: [0]
+    });
+  }
 
-  patchFormValues(project: any) {
+  private patchFormValues(project: Project): void {
     this.projectForm.patchValue({
-      projectStatusId: project.projectStatusID,
       clientId: project.clientID,
+      projectStatusId: project.projectStatusID,
       code: project.code,
       name: project.name,
       description: project.description,
-      startDate: new Date(project.startDate),
-      endDate: new Date(project.endDate),
+      startDate: project.startDate ? new Date(project.startDate) : null,
+      endDate: project.endDate ? new Date(project.endDate) : null,
+      actualStartDate: project.actualStartDate ? new Date(project.actualStartDate) : null,
+      actualEndDate: project.actualEndDate ? new Date(project.actualEndDate) : null,
       budget: project.budget
     });
   }
@@ -101,6 +120,7 @@ export class ProjectModalComponent implements OnInit {
       }
 
       const projectData: Project = {
+        id: this.isEditMode && this.projectId ? this.projectId : undefined,
         clientID: formValue.clientId,
         projectStatusID: formValue.projectStatusId,
         code: formValue.code,
@@ -113,28 +133,35 @@ export class ProjectModalComponent implements OnInit {
         budget: formValue.budget
       };
 
-      if (this.isEditMode && this.data?.project?.projectId) {
-        projectData.projectId = this.data.project.projectId;
+      if (this.isEditMode && this.data?.project?.id) {
+        projectData.id = this.data.project.id;
       }
 
       if (this.isEditMode) {
-        // Modo edición
-        this.projectService.updateProject(this.data.project.projectId, projectData).subscribe({
+        const projectId = this.data?.project?.id;
+        if (!projectId) {
+          console.error('No se puede actualizar: ID de proyecto no proporcionado');
+          return;
+        }
+
+        this.projectService.updateProject(projectId, projectData).subscribe({
           next: (response) => {
             this.dialogRef.close(response);
           },
           error: (err) => {
             console.error('Error al actualizar proyecto:', err);
+            // Manejo de errores para el usuario
+            //this.snackBar.open('Error al actualizar proyecto', 'Cerrar', { duration: 5000 });
           }
         });
       } else {
-        // Modo creación
         this.projectService.createProject(projectData).subscribe({
           next: (response) => {
             this.dialogRef.close(response);
           },
           error: (err) => {
             console.error('Error al crear proyecto:', err);
+            // Add user-friendly error handling here
           }
         });
       }

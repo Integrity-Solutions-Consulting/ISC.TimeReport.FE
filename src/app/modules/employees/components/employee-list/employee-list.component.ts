@@ -14,6 +14,8 @@ import { Employee } from '../../interfaces/employee.interface';
 import { EmployeeService } from '../../services/employee.service';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Subject } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { EmployeeDialogComponent } from '../employee-dialog/employee-dialog.component';
 
 @Injectable()
 export class LeaderPaginatorIntl implements MatPaginatorIntl {
@@ -58,9 +60,11 @@ export class EmployeeListComponent {
 
   private employeeService = inject(EmployeeService);
 
+  constructor(private dialog: MatDialog) {}
+
   employees: Employee[] = [];
 
-  displayedColumns: string[] = ['select', 'idtype', 'idnumber', 'firstname', 'lastname', 'email', 'position', 'options'];
+  displayedColumns: string[] = ['idtype', 'idnumber', 'firstname', 'lastname', 'email', 'position', 'options'];
 
   selection = new SelectionModel<any>(true, []);
 
@@ -164,5 +168,23 @@ export class EmployeeListComponent {
 
   getPositionName(position: number): string {
     return this.positionsMap[position] || 'Desconocido';
+  }
+
+  openCreateEmployeeDialog(): void {
+    this.dialog.open(EmployeeDialogComponent, {
+      width: '800px',
+      maxHeight: '90vh', // 90% del viewport height
+      data: { isEdit: false },
+      autoFocus: false //
+    })
+  }
+
+  openEditEmployeeDialog(employee: Employee): void {
+    this.dialog.open(EmployeeDialogComponent, {
+      width: '800px',
+      maxHeight: '90vh',
+      data: { employee, isEdit: true },
+      autoFocus: false
+    });
   }
 }

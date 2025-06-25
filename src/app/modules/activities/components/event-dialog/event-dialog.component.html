@@ -1,0 +1,66 @@
+<h2 mat-dialog-title>{{ data.isEdit ? 'Editar actividad' : 'Nueva actividad' }}</h2>
+
+    <mat-dialog-content>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Tipo Actividad</mat-label>
+        <mat-select [(ngModel)]="event.activityType" required>
+          <mat-option value="Desarrollo">Desarrollo</mat-option>
+          <mat-option value="Reunión">Reunión</mat-option>
+          <mat-option value="Revisión">Revisión</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Proyecto</mat-label>
+        <mat-select [(ngModel)]="event.project" required>
+          <mat-option value="ISC-FS-2025">ISC-FS-2025</mat-option>
+          <mat-option value="OTRO-PROYECTO">OTRO PROYECTO</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Detalle de la actividad</mat-label>
+        <textarea matInput [(ngModel)]="event.details" rows="3" required></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Color del evento</mat-label>
+        <mat-select [(ngModel)]="event.color" required>
+          <mat-option *ngFor="let color of availableColors" [value]="color.value">
+            <div class="color-option">
+              <span class="color-demo" [style.background]="color.value"></span>
+              {{color.name}}
+            </div>
+          </mat-option>
+        </mat-select>
+        <div matSuffix class="color-preview" [style.background]="event.color"></div>
+      </mat-form-field>
+
+      <mat-divider></mat-divider>
+
+      <mat-button-toggle-group [(ngModel)]="event.fullDay" aria-label="Duración" class="duration-toggle">
+        <mat-button-toggle value="full">Día completo</mat-button-toggle>
+        <mat-button-toggle value="half">Medio día</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <div class="row">
+        <mat-form-field appearance="fill" class="half-width">
+          <mat-label>Fecha actividad</mat-label>
+          <input matInput [matDatepicker]="activityDatePicker" [(ngModel)]="event.activityDate" required>
+          <mat-datepicker-toggle matSuffix [for]="activityDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #activityDatePicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="half-width" *ngIf="event.fullDay === 'half'">
+          <mat-label>Número de horas</mat-label>
+          <input matInput type="number" [(ngModel)]="event.hours" min="1" max="8" required>
+        </mat-form-field>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-button (click)="onCancel()">Cancelar</button>
+      <button mat-raised-button color="primary" [mat-dialog-close]="event" [disabled]="!isFormValid()">
+        {{ data.isEdit ? 'Editar' : 'Guardar' }}
+      </button>
+    </mat-dialog-actions>

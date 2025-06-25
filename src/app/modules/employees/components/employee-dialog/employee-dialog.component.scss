@@ -1,0 +1,49 @@
+/* Contenedor principal del diálogo */
+.dialog-card {
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh; /* Ajusta según necesidad */
+}
+
+/* Contenedor del contenido con scroll */
+.dialog-content {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  padding: 16px;
+}
+
+/* Acciones fijas en la parte inferior */
+.dialog-actions {
+  padding: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0; /* Evita que se reduzca */
+}
+
+/* Resto de tus estilos existentes */
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.form-field, .full-width-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.full-width-field {
+  width: 100%;
+}
+
+.dollar-right-align {
+  text-align: right;
+}
