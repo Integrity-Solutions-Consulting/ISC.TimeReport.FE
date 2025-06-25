@@ -17,7 +17,6 @@ export interface Person {
   email: string;
   phone: string;
   address: string;
-  status: boolean;
 }
 
 export interface Client {
@@ -28,10 +27,45 @@ export interface Client {
   status: boolean;
 }
 
+export interface ClientWithPerson {
+    tradeName: string;
+    legalName: string;
+    person: {
+      genderId: number;
+      nationalityId: number;
+      identificationTypeId: number;
+      identificationNumber: string;
+      personType: string;
+      firstName: string;
+      lastName: string;
+      birthDate: string;
+      email: string;
+      phone: string;
+      address: string;
+    }
+}
+
+export interface ClientWithPersonID {
+    personID: number;
+    tradeName: string;
+    legalName: string;
+}
+
 export interface ApiResponse {
   items: Client[];
   totalItems: number;
   pageNumber: number;
   pageSize: number;
   totalPages: number;
+}
+
+export interface PersonApiResponse {
+  traceId: string;
+  data: {
+    items: Person[];
+    totalItems: number;
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
+  };
 }
