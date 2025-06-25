@@ -121,7 +121,6 @@ export class ClientListComponent implements OnInit{
           this.dataSource = new MatTableDataSource<Client>(response.items);
           this.dataSource.paginator = this.paginator;
           this.dataSource.sort = this.sort;
-          console.log(response);
         } else {
           console.error('La respuesta del API no tiene la estructura esperada:', response);
           this.dataSource = new MatTableDataSource<Client>([]); // Tabla vacía como fallback
@@ -141,42 +140,36 @@ export class ClientListComponent implements OnInit{
     }
   }
 
-
-  openEditModal(customer: any): void {
-    if (!customer.id) {
-      console.error('El cliente no tiene ID:', customer);
-      this.snackBar.open('Error: El cliente no tiene ID válido', 'Cerrar', { duration: 5000 });
-      return;
-    }
+  openCreateDialog(): void {
     const dialogRef = this.dialog.open(ClientModalComponent, {
       width: '600px',
-      data: {
-        customer: { id: customer.id,
-        identificationType: customer.identificationType,
-        identificationNumber: customer.identificationNumber,
-        commercialName: customer.commercialName,
-        companyName: customer.companyName,
-        cellPhoneNumber: customer.cellPhoneNumber,
-        email: customer.email
-        },
-        identificationTypes: [
-          { value: '1', name: 'Cédula' },
-          { value: '2', name: 'RUC' },
-          { value: '3', name: 'Pasaporte' }
-        ]
-      }
+      disableClose: true,
+      data: { customer: null }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.clientService.updateClient(result.id, result).subscribe(
-          () => {
-            this.loadClients();
-          },
-          (error) => {
-            console.error('Error updating customer:', error);
-          }
-        );
+        if (result.type === 'withPerson') {
+          this.clientService.createClientWithPerson(result.data).subscribe({
+            next: () => {
+              this.snackBar.open("Cliente creado con éxito", "Cerrar", {duration: 5000});
+              this.loadClients();
+            },
+            error: (err) => {
+              this.snackBar.open("Error al crear cliente: " + err.message, "Cerrar", {duration: 5000});
+            }
+          });
+        } else if (result.type === 'withPersonID') {
+          this.clientService.createClientWithPersonID(result.data).subscribe({
+            next: () => {
+              this.snackBar.open("Cliente creado con éxito", "Cerrar", {duration: 5000});
+              this.loadClients();
+            },
+            error: (err) => {
+              this.snackBar.open("Error al crear cliente: " + err.message, "Cerrar", {duration: 5000});
+            }
+          });
+        }
       }
     });
   }
@@ -209,33 +202,20 @@ export class ClientListComponent implements OnInit{
     }
   }
 
-  openCreateDialog(): void {
+  openEditDialog(client: Client): void {
     const dialogRef = this.dialog.open(ClientModalComponent, {
-      width: '500px',
+      width: '800px',
       disableClose: true,
-      data: { project: null }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.clientService.createClient(result);
-        this.snackBar.open("Cliente creado con éxito", "Cerrar", {duration: 5000})
-      } else {
-        this.snackBar.open("Ocurrió un error", "Cerrar", {duration: 5000})
+      data: {
+        customer: client,
+        isEdit: true
       }
     });
-  }
-
-  openEditDialog(customer: Client): void {
-    const dialogRef = this.dialog.open(ClientModalComponent, {
-      width: '500px',
-      disableClose: true,
-      data: { customer } // Pasamos el elemento a editar
-    });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.clientService.updateClient(customer.id, result);
+      if (result?.success) {
+        this.snackBar.open('Cliente actualizado con éxito', 'Cerrar', { duration: 5000 });
+        this.loadClients(); // Recargar la lista
       }
     });
   }
