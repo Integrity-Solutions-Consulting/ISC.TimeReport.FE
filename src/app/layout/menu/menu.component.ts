@@ -14,7 +14,6 @@ import { CommonModule } from '@angular/common';
   styleUrl: './menu.component.scss'
 })
 export class MenuComponent implements OnInit {
-
   public options: { moduleName: string; modulePath: string }[] = [];
 
   ngOnInit(): void {
@@ -23,16 +22,18 @@ export class MenuComponent implements OnInit {
 
     const parsedMenus = rawMenus ? JSON.parse(rawMenus) : [];
 
-    this.options = parsedMenus.map((item: any) => {
-      const ruta = item.modulePath.startsWith('/menu/')
-        ? item.rutaMenu
-        : `/menu/${item.modulePath.replace(/^\/+/, '')}`; // quita '/' inicial si hay y le agrega '/menu/'
+    this.options = parsedMenus
+      .filter((item: any) => item.modulePath) // Filter out items without modulePath
+      .map((item: any) => {
+        const ruta = item.modulePath.startsWith('/menu/')
+          ? item.modulePath // Changed from item.rutaMenu to item.modulePath for consistency
+          : `/menu/${item.modulePath.replace(/^\/+/, '')}`;
 
-      return {
-        moduleName: item.moduleName,
-        modulePath: ruta
-      };
-    });
+        return {
+          moduleName: item.moduleName || 'Unnamed Module', // Provide fallback if moduleName is missing
+          modulePath: ruta
+        };
+      });
 
     console.log('Opciones cargadas:', this.options);
   }

@@ -1,12 +1,16 @@
 import { Component, effect, inject } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { InterceptorService } from './shared/services/interceptor.service';
+import { CommonModule } from '@angular/common';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
+    CommonModule,
     RouterOutlet,
+    NgbModule,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'

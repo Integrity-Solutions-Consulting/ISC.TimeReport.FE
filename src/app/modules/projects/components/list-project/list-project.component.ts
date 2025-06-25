@@ -1,3 +1,4 @@
+import { ProjectService } from './../../services/project.service';
 import { Component, inject, Injectable, OnInit, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -9,7 +10,6 @@ import { MatPaginator, MatPaginatorIntl, MatPaginatorModule } from '@angular/mat
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { Subject } from 'rxjs';
-import { ProjectService } from '../../services/project.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { ApiResponse, Project } from '../../interfaces/project.interface';
@@ -167,17 +167,20 @@ export class ListProjectComponent implements OnInit{
     }
 
     openEditDialog(project: Project): void {
+      if (!project.id) {
+        this.snackBar.open("No se puede editar: ID de proyecto no válido", "Cerrar", {duration: 5000});
+        return;
+      }
+
       const dialogRef = this.dialog.open(ProjectModalComponent, {
-        width: '500px',
-        disableClose: true,
-        data: { project }
+        width: '600px',
+        data: { project: project } // Envía el proyecto completo
       });
 
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
-          this.projectService.updateProject(project.projectId!, result);
+          this.loadProjects(); // Recarga la lista después de la actualización
         }
       });
     }
-
 }

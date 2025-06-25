@@ -16,6 +16,11 @@ export class ProjectService {
 
     getProjects(): Observable<ApiResponse> {
       return this.http.get<ApiResponse>(`${this.urlBase}api/Project/GetAllProjects`);
+      console.log(this.http.get<ApiResponse>(`${this.urlBase}api/Project/GetAllProjects`))
+    }
+
+    getProjectById(id: number): Observable<Project> {
+      return this.http.get<Project>(`${this.urlBase}api/Project/GetProjectByID/${id}`);
     }
 
     createProject(createProjectRequest: Project): Observable<SuccessResponse<Project>> {
@@ -24,6 +29,7 @@ export class ProjectService {
     }
 
     updateProject(id: number, updateProjectRequest: Project): Observable<SuccessResponse<Project>> {
+      console.log(id)
       if (id === undefined || id === null || isNaN(id)) {
         throw new Error('ID de proyecto no válido: ' + id);
       };
@@ -31,6 +37,6 @@ export class ProjectService {
         id: Number(id),
         ...updateProjectRequest
       };
-      return this.http.put<SuccessResponse<Project>>(`${this.urlBase}/api/Project/UpdateProjectByID/${id}`, requestBody);
+      return this.http.put<SuccessResponse<Project>>(`${this.urlBase}api/Project/UpdateProjectByID/${id}`, requestBody);
     }
 }
