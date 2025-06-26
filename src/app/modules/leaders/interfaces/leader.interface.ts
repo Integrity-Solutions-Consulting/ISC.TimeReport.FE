@@ -1,45 +1,84 @@
-export interface LeaderwPerson {
-  identificationType: string;
-  identificationNumber: string;
-  names: string;
-  surnames: string;
-  cellPhoneNumber?: string;
-  position?: string;
-  personalEmail?: string;
-  corporateEmail: string;
-  homeAddress?: string;
-  leaderType: string;
-  projectCode: string;
-  customerCode: string;
+export interface LeaderWithPerson {
+  projectID: number;
+  leadershipType: boolean;
+  startDate: Date;
+  endDate: Date;
+  responsibilities: string;
+  person: {
+    genderID: number;
+    nationalityId: number;
+    identificationTypeId: number;
+    identificationNumber: string;
+    personType: string;
+    firstName: string;
+    lastName: string;
+    birthDate: Date;
+    email: string;
+    phone: string;
+    address: string;
+  }
+}
+
+export interface LeaderWithPersonID {
+  personID: number;
+  projectID: number;
+  leadershipType: boolean;
+  startDate: Date;
+  endDate: Date;
+  responsibilities: string;
 }
 
 export interface Leader {
-    id:               number;
-    leaderType:       string;
-    projectCode:      string;
-    customerCode:     string;
-    idPerson:         number;
-    person: {
-      identificationType: string;
-      identificationNumber: string;
-      names: string;
-      surnames: string;
-      cellPhoneNumber: string;
-      position: string;
-      personalEmail: string;
-      corporateEmail: string;
-      homeAddress: string;
-    };
+  person: Person;
+  projectID: number;
+  leadershipType: boolean;
+  startDate: Date;
+  endDate: Date;
+  responsibilities: string;
 }
 
 export interface Person {
-  identificationType: string;
+  id: number;
+  genderID: number;
+  nationalityId: number;
+  identificationTypeId: number;
   identificationNumber: string;
-  names: string;
-  surnames: string;
-  cellPhoneNumber: string;
-  position: string;
-  personalEmail: string;
-  corporateEmail: string;
-  homeAddress: string;
+  personType: string;
+  firstName: string;
+  lastName: string;
+  birthDate: Date;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+export interface ApiResponse {
+  items: Leader[];
+  totalItems: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface PersonApiResponse {
+  items: Person[];
+  totalItems: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+interface Project {
+  id: number;
+  clientID: number;
+  projectStatusID: number;
+  code: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  actualStartDate: string;
+  actualEndDate: string;
+  budget: number;
+  status: boolean;
 }

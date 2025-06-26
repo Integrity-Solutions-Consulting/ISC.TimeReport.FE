@@ -36,27 +36,32 @@
 
     <ng-container matColumnDef="idtype">
       <th mat-header-cell *matHeaderCellDef mat-sort-header> Tipo </th>
-      <td mat-cell *matCellDef="let element">{{getIdentificationTypeName(element.identificationType)}}</td>
+      <td mat-cell *matCellDef="let element">{{getIdentificationTypeName(element.person.identificationTypeId)}}</td>
     </ng-container>
 
     <ng-container matColumnDef="idnumber">
       <th mat-header-cell *matHeaderCellDef mat-sort-header> Identificación </th>
-      <td mat-cell *matCellDef="let element">{{element.identificationNumber}}</td>
+      <td mat-cell *matCellDef="let element">{{element.person.identificationNumber}}</td>
     </ng-container>
 
     <ng-container matColumnDef="leadertype">
       <th mat-header-cell *matHeaderCellDef> Tipo de Líder </th>
-      <td mat-cell *matCellDef="let element">{{getLeaderTypeName(element.leaderType)}}</td>
+      <td mat-cell *matCellDef="let element">{{getLeaderTypeName(element.leadershipType)}}</td>
     </ng-container>
 
     <ng-container matColumnDef="names">
       <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombres </th>
-      <td mat-cell *matCellDef="let element">{{element.names}}</td>
+      <td mat-cell *matCellDef="let element">{{element.person.firstName}}</td>
     </ng-container>
 
     <ng-container matColumnDef="surnames">
       <th mat-header-cell *matHeaderCellDef mat-sort-header> Apellidos </th>
-      <td mat-cell *matCellDef="let element">{{element.surnames}}</td>
+      <td mat-cell *matCellDef="let element">{{element.person.lastName}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="project">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Proyecto </th>
+      <td mat-cell *matCellDef="let element">{{getProjectName(element.projectID)}}</td>
     </ng-container>
 
     <ng-container matColumnDef="options">
