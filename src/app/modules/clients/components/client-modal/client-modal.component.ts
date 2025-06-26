@@ -207,7 +207,7 @@ export class ClientModalComponent implements OnInit{
   private loadPersons(): void {
     this.personService.getPersons().subscribe({
       next: (response: PersonApiResponse) => {
-        this.personsList = response.data?.items || [];
+        this.personsList = response.items || [];
       },
       error: (err) => {
         console.error('Error:', err);

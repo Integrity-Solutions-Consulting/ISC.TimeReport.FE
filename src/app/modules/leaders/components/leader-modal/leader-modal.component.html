@@ -2,92 +2,158 @@
   {{ isEditMode ? 'Editar Líder' : 'Crear Nuevo Líder' }}
 </h4>
 <mat-dialog-content>
-    <form [formGroup]="leaderForm" class="">
+  <form [formGroup]="leaderForm" (ngSubmit)="onSubmit()" class="customer-form">
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Tipo de Identificación</mat-label>
-            <mat-select formControlName="idtype">
-              @for (type of identificationTypes; track type) {
-              <mat-option [value]="type.id">{{type.name}}</mat-option>
-            }
-            </mat-select>
-        </mat-form-field>
+    <!-- Selección de tipo de persona -->
+    <mat-radio-group formControlName="personOption" class="radio-group">
+      <mat-radio-button value="new">Crear nueva persona</mat-radio-button>
+      <mat-radio-button value="existing">Usar persona existente</mat-radio-button>
+    </mat-radio-group>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Número de Identificación</mat-label>
-            <input matInput formControlName="idnumber">
-        </mat-form-field>
+    <!-- Selección de persona existente (solo visible cuando se selecciona esa opción) -->
+    <mat-form-field appearance="fill" class="full-width" *ngIf="useExistingPerson">
+      <mat-label>Seleccionar persona existente</mat-label>
+      <mat-select formControlName="existingPerson">
+        <mat-option>-- Seleccione una persona --</mat-option>
+        <mat-option *ngIf="isLoadingPersons" disabled>
+          <div style="display: flex; align-items: center;">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span style="margin-left: 8px;">Cargando personas...</span>
+          </div>
+        </mat-option>
+        <mat-option *ngFor="let person of personsList" [value]="person.id">
+          {{ person.firstName }} {{ person.lastName }} ({{ person.identificationNumber }})
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Nombres</mat-label>
-            <input matInput formControlName="names">
-        </mat-form-field>
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Tipo de Líder</mat-label>
+      <mat-select formControlName="leadershipType">
+        <mat-option *ngFor="let type of leaderTypes" [value]="type.id">
+          {{type.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Apellidos</mat-label>
-            <input matInput formControlName="surnames">
-        </mat-form-field>
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Proyecto</mat-label>
+      <mat-select formControlName="projectID">
+        <mat-option>-- Seleccione un proyecto --</mat-option>
+        <mat-option *ngIf="isLoadingProjects" disabled>
+          <div style="display: flex; align-items: center;">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span style="margin-left: 8px;">Cargando proyectos...</span>
+          </div>
+        </mat-option>
+        <mat-option *ngFor="let project of projectsList" [value]="project.id">
+          {{ project.name }} ({{ project.code }})
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Género</mat-label>
-            <mat-select formControlName="gender">
-              @for (type of genders; track type) {
-              <mat-option [value]="type.id">{{type.name}}</mat-option>
-            }
-            </mat-select>
-        </mat-form-field>
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Fecha de Inicio</mat-label>
+      <input matInput [matDatepicker]="picker1" formControlName="startDate">
+      <mat-hint>MM/DD/YYYY</mat-hint>
+      <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
+      <mat-datepicker #picker1></mat-datepicker>
+    </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Teléfono Móvil</mat-label>
-            <input matInput formControlName="phone">
-            <mat-error *ngIf="leaderForm.get('phone')?.hasError('pattern')">
-              Formato de teléfono inválido
-            </mat-error>
-        </mat-form-field>
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Fecha de Fin</mat-label>
+      <input matInput [matDatepicker]="picker2" formControlName="endDate">
+      <mat-hint>MM/DD/YYYY</mat-hint>
+      <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
+      <mat-datepicker #picker2></mat-datepicker>
+    </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Correo Personal</mat-label>
-            <input matInput formControlName="pemail">
-            <mat-error *ngIf="leaderForm.get('pemail')?.hasError('email')">
-              Formato de email inválido
-            </mat-error>
-        </mat-form-field>
+    <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Responsabilidades</mat-label>
+        <textarea matInput formControlName="responsibilities"></textarea>
+    </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Correo Corporativo</mat-label>
-            <input matInput formControlName="cemail">
-            <mat-error *ngIf="leaderForm.get('cemail')?.hasError('email')">
-              Formato de email inválido
-            </mat-error>
-        </mat-form-field>
+    <!-- Datos de persona (solo para nueva persona) -->
+    <div formGroupName="person" *ngIf="!useExistingPerson">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Tipo de Persona</mat-label>
+        <mat-select formControlName="personType">
+          <mat-option *ngFor="let type of personTypes" [value]="type.id">{{type.name}}</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Dirección Domicilio</mat-label>
-            <input matInput formControlName="homeAddress">
-        </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Tipo de Identificación</mat-label>
+        <mat-select formControlName="identificationTypeId">
+          <mat-option *ngFor="let type of identificationTypes" [value]="type.id">{{type.name}}</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Tipo de Líder</mat-label>
-            <mat-select formControlName="leaderType">
-              @for (type of leaderTypes; track type) {
-              <mat-option [value]="type.id">{{type.name}}</mat-option>
-            }
-            </mat-select>
-        </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Número de Identificación</mat-label>
+        <input matInput formControlName="identificationNumber">
+      </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Código Proyecto</mat-label>
-            <input matInput formControlName="projectCode">
-        </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Nombres</mat-label>
+        <input matInput formControlName="firstName">
+      </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Código Cliente</mat-label>
-            <input matInput formControlName="customerCode">
-        </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Apellidos</mat-label>
+        <input matInput formControlName="lastName">
+      </mat-form-field>
 
-    </form>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Fecha de Nacimiento</mat-label>
+        <input matInput [matDatepicker]="picker3" formControlName="birthDate">
+        <mat-hint>MM/DD/YYYY</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="picker3"></mat-datepicker-toggle>
+        <mat-datepicker #picker3></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Correo Electrónico</mat-label>
+        <input matInput formControlName="email" type="email">
+        <mat-error *ngIf="leaderForm.get('email')?.hasError('email')">
+          Formato de email inválido
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Teléfono</mat-label>
+        <input matInput formControlName="phone">
+        <mat-error *ngIf="leaderForm.get('phone')?.hasError('pattern')">
+          Formato de teléfono inválido
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Dirección</mat-label>
+        <input matInput formControlName="address">
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Género</mat-label>
+        <mat-select formControlName="genderID">
+          @for (gender of genders; track gender) {
+            <mat-option [value]="gender.id">{{gender.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Nacionalidad</mat-label>
+        <mat-select formControlName="nationalityId">
+          @for (nation of nationalities; track nation) {
+            <mat-option [value]="nation.id">{{nation.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </form>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button mat-button (click)="onCancel()" >Cancelar</button>
-  <button mat-raised-button style="background-color: var(--primary); color: var(--light)" (click)="onSubmit()" [disabled]="!leaderForm.valid">Guardar</button>
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!leaderForm.valid">Guardar</button>
 </mat-dialog-actions>

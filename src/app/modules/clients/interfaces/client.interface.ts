@@ -60,12 +60,9 @@ export interface ApiResponse {
 }
 
 export interface PersonApiResponse {
-  traceId: string;
-  data: {
-    items: Person[];
-    totalItems: number;
-    pageNumber: number;
-    pageSize: number;
-    totalPages: number;
-  };
+  items: Person[];
+  totalItems: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
 }

@@ -1,7 +1,7 @@
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { LeadersService } from './../../services/leaders.service';
 import { Component, inject, Injectable, OnInit, ViewChild } from '@angular/core';
-import { Leader, LeaderwPerson } from '../../interfaces/leader.interface';
+import { Leader, LeaderWithPerson} from '../../interfaces/leader.interface';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
@@ -15,6 +15,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
 import { Subject } from 'rxjs';
+import { ProjectService } from '../../../projects/services/project.service';
+import { Project } from '../../../projects/interfaces/project.interface';
 
 @Injectable()
 export class LeaderPaginatorIntl implements MatPaginatorIntl {
@@ -59,91 +61,126 @@ export class LeaderPaginatorIntl implements MatPaginatorIntl {
 export class LeaderListComponent implements OnInit{
 
   private leaderService = inject(LeadersService);
+  private projectService = inject(ProjectService);
   private snackBar = inject(MatSnackBar);
-  private dialog = inject(MatDialog)
+  private dialog = inject(MatDialog);
 
   leaders: Leader[] = [];
+  projects: Project[] = [];
 
   dataSource: MatTableDataSource<Leader> = new MatTableDataSource<Leader>();
 
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  displayedColumns: string[] = ['idtype', 'idnumber', 'leadertype', 'names', 'surnames', 'options'];
+  displayedColumns: string[] = ['idtype', 'idnumber', 'leadertype', 'names', 'surnames', 'project', 'options'];
 
   selection = new SelectionModel<any>(true, []);
 
   ngOnInit(): void {
     this.loadLeaders();
+    this.loadProjects();
   }
 
-  readonly identificationTypesMap: {[key: string]: string} = {
-    '1': 'Cédula',
-    '2': 'RUC',
-    '3': 'Pasaporte',
+  readonly identificationTypesMap: {[key: number]: string} = {
+    1: 'Cédula',
+    2: 'RUC',
+    3: 'Pasaporte',
   };
 
-  readonly leaderTypesMap: {[key: string]: string} = {
-    '1': 'Integrity',
-    '2': 'Externo',
-  };
+  getProjectName(projectID: number): string {
+    const project = this.projects.find(p => p.id === projectID);
+    return project ? project.name : 'Proyecto no encontrado';
+  }
 
   loadLeaders(): void {
     this.leaderService.getLeaders().subscribe({
-      next: (response: Leader[]) => {
-        this.leaders = response;
-        this.dataSource.data = this.leaders;
+      next: (response) => {
+        if (response?.items) {
+          this.dataSource = new MatTableDataSource<Leader>(response.items);
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+        } else {
+          console.error('La respuesta del API no tiene la estructura esperada:', response);
+          this.dataSource = new MatTableDataSource<Leader>([]); // Tabla vacía como fallback
+        }
       },
       error: (err) => {
-        console.error('Error al cargar líderes:', err);
+        console.error('Error al cargar proyectos:', err);
+        this.dataSource = new MatTableDataSource<Leader>([]); // Tabla vacía en caso de error
       }
     });
   }
 
-  ngAfterViewInit(){
-    if (this.paginator || this.sort){
-      this.dataSource.sort = this.sort;
-      this.dataSource.paginator = this.paginator;
-    }
+  loadProjects(): void {
+    this.projectService.getProjects().subscribe({
+      next: (response) => {
+        this.projects = response.items;
+      },
+      error: (error) => {
+        console.error('Error loading projects:', error);
+      }
+    });
   }
 
   openCreateDialog(): void {
+      const dialogRef = this.dialog.open(LeaderModalComponent, {
+        width: '600px',
+        disableClose: true,
+        data: { customer: null }
+      });
+  
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          if (result.type === 'withPerson') {
+            this.leaderService.createLeaderWithPerson(result.data).subscribe({
+              next: () => {
+                this.snackBar.open("Líder creado con éxito", "Cerrar", {duration: 5000});
+                this.loadLeaders();
+              },
+              error: (err) => {
+                this.snackBar.open("Error al crear líder: " + err.message, "Cerrar", {duration: 5000});
+              }
+            });
+          } else if (result.type === 'withPersonID') {
+            this.leaderService.createLeaderWithPersonID(result.data).subscribe({
+              next: () => {
+                this.snackBar.open("Líder creado con éxito", "Cerrar", {duration: 5000});
+                this.loadLeaders();
+              },
+              error: (err) => {
+                this.snackBar.open("Error al crear líder: " + err.message, "Cerrar", {duration: 5000});
+              }
+            });
+          }
+        }
+      });
+    }
+
+  openEditDialog(leader: Leader): void {
     const dialogRef = this.dialog.open(LeaderModalComponent, {
-      width: '500px',
+      width: '800px',
       disableClose: true,
-      data: { project: null }
+      data: {
+        leader: leader,
+        isEdit: true
+      }
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.leaderService.createLeader(result);
-        this.snackBar.open("Líder creado con éxito", "Cerrar", {duration: 5000})
-      } else {
-        this.snackBar.open("Ocurrió un error", "Cerrar", {duration: 5000})
+      if (result?.success) {
+        this.snackBar.open('Líder actualizado con éxito', 'Cerrar', { duration: 5000 });
+        this.loadLeaders(); // Recargar la lista
       }
     });
   }
 
-  openEditDialog(leader: Leader): void {
-        const dialogRef = this.dialog.open(LeaderModalComponent, {
-          width: '500px',
-          disableClose: true,
-          data: { leader } // Pasamos el elemento a editar
-        });
-
-        dialogRef.afterClosed().subscribe(result => {
-          if (result) {
-            this.leaderService.updateLeader(leader.id, result);
-          }
-        });
-      }
-
-  getIdentificationTypeName(idtype: string): string {
+  getIdentificationTypeName(idtype: number): string {
     return this.identificationTypesMap[idtype] || 'Desconocido';
   }
 
-  getLeaderTypeName(leadertype: string): string {
-    return this.leaderTypesMap[leadertype] || 'Desconocido';
+  getLeaderTypeName(leadertype: boolean): string {
+    return leadertype ? 'Integrity' : 'Externo';
   }
 
   isAllSelected() {

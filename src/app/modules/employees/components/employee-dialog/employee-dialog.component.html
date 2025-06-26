@@ -33,7 +33,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Cargo</mat-label>
+      <mat-label>Tipo de Contrato</mat-label>
       <mat-select formControlName="contractType">
         <mat-option *ngFor="let type of contractTypes" [value]="type.value">{{type.viewValue}}</mat-option>
       </mat-select>

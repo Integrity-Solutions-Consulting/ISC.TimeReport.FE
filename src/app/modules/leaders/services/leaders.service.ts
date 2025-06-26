@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
-import { Leader, LeaderwPerson } from '../interfaces/leader.interface';
+import { Leader, LeaderWithPerson, LeaderWithPersonID, ApiResponse } from '../interfaces/leader.interface';
 import { Observable } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 
@@ -10,29 +10,29 @@ import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 })
 export class LeadersService {
 
-  private _httpClient = inject(HttpClient);
-  urlBase: string = environment.URL_BASE;
+  private http = inject(HttpClient);
+  urlBase: string = environment.URL_TEST;
 
-  getLeaders():Observable<Leader[]>{
-      return this._httpClient.get<Leader[]>(
-          `${this.urlBase}/api/leader/get`
-        );
+  getLeaders():Observable<ApiResponse>{
+    console.log(`${this.urlBase}api/Leader/GetAllLeaders`)
+      return this.http.get<ApiResponse>(`${this.urlBase}api/Leader/GetAllLeaders`);
   }
 
-  createLeader(createLeaderRequest: LeaderwPerson): Observable<SuccessResponse<Leader>> {
-    return this._httpClient.post<SuccessResponse<Leader>>(`${this.urlBase}/api/leader/create`, createLeaderRequest);
+  getLeaderByID(id: number): Observable<Leader> {
+    return this.http.get<Leader>(`${this.urlBase}api/Leader/GetLeaderByID/${id}`);
   }
 
-  updateLeader(id: number, updateLeaderRequest: LeaderwPerson): Observable<SuccessResponse<Leader>> {
-    if (id === undefined || id === null || isNaN(id)) {
-      throw new Error('ID de cliente no válido: ' + id);
-    };
-    const requestBody = {
-      id: Number(id),
+  createLeaderWithPerson(leaderWithPersonRequest: LeaderWithPerson): Observable<SuccessResponse<Leader>> {
+    console.log(leaderWithPersonRequest)
+    return this.http.post<SuccessResponse<Leader>>(`${this.urlBase}api/Leader/CreateLeaderWithPerson`, leaderWithPersonRequest);
+  }
 
-      ...updateLeaderRequest
-    };
-    return this._httpClient.put<SuccessResponse<Leader>>(`${this.urlBase}/api/leader/update/${id}`, requestBody);
+  createLeaderWithPersonID(leaderWithPersonIDRequest: LeaderWithPersonID): Observable<SuccessResponse<Leader>> {
+    return this.http.post<SuccessResponse<Leader>>(`${this.urlBase}api/Leader/CreateLeaderWithPersonID`, leaderWithPersonIDRequest);
+  }
+
+  updateLeaderWithPerson(id: number, updateWithPersonRequest: LeaderWithPerson): Observable<SuccessResponse<Leader>> {
+    return this.http.put<SuccessResponse<Leader>>(`${this.urlBase}api/Leader/UpdateLeaderWithPerson/${id}`, updateWithPersonRequest);
   }
 
 }
