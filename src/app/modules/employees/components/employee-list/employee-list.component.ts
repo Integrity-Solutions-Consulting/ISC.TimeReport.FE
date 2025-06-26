@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { Employee } from '../../interfaces/employee.interface';
@@ -59,6 +60,7 @@ export class LeaderPaginatorIntl implements MatPaginatorIntl {
 export class EmployeeListComponent {
 
   private employeeService = inject(EmployeeService);
+  readonly snackBar = inject(MatSnackBar);
 
   constructor(private dialog: MatDialog) {}
 
@@ -127,30 +129,22 @@ export class EmployeeListComponent {
   }
 
   loadEmployees(): void {
-      this.employeeService.getEmployees().subscribe({
-        next: (response: Employee[]) => {
-          this.employees = response;
-          this.dataSource.data = this.employees;
-        },
-        error: (err) => {
-          console.error('Error al cargar clientes:', err);
+    this.employeeService.getEmployees().subscribe({
+      next: (response) => {
+        if (response?.items) {
+          this.dataSource = new MatTableDataSource<Employee>(response.items);
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+        } else {
+          console.error('La respuesta del API no tiene la estructura esperada:', response);
+          this.dataSource = new MatTableDataSource<Employee>([]); // Tabla vacía como fallback
         }
-      });
-    }
-
-    isAllSelected() {
-    const numSelected = this.selection.selected.length;
-    const numRows = this.employees.length;
-    return numSelected === numRows;
-  }
-
-  toggleAll() {
-    if (this.isAllSelected()) {
-      this.selection.clear();
-      return;
-    }
-
-    this.selection.select(...this.employees);
+      },
+      error: (err) => {
+        console.error('Error al cargar proyectos:', err);
+        this.dataSource = new MatTableDataSource<Employee>([]); // Tabla vacía en caso de error
+      }
+    });
   }
 
   applyFilter(event: Event) {
@@ -170,21 +164,55 @@ export class EmployeeListComponent {
     return this.positionsMap[position] || 'Desconocido';
   }
 
-  openCreateEmployeeDialog(): void {
-    this.dialog.open(EmployeeDialogComponent, {
-      width: '800px',
-      maxHeight: '90vh', // 90% del viewport height
-      data: { isEdit: false },
-      autoFocus: false //
-    })
+  openCreateDialog(): void {
+    const dialogRef = this.dialog.open(EmployeeDialogComponent, {
+      width: '600px',
+      disableClose: true,
+      data: { employee: null }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        if (result.type === 'withPerson') {
+          this.employeeService.createEmployeeWithPerson(result.data).subscribe({
+            next: () => {
+              this.snackBar.open("Empleado creado con éxito", "Cerrar", {duration: 5000});
+              this.loadEmployees();
+            },
+            error: (err) => {
+              this.snackBar.open("Error al crear empleado: " + err.message, "Cerrar", {duration: 5000});
+            }
+          });
+        } else if (result.type === 'withPersonID') {
+          this.employeeService.createEmployeeWithPersonID(result.data).subscribe({
+            next: () => {
+              this.snackBar.open("Cliente creado con éxito", "Cerrar", {duration: 5000});
+              this.loadEmployees();
+            },
+            error: (err) => {
+              this.snackBar.open("Error al crear cliente: " + err.message, "Cerrar", {duration: 5000});
+            }
+          });
+        }
+      }
+    });
   }
 
-  openEditEmployeeDialog(employee: Employee): void {
-    this.dialog.open(EmployeeDialogComponent, {
+  openEditDialog(employee: Employee): void {
+    const dialogRef = this.dialog.open(EmployeeDialogComponent, {
       width: '800px',
-      maxHeight: '90vh',
-      data: { employee, isEdit: true },
-      autoFocus: false
+      disableClose: true,
+      data: {
+        employee: employee,
+        isEdit: true
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success) {
+        this.snackBar.open('Empleado actualizado con éxito', 'Cerrar', { duration: 5000 });
+        this.loadEmployees(); // Recargar la lista
+      }
     });
   }
 }
