@@ -1,49 +1,51 @@
-/* Contenedor principal del diálogo */
-.dialog-card {
-  display: flex;
-  flex-direction: column;
-  max-height: 80vh; /* Ajusta según necesidad */
+.list-container {
+  padding: 20px;
 }
 
-/* Contenedor del contenido con scroll */
-.dialog-content {
-  overflow-y: auto;
-  flex: 1 1 auto;
-  padding: 16px;
-}
-
-/* Acciones fijas en la parte inferior */
-.dialog-actions {
-  padding: 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  flex-shrink: 0; /* Evita que se reduzca */
-}
-
-/* Resto de tus estilos existentes */
-.form-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.form-row {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.form-field, .full-width-field {
-  flex: 1;
-  min-width: 200px;
-}
-
-.full-width-field {
+.full-width {
   width: 100%;
+  margin-bottom: 10px;
 }
 
-.dollar-right-align {
-  text-align: right;
+.mat-elevation-z8 {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.mat-column-actions {
+  width: 80px;
+  text-align: center;
+}
+
+.mat-dialog-actions {
+  justify-content: flex-end;
+  padding: 16px 0;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
+
+  button {
+    background-color: var(--primary);
+    color: white;
+    margin-inline: 10px;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+
+    &.mat-button {
+      border: 1px solid #ccc;
+    }
+
+    &.mat-raised-button {
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
 }
