@@ -10,10 +10,10 @@ import { Activity, ApiResponse } from '../interfaces/activity.interface';
 })
 export class ActivityService {
   private http = inject(HttpClient);
-  urlBase: string = environment.URL_TEST;
+  urlBase: string = environment.URL_BASE;
 
   getActivities(): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.urlBase}api/DailyActivity/GetAllActivities`).pipe(
+    return this.http.get<ApiResponse>(`${this.urlBase}/api/DailyActivity/GetAllActivities`).pipe(
       map(response => {
         // Puedes hacer transformaciones adicionales aquí si es necesario
         return response;
@@ -26,7 +26,7 @@ export class ActivityService {
     if (!activityData.activityDate || !activityData.hoursQuantity) {
       return throwError(() => new Error('Datos incompletos'));
     }
-    return this.http.post(`${this.urlBase}api/DailyActivity/CreateActivity`, activityData);
+    return this.http.post(`${this.urlBase}/api/DailyActivity/CreateActivity`, activityData);
   }
 
   updateActivity(id: number, activityData: any): Observable<any> {
@@ -38,6 +38,6 @@ export class ActivityService {
         'Content-Type': 'application/json'
       });
 
-    return this.http.put(`${this.urlBase}api/DailyActivity/UpdateActivity/${id}`, activityData, { headers });
+    return this.http.put(`${this.urlBase}/api/DailyActivity/UpdateActivity/${id}`, activityData, { headers });
   }
 }
