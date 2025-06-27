@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { environment } from "../../../../environments/environment";
-import { Observable } from "rxjs";
+import { Observable, tap } from "rxjs";
 import { LoginRequest, AuthResponse } from "../interfaces/auth.interface";
 
 @Injectable({
@@ -12,7 +12,11 @@ export class AuthService {
   private urlBase: string = environment.URL_TEST;
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this._httpClient.post<AuthResponse>(`${this.urlBase}api/auth/login`, credentials);
+    return this._httpClient.post<AuthResponse>(`${this.urlBase}api/auth/login`, credentials).pipe(
+      tap((response: any) => {
+        localStorage.setItem('token', response.token); // Guarda el token
+      })
+    );
     //return this._httpClient.post<AuthResponse>(`localhost:44392/api/Auth/login`, credentials);
   }
 
