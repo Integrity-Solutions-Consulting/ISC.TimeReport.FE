@@ -10,29 +10,27 @@ import { ApiResponse, Employee, EmployeeWithPerson, EmployeeWithPersonID } from 
 })
 export class EmployeeService {
 
-  urlBase: string = environment.URL_TEST;
+  urlBase: string = environment.URL_BASE;
 
   constructor(private http: HttpClient) { }
 
   getEmployees():Observable<ApiResponse>{
-    console.log(`${this.urlBase}api/Employee/GetAllEmployees`)
-      return this.http.get<ApiResponse>(`${this.urlBase}api/Employee/GetAllEmployees`);
+      return this.http.get<ApiResponse>(`${this.urlBase}/api/Employee/GetAllEmployees`);
   }
 
   getEmployeeByID(id: number): Observable<Employee> {
-    return this.http.get<Employee>(`${this.urlBase}api/Employee/GetEmployeeByID/${id}`);
+    return this.http.get<Employee>(`${this.urlBase}/api/Employee/GetEmployeeByID/${id}`);
   }
 
   createEmployeeWithPerson(employeeWithPersonRequest: EmployeeWithPerson): Observable<SuccessResponse<Employee>> {
-    console.log(employeeWithPersonRequest)
-    return this.http.post<SuccessResponse<Employee>>(`${this.urlBase}api/Employee/CreateEmployeeWithPerson`, employeeWithPersonRequest);
+    return this.http.post<SuccessResponse<Employee>>(`${this.urlBase}/api/Employee/CreateEmployeeWithPerson`, employeeWithPersonRequest);
   }
 
   createEmployeeWithPersonID(employeeWithPersonIDRequest: EmployeeWithPersonID): Observable<SuccessResponse<Employee>> {
-    return this.http.post<SuccessResponse<Employee>>(`${this.urlBase}api/Employee/CreateEmployeeWithPersonID`, employeeWithPersonIDRequest);
+    return this.http.post<SuccessResponse<Employee>>(`${this.urlBase}/api/Employee/CreateEmployeeWithPersonID`, employeeWithPersonIDRequest);
   }
 
   updateEmployeeWithPerson(id: number, updateWithPersonRequest: EmployeeWithPerson): Observable<SuccessResponse<Employee>> {
-    return this.http.put<SuccessResponse<Employee>>(`${this.urlBase}api/Employee/UpdateEmployeeWithPerson/${id}`, updateWithPersonRequest);
+    return this.http.put<SuccessResponse<Employee>>(`${this.urlBase}/api/Employee/UpdateEmployeeWithPerson/${id}`, updateWithPersonRequest);
   }
 }

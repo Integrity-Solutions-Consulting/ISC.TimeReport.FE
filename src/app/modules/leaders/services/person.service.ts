@@ -14,7 +14,6 @@ export class PersonService {
   constructor(private http: HttpClient) { }
 
   getPersons(): Observable<PersonApiResponse> {
-    console.log(`${this.urlBase}api/Person/GetAllPersons`);
-    return this.http.get<PersonApiResponse>(`${this.urlBase}api/Person/GetAllPersons`)
+    return this.http.get<PersonApiResponse>(`${this.urlBase}/api/Person/GetAllPersons`)
   }
 }

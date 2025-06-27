@@ -10,27 +10,26 @@ import { ApiResponse, Client, ClientRequest, ClientWithPerson, ClientWithPersonI
 })
 export class ClientService{
     private http = inject(HttpClient);
-    urlBase: string = environment.URL_TEST;
+    urlBase: string = environment.URL_BASE;
 
     getClients(): Observable<ApiResponse> {
-      return this.http.get<ApiResponse>(`${this.urlBase}api/Client/GetAllClients`);
+      return this.http.get<ApiResponse>(`${this.urlBase}/api/Client/GetAllClients`);
     }
 
     getClientByID(id: number): Observable<Client> {
-      return this.http.get<Client>(`${this.urlBase}api/Client/GetClientByID/${id}`);
+      return this.http.get<Client>(`${this.urlBase}/api/Client/GetClientByID/${id}`);
     }
 
     createClientWithPerson(clientWithPersonRequest: ClientWithPerson): Observable<SuccessResponse<Client>> {
-      console.log(clientWithPersonRequest)
-      return this.http.post<SuccessResponse<Client>>(`${this.urlBase}api/Client/CreateClientWithPerson`, clientWithPersonRequest);
+      return this.http.post<SuccessResponse<Client>>(`${this.urlBase}/api/Client/CreateClientWithPerson`, clientWithPersonRequest);
     }
 
     createClientWithPersonID(clientWithPersonIDRequest: ClientWithPersonID): Observable<SuccessResponse<Client>> {
-      return this.http.post<SuccessResponse<Client>>(`${this.urlBase}api/Client/CreateClientWithPersonID`, clientWithPersonIDRequest);
+      return this.http.post<SuccessResponse<Client>>(`${this.urlBase}/api/Client/CreateClientWithPersonID`, clientWithPersonIDRequest);
     }
 
     updateClientWithPerson(id: number, updateWithPersonRequest: ClientWithPerson): Observable<SuccessResponse<Client>> {
-      return this.http.put<SuccessResponse<Client>>(`${this.urlBase}api/Client/UpdateClientWithPerson/${id}`, updateWithPersonRequest);
+      return this.http.put<SuccessResponse<Client>>(`${this.urlBase}/api/Client/UpdateClientWithPerson/${id}`, updateWithPersonRequest);
     }
 
     updateClient(id: number, updateClientRequest: ClientRequest): Observable<SuccessResponse<Client>> {
@@ -41,6 +40,6 @@ export class ClientService{
         id: Number(id),
         ...updateClientRequest
       };
-      return this.http.put<SuccessResponse<Client>>(`${this.urlBase}api/Client/UpdateClientWithPerson/${id}`, requestBody);
+      return this.http.put<SuccessResponse<Client>>(`${this.urlBase}/api/Client/UpdateClientWithPerson/${id}`, requestBody);
     }
 }

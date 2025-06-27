@@ -9,10 +9,10 @@ import { LoginRequest, AuthResponse } from "../interfaces/auth.interface";
 })
 export class AuthService {
   private _httpClient = inject(HttpClient);
-  private urlBase: string = environment.URL_TEST;
+  private urlBase: string = environment.URL_BASE;
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this._httpClient.post<AuthResponse>(`${this.urlBase}api/auth/login`, credentials).pipe(
+    return this._httpClient.post<AuthResponse>(`${this.urlBase}/api/auth/login`, credentials).pipe(
       tap((response: any) => {
         localStorage.setItem('token', response.token); // Guarda el token
       })
