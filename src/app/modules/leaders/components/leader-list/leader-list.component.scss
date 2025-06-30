@@ -52,13 +52,19 @@ td.mat-cell {
 .view-button {
   opacity: 0;
   transition: opacity 0.1s ease;
-  color: green;
+  color: orange;
 }
 
 .delete-button {
   opacity: 0;
   transition: opacity 0.1s ease;
   color: red;
+}
+
+.activate-button {
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  color: #4caf50;
 }
 
 /* Muestra el botón al hacer hover en la fila */
@@ -71,6 +77,10 @@ tr.mat-mdc-row:hover td.mat-mdc-cell .view-button {
 }
 
 tr.mat-mdc-row:hover td.mat-mdc-cell .delete-button {
+  opacity: 1;
+}
+
+tr.mat-mdc-row:hover td.mat-mdc-cell .activate-button {
   opacity: 1;
 }
 
@@ -117,4 +127,48 @@ tr.mat-mdc-row:hover td.mat-mdc-cell .delete-button {
     overflow-x: auto;
     display: block;
   }
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  width: fit-content;
+
+  &.active {
+    background-color: rgba(76, 175, 80, 0.1); // Verde claro
+
+    .status-dot {
+      background-color: #4CAF50; // Verde oscuro
+    }
+
+    .status-text {
+      color: #4CAF50; // Verde oscuro
+    }
+  }
+
+  &.inactive {
+    background-color: rgba(244, 67, 54, 0.1); // Rosa claro
+
+    .status-dot {
+      background-color: #F44336; // Rojo
+    }
+
+    .status-text {
+      color: #F44336; // Rojo
+    }
+  }
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-text {
+  font-size: 14px;
+  font-weight: 500;
 }

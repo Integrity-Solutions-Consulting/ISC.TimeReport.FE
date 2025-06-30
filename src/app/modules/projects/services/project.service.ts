@@ -10,7 +10,7 @@ import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 })
 export class ProjectService {
 
-    urlBase: string = environment.URL_BASE;
+    urlBase: string = environment.URL_TEST;
 
     constructor(private http: HttpClient) { }
 

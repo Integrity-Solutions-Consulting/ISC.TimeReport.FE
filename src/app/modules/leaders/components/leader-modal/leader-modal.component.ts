@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { LeadersService } from '../../services/leaders.service';
-import { Person, PersonApiResponse } from '../../interfaces/leader.interface';
+import { LeaderWithPerson, Person, PersonApiResponse } from '../../interfaces/leader.interface';
 import { PersonService } from '../../services/person.service';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -48,6 +48,7 @@ export class LeaderModalComponent {
   useExistingPerson: boolean = false;
   isLoadingPersons = false;
   isLoadingProjects = false;
+  originalStatus: boolean = true;
 
   isEditMode: boolean = false;
 
@@ -96,6 +97,7 @@ export class LeaderModalComponent {
   ) {
     const leaderData = data?.leader || {};
     this.leaderId = leaderData.id || null;
+    this.originalStatus = data.leader.status;
     this.isEditMode = !!leaderData.id;
 
     this.initializeForm(leaderData);
@@ -112,19 +114,19 @@ export class LeaderModalComponent {
   }
 
   private initializeForm(leaderData: any): void {
-  
+
       const birthDateValue = leaderData.person?.birthDate
         ? formatDate(leaderData.person.birthDate, 'yyyy-MM-dd', 'en-US')
         : '';
-      
+
       const startDateValue = leaderData.startDate
         ? formatDate(leaderData.startDate, 'yyyy-MM-dd', 'en-US')
         : '';
-      
+
       const endDateValue = leaderData.endDate
         ? formatDate(leaderData.endDate, 'yyyy-MM-dd', 'en-US')
         : '';
-  
+
       this.leaderForm = this.fb.group({
         // Controles principales
         personOption: ['new'],
@@ -134,7 +136,7 @@ export class LeaderModalComponent {
         startDate: [leaderData],
         endDate: [endDateValue],
         responsibilities: [leaderData.responsibilities || ''],
-  
+
         // Grupo anidado para 'person'
         person: this.fb.group({
           personType: [leaderData.person?.personType || 'Natural', Validators.required],
@@ -172,7 +174,7 @@ export class LeaderModalComponent {
   displayPersonFn(person: Person): string {
       return person ? `${person.firstName} ${person.lastName} (${person.identificationNumber})` : '';
     }
-  
+
   private togglePersonFields(): void {
     const personGroup = this.leaderForm?.get('person') as FormGroup;
 
@@ -188,7 +190,7 @@ export class LeaderModalComponent {
     const birthDateValue = leaderData.person?.birthDate
       ? formatDate(leaderData.person.birthDate, 'yyyy-MM-dd', 'en-US')
       : '';
-    
+
     const startDateValue = leaderData.startDate
         ? formatDate(leaderData.startDate, 'yyyy-MM-dd', 'en-US')
         : '';
@@ -279,6 +281,7 @@ export class LeaderModalComponent {
         startDate: formValue.startDate,
         endDate: formValue.endDate,
         responsibilities: formValue.responsibilities,
+        status: this.originalStatus,
         person: formValue.person
       };
 

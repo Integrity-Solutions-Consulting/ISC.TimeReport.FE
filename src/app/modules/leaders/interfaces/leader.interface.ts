@@ -4,7 +4,32 @@ export interface LeaderWithPerson {
   startDate: Date;
   endDate: Date;
   responsibilities: string;
+  status: boolean;
   person: {
+    genderID: number;
+    nationalityId: number;
+    identificationTypeId: number;
+    identificationNumber: string;
+    personType: string;
+    firstName: string;
+    lastName: string;
+    birthDate: Date;
+    email: string;
+    phone: string;
+    address: string;
+  }
+}
+
+export interface LeaderWithIDandPerson{
+  id: number;
+  projectID: number;
+  leadershipType: boolean;
+  startDate: Date;
+  endDate: Date;
+  responsibilities: string;
+  status: boolean;
+  person: {
+    id: number;
     genderID: number;
     nationalityId: number;
     identificationTypeId: number;
@@ -26,6 +51,8 @@ export interface LeaderWithPersonID {
   startDate: Date;
   endDate: Date;
   responsibilities: string;
+  status: boolean;
+
 }
 
 export interface Leader {
@@ -34,6 +61,7 @@ export interface Leader {
   leadershipType: boolean;
   startDate: Date;
   endDate: Date;
+  status: boolean;
   responsibilities: string;
 }
 
