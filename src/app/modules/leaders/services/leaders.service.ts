@@ -11,7 +11,7 @@ import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 export class LeadersService {
 
   private http = inject(HttpClient);
-  urlBase: string = environment.URL_TEST;
+  urlBase: string = environment.URL_BASE;
 
   getLeaders():Observable<ApiResponse>{
       return this.http.get<ApiResponse>(`${this.urlBase}/api/Leader/GetAllLeaders`);
