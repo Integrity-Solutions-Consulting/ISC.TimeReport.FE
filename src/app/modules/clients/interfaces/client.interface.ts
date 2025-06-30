@@ -30,6 +30,27 @@ export interface Client {
 export interface ClientWithPerson {
     tradeName: string;
     legalName: string;
+    status: boolean;
+    person: {
+      genderId: number;
+      nationalityId: number;
+      identificationTypeId: number;
+      identificationNumber: string;
+      personType: string;
+      firstName: string;
+      lastName: string;
+      birthDate: string;
+      email: string;
+      phone: string;
+      address: string;
+    }
+}
+
+export interface ClientWithIDandPerson {
+  id: number;
+    tradeName: string;
+    legalName: string;
+    status: boolean;
     person: {
       genderId: number;
       nationalityId: number;

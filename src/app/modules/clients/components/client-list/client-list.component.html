@@ -64,6 +64,16 @@
       <td mat-cell *matCellDef="let element">{{element.person?.email}}</td>
     </ng-container>
 
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+      <td mat-cell *matCellDef="let element">
+        <div class="status-container" [ngClass]="{'active': element.status, 'inactive': !element.status}">
+          <div class="status-dot"></div>
+          <div class="status-text">{{element.status ? 'Activo' : 'Inactivo'}}</div>
+        </div>
+      </td>
+    </ng-container>
+
     <ng-container matColumnDef="options">
       <th mat-header-cell *matHeaderCellDef> Acciones </th>
       <td mat-cell *matCellDef="let element">
@@ -73,8 +83,13 @@
         <button mat-icon-button class="view-button" matTooltip="Visualizar">
           <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="visibility"></mat-icon>
         </button>
-        <button mat-icon-button class="delete-button" matTooltip="Eliminar">
-          <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="delete"></mat-icon>
+        <button mat-icon-button
+                [class.delete-button]="element.status"
+                [class.activate-button]="!element.status"
+                (click)="toggleClientStatus(element)"
+                [matTooltip]="element.status ? 'Desactivar' : 'Activar'">
+          <mat-icon aria-hidden="false"
+                    [fontIcon]="element.status ? 'delete' : 'check_circle'"></mat-icon>
         </button>
       </td>
     </ng-container>
