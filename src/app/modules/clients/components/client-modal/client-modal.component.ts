@@ -59,6 +59,7 @@ export class ClientModalComponent implements OnInit{
   personsList: Person[] = [];
   selectedPerson: Person | null = null;
   isLoadingPersons = false;
+  originalStatus: boolean = true;
 
   identificationTypes = [
     { id: 1, name: 'Cédula' },
@@ -151,6 +152,7 @@ export class ClientModalComponent implements OnInit{
       next: (response) => {
         if (response) {
           this.patchFormValues(response);
+          this.originalStatus = response.status;
         }
       },
       error: (err) => {
@@ -264,7 +266,8 @@ export class ClientModalComponent implements OnInit{
       const clientData = {
         tradeName: formValue.tradeName,
         legalName: formValue.legalName,
-        person: formValue.person
+        person: formValue.person,
+        status: this.originalStatus
       };
 
       this.clientService.updateClientWithPerson(this.customerId, clientData).subscribe({

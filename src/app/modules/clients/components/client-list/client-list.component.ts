@@ -2,7 +2,7 @@ import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { Component, inject, Injectable, OnInit, ViewChild } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { Client } from '../../interfaces/client.interface';
+import { Client, ClientWithIDandPerson, ClientWithPerson } from '../../interfaces/client.interface';
 import { ClientService } from '../../services/client.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
@@ -26,6 +26,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
 import { Subject } from 'rxjs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Injectable()
 export class CustomerPaginatorIntl implements MatPaginatorIntl {
@@ -64,7 +65,8 @@ export class CustomerPaginatorIntl implements MatPaginatorIntl {
     MatButtonModule,
     MatCheckboxModule,
     MatSortModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatTooltipModule
   ],
   providers: [
     {provide: MatPaginatorIntl, useClass: CustomerPaginatorIntl}
@@ -76,7 +78,7 @@ export class ClientListComponent implements OnInit{
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
 
-  displayedColumns: string[] = ['idtype', 'idnumber', 'commercialname', 'companyname', 'phone', 'email', 'options'];
+  displayedColumns: string[] = ['idtype', 'idnumber', 'commercialname', 'companyname', 'phone', 'email', 'status', 'options'];
 
   selection = new SelectionModel<any>(true, []);
 
@@ -220,4 +222,37 @@ export class ClientListComponent implements OnInit{
     });
   }
 
+  toggleClientStatus(client: ClientWithIDandPerson): void {
+    const confirmationMessage = client.status
+      ? '¿Estás seguro de que deseas desactivar este cliente?'
+      : '¿Estás seguro de que deseas activar este cliente?';
+
+    if (confirm(confirmationMessage)) {
+      if (client.status) {
+        // Lógica para desactivar
+        this.clientService.inactivateClient(client.id, {
+          status: false
+        }).subscribe({
+          next: () => {
+            this.snackBar.open('Cliente desactivado con éxito', 'Cerrar', { duration: 3000 });
+            this.loadClients(); // Recargar la lista
+          },
+          error: (err) => {
+            this.snackBar.open('Error al desactivar cliente', 'Cerrar', { duration: 3000 });
+          }
+        });
+      } else {
+        // Lógica para activar
+        this.clientService.activateClient(client.id, {}).subscribe({
+          next: () => {
+            this.snackBar.open('Cliente activado con éxito', 'Cerrar', { duration: 3000 });
+            this.loadClients(); // Recargar la lista
+          },
+          error: (err) => {
+            this.snackBar.open('Error al activar cliente', 'Cerrar', { duration: 3000 });
+          }
+        });
+      }
+    }
+  }
 }

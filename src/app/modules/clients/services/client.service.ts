@@ -10,7 +10,7 @@ import { ApiResponse, Client, ClientRequest, ClientWithPerson, ClientWithPersonI
 })
 export class ClientService{
     private http = inject(HttpClient);
-    urlBase: string = environment.URL_BASE;
+    urlBase: string = environment.URL_TEST;
 
     getClients(): Observable<ApiResponse> {
       return this.http.get<ApiResponse>(`${this.urlBase}/api/Client/GetAllClients`);
@@ -41,5 +41,13 @@ export class ClientService{
         ...updateClientRequest
       };
       return this.http.put<SuccessResponse<Client>>(`${this.urlBase}/api/Client/UpdateClientWithPerson/${id}`, requestBody);
+    }
+
+    inactivateClient(id: number, data: any): Observable<any> {
+      return this.http.delete(`${this.urlBase}/api/Client/InactiveClientByID/${id}`);
+    }
+
+    activateClient(id: number, data: any): Observable<any> {
+      return this.http.delete(`${this.urlBase}/api/Client/ActiveClientByID/${id}`);
     }
 }
