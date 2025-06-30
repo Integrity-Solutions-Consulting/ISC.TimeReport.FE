@@ -41,6 +41,7 @@ export class EmployeeDialogComponent implements OnInit {
   useExistingPerson: boolean = false;
   personControl = new FormControl();
   personsList: Person[] = [];
+  originalStatus: boolean = true;
 
   // Datos para los selects
   types = [
@@ -148,6 +149,7 @@ export class EmployeeDialogComponent implements OnInit {
       next: (response) => {
         if (response) {
           this.patchFormValues(response);
+          this.originalStatus = response.status;
         }
       },
       error: (err) => {
@@ -287,7 +289,8 @@ export class EmployeeDialogComponent implements OnInit {
         department: formValue.department,
         corporateEmail: formValue.corporateEmail,
         salary: formValue.salary,
-        person: formValue.person
+        person: formValue.person,
+        status: this.originalStatus,
       };
 
       this.employeeService.updateEmployeeWithPerson(this.employeeId, employeeData).subscribe({
@@ -309,7 +312,8 @@ export class EmployeeDialogComponent implements OnInit {
         department: formValue.department,
         corporateEmail: formValue.corporateEmail,
         salary: formValue.salary,
-        person: formValue.person
+        person: formValue.person,
+        status: this.originalStatus
       };
       this.dialogRef.close({ type: 'withPersonID', data: employeeData });
     } else {
@@ -323,7 +327,8 @@ export class EmployeeDialogComponent implements OnInit {
         department: formValue.department,
         corporateEmail: formValue.corporateEmail,
         salary: formValue.salary,
-        person: formValue.person
+        person: formValue.person,
+        status: this.originalStatus
       };
       this.dialogRef.close({ type: 'withPerson', data: employeeData });
     }

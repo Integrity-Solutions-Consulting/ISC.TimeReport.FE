@@ -11,12 +11,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { Employee } from '../../interfaces/employee.interface';
+import { Employee, EmployeeWithIDandPerson } from '../../interfaces/employee.interface';
 import { EmployeeService } from '../../services/employee.service';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { EmployeeDialogComponent } from '../employee-dialog/employee-dialog.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Injectable()
 export class LeaderPaginatorIntl implements MatPaginatorIntl {
@@ -52,7 +53,8 @@ export class LeaderPaginatorIntl implements MatPaginatorIntl {
     MatButtonModule,
     MatCheckboxModule,
     MatSortModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatTooltipModule
   ],
   templateUrl: './employee-list.component.html',
   styleUrl: './employee-list.component.scss'
@@ -66,7 +68,7 @@ export class EmployeeListComponent {
 
   employees: Employee[] = [];
 
-  displayedColumns: string[] = ['idtype', 'idnumber', 'firstname', 'lastname', 'email', 'position', 'options'];
+  displayedColumns: string[] = ['idtype', 'idnumber', 'firstname', 'lastname', 'email', 'position', 'status', 'options'];
 
   selection = new SelectionModel<any>(true, []);
 
@@ -214,5 +216,38 @@ export class EmployeeListComponent {
         this.loadEmployees(); // Recargar la lista
       }
     });
+  }
+
+  toggleEmployeeStatus(employee: EmployeeWithIDandPerson): void {
+    const confirmationMessage = employee.status
+      ? '¿Estás seguro de que deseas desactivar este empleado?'
+      : '¿Estás seguro de que deseas activar este empleado?';
+
+    if (confirm(confirmationMessage)) {
+      if (employee.status) {
+        // Lógica para desactivar
+        this.employeeService.inactivateEmployee(employee.id, {
+        }).subscribe({
+          next: () => {
+            this.snackBar.open('Líder desactivado con éxito', 'Cerrar', { duration: 3000 });
+            this.loadEmployees(); // Recargar la lista
+          },
+          error: (err) => {
+            this.snackBar.open('Error al desactivar líder', 'Cerrar', { duration: 3000 });
+          }
+        });
+      } else {
+        // Lógica para activar
+        this.employeeService.activateEmployee(employee.id, {}).subscribe({
+          next: () => {
+            this.snackBar.open('Líder activado con éxito', 'Cerrar', { duration: 3000 });
+            this.loadEmployees(); // Recargar la lista
+          },
+          error: (err) => {
+            this.snackBar.open('Error al activar líder', 'Cerrar', { duration: 3000 });
+          }
+        });
+      }
+    }
   }
 }

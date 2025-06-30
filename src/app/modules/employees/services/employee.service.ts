@@ -10,7 +10,7 @@ import { ApiResponse, Employee, EmployeeWithPerson, EmployeeWithPersonID } from 
 })
 export class EmployeeService {
 
-  urlBase: string = environment.URL_BASE;
+  urlBase: string = environment.URL_TEST;
 
   constructor(private http: HttpClient) { }
 
@@ -32,5 +32,13 @@ export class EmployeeService {
 
   updateEmployeeWithPerson(id: number, updateWithPersonRequest: EmployeeWithPerson): Observable<SuccessResponse<Employee>> {
     return this.http.put<SuccessResponse<Employee>>(`${this.urlBase}/api/Employee/UpdateEmployeeWithPerson/${id}`, updateWithPersonRequest);
+  }
+
+  inactivateEmployee(id: number, data: any): Observable<any> {
+    return this.http.delete(`${this.urlBase}/api/Employee/InactiveEmployeeByID/${id}`);
+  }
+
+  activateEmployee(id: number, data: any): Observable<any> {
+    return this.http.delete(`${this.urlBase}/api/Employee/ActiveEmployeeByID/${id}`);
   }
 }
