@@ -11,7 +11,7 @@ import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 export class LeadersService {
 
   private http = inject(HttpClient);
-  urlBase: string = environment.URL_BASE;
+  urlBase: string = environment.URL_TEST;
 
   getLeaders():Observable<ApiResponse>{
       return this.http.get<ApiResponse>(`${this.urlBase}/api/Leader/GetAllLeaders`);
@@ -32,6 +32,15 @@ export class LeadersService {
 
   updateLeaderWithPerson(id: number, updateWithPersonRequest: LeaderWithPerson): Observable<SuccessResponse<Leader>> {
     return this.http.put<SuccessResponse<Leader>>(`${this.urlBase}/api/Leader/UpdateLeaderWithPerson/${id}`, updateWithPersonRequest);
+  }
+
+  inactivateLeader(id: number, data: any): Observable<any> {
+    console.log(data)
+    return this.http.delete(`${this.urlBase}/api/Leader/InactivateLeaderByID/${id}`);
+  }
+
+  activateLeader(id: number, data: any): Observable<any> {
+    return this.http.delete(`${this.urlBase}/api/Leader/ActivateLeaderByID/${id}`);
   }
 
 }

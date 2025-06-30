@@ -1,7 +1,7 @@
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { LeadersService } from './../../services/leaders.service';
 import { Component, inject, Injectable, OnInit, ViewChild } from '@angular/core';
-import { Leader, LeaderWithPerson} from '../../interfaces/leader.interface';
+import { Leader, LeaderWithIDandPerson, LeaderWithPerson} from '../../interfaces/leader.interface';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
@@ -17,6 +17,8 @@ import { MatPaginator, MatPaginatorIntl, MatPaginatorModule } from '@angular/mat
 import { Subject } from 'rxjs';
 import { ProjectService } from '../../../projects/services/project.service';
 import { Project } from '../../../projects/interfaces/project.interface';
+import { CommonModule } from '@angular/common';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Injectable()
 export class LeaderPaginatorIntl implements MatPaginatorIntl {
@@ -42,6 +44,7 @@ export class LeaderPaginatorIntl implements MatPaginatorIntl {
   selector: 'leader-list',
   standalone: true,
   imports: [
+    CommonModule,
     MatTableModule,
     MatCardModule,
     MatCheckboxModule,
@@ -50,7 +53,8 @@ export class LeaderPaginatorIntl implements MatPaginatorIntl {
     MatFormFieldModule,
     MatInputModule,
     MatSortModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatTooltipModule
   ],
   providers: [
     {provide: MatPaginatorIntl, useClass: LeaderPaginatorIntl}
@@ -73,7 +77,7 @@ export class LeaderListComponent implements OnInit{
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  displayedColumns: string[] = ['idtype', 'idnumber', 'leadertype', 'names', 'surnames', 'project', 'options'];
+  displayedColumns: string[] = ['idtype', 'idnumber', 'leadertype', 'status', 'names', 'surnames', 'project', 'options'];
 
   selection = new SelectionModel<any>(true, []);
 
@@ -129,7 +133,7 @@ export class LeaderListComponent implements OnInit{
         disableClose: true,
         data: { customer: null }
       });
-  
+
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
           if (result.type === 'withPerson') {
@@ -196,6 +200,54 @@ export class LeaderListComponent implements OnInit{
     }
 
     this.selection.select(...this.leaders);
+  }
+
+  toggleLeaderStatus(leader: LeaderWithIDandPerson): void {
+    const confirmationMessage = leader.status
+      ? '¿Estás seguro de que deseas desactivar este líder?'
+      : '¿Estás seguro de que deseas activar este líder?';
+
+    if (confirm(confirmationMessage)) {
+      if (leader.status) {
+        // Lógica para desactivar
+        this.leaderService.inactivateLeader(leader.id, {
+          personID: leader.person.id,
+          projectID: leader.projectID,
+          leadershipType: leader.leadershipType,
+          startDate: leader.startDate,
+          endDate: leader.endDate,
+          responsibilities: leader.responsibilities,
+          status: true
+        }).subscribe({
+          next: () => {
+            this.snackBar.open('Líder desactivado con éxito', 'Cerrar', { duration: 3000 });
+            this.loadLeaders(); // Recargar la lista
+          },
+          error: (err) => {
+            this.snackBar.open('Error al desactivar líder', 'Cerrar', { duration: 3000 });
+          }
+        });
+      } else {
+        // Lógica para activar
+        this.leaderService.activateLeader(leader.id, {
+          personID: leader.person.id,
+          projectID: leader.projectID,
+          leadershipType: leader.leadershipType,
+          startDate: leader.startDate,
+          endDate: leader.endDate,
+          responsibilities: leader.responsibilities,
+          status: true
+        }).subscribe({
+          next: () => {
+            this.snackBar.open('Líder activado con éxito', 'Cerrar', { duration: 3000 });
+            this.loadLeaders(); // Recargar la lista
+          },
+          error: (err) => {
+            this.snackBar.open('Error al activar líder', 'Cerrar', { duration: 3000 });
+          }
+        });
+      }
+    }
   }
 
   applyFilter(event: Event) {
