@@ -38,4 +38,12 @@ export class ProjectService {
       };
       return this.http.put<SuccessResponse<Project>>(`${this.urlBase}/api/Project/UpdateProjectByID/${id}`, requestBody);
     }
+
+    inactivateProject(id: number, data: any): Observable<any> {
+      return this.http.delete(`${this.urlBase}/api/Project/InactiveProjectByID/${id}`);
+    }
+
+    activateProject(id: number, data: any): Observable<any> {
+      return this.http.delete(`${this.urlBase}/api/Project/ActiveProjectByID/${id}`);
+    }
 }

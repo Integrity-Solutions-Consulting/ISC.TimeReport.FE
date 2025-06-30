@@ -30,6 +30,7 @@ export class ProjectModalComponent implements OnInit {
   projectForm!: FormGroup;
   isEditMode: boolean = false;
   projectId: number | null = null;
+  originalStatus: boolean = true;
 
   constructor(
     private fb: FormBuilder,
@@ -74,6 +75,7 @@ export class ProjectModalComponent implements OnInit {
 
     if (this.data?.project) {
       this.isEditMode = true;
+      this.originalStatus = this.data.project.status;
       /*this.projectId = this.data.project.projectId;*/
       this.patchFormValues(this.data.project);
     }
@@ -130,7 +132,8 @@ export class ProjectModalComponent implements OnInit {
         endDate: formValue.endDate?.toISOString(),
         actualStartDate: formValue.startDate?.toISOString() || null,
         actualEndDate: formValue.endDate?.toISOString() || null,
-        budget: formValue.budget
+        budget: formValue.budget,
+        status: this.originalStatus,
       };
 
       if (this.isEditMode && this.data?.project?.id) {

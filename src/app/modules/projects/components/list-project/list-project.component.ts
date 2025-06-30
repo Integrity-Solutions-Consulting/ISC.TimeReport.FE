@@ -12,10 +12,11 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { Subject } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { ApiResponse, Project } from '../../interfaces/project.interface';
+import { ApiResponse, Project, ProjectWithID } from '../../interfaces/project.interface';
 import { SelectionModel } from '@angular/cdk/collections';
 import { ProjectModalComponent } from '../project-modal/project-modal.component';
 import { CommonModule } from '@angular/common';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Injectable()
 export class ProjectPaginatorIntl implements MatPaginatorIntl {
@@ -50,7 +51,8 @@ export class ProjectPaginatorIntl implements MatPaginatorIntl {
     MatFormFieldModule,
     MatInputModule,
     MatSortModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatTooltipModule
   ],
   providers: [
     {
@@ -78,7 +80,7 @@ export class ListProjectComponent implements OnInit{
 
     selection = new SelectionModel<any>(true, []);
 
-    displayedColumns: string[] = ['projectStatus', 'code', 'name', 'description', 'startDate', 'endDate', 'options'];
+    displayedColumns: string[] = ['projectStatus', 'status', 'code', 'name', 'description', 'startDate', 'endDate', 'options'];
 
     readonly projectCodesMap: {[key: string]: string} = {
     '1': 'Planificación',
@@ -182,5 +184,57 @@ export class ListProjectComponent implements OnInit{
           this.loadProjects(); // Recarga la lista después de la actualización
         }
       });
+    }
+
+    toggleProjectStatus(project: ProjectWithID): void {
+      const confirmationMessage = project.status
+        ? '¿Estás seguro de que deseas desactivar este proyecto?'
+        : '¿Estás seguro de que deseas activar este proyecto?';
+
+      if (confirm(confirmationMessage)) {
+        if (project.status) {
+          // Lógica para desactivar
+          this.projectService.inactivateProject(project.id, {
+            clientID: project.clientID,
+            projectStatusID: project.projectStatusID,
+            code: project.code,
+            name: project.name,
+            description: project.description,
+            startDate: project.startDate,
+            endDate: project.endDate,
+            budget: project.budget,
+            status: true
+          }).subscribe({
+            next: () => {
+              this.snackBar.open('Proyecto desactivado con éxito', 'Cerrar', { duration: 3000 });
+              this.loadProjects(); // Recargar la lista
+            },
+            error: (err) => {
+              this.snackBar.open('Error al desactivar proyecto', 'Cerrar', { duration: 3000 });
+            }
+          });
+        } else {
+          // Lógica para activar
+          this.projectService.activateProject(project.id, {
+            clientID: project.clientID,
+            projectStatusID: project.projectStatusID,
+            code: project.code,
+            name: project.name,
+            description: project.description,
+            startDate: project.startDate,
+            endDate: project.endDate,
+            budget: project.budget,
+            status: true
+          }).subscribe({
+            next: () => {
+              this.snackBar.open('Proyecto activado con éxito', 'Cerrar', { duration: 3000 });
+              this.loadProjects(); // Recargar la lista
+            },
+            error: (err) => {
+              this.snackBar.open('Error al activar proyecto', 'Cerrar', { duration: 3000 });
+            }
+          });
+        }
+      }
     }
 }
