@@ -163,6 +163,7 @@ export class LeaderModalComponent {
       next: (response) => {
         if (response) {
           this.patchFormValues(response);
+          this.originalStatus = response.status;
         }
       },
       error: (err) => {
