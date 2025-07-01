@@ -32,7 +32,7 @@ export class AuthGuard implements CanActivate {
     const tieneAcceso = menus.includes(requestedUrl);
 
     if (!tieneAcceso) {
-      this.router.navigate(['/unauthorized']); // o tu página de error
+      this.router.navigate(['/404']); // o tu página de error
       return false;
     }
 
