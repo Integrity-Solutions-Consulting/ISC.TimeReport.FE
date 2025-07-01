@@ -6,13 +6,34 @@ import { CommonModule } from "@angular/common"
 import { Router } from "@angular/router"
 import { LoadingComponent } from "../../components/login-loading/login-loading.component"
 import { AlertaComponent } from "../../components/alerta/alerta.component"
+import { trigger, transition, style, animate } from '@angular/animations';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: "LoginPage",
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, CommonModule, LoadingComponent, AlertaComponent],
+  imports: [
+    ReactiveFormsModule,
+    FormsModule,
+    CommonModule,
+    LoadingComponent,
+    AlertaComponent,
+    MatIconModule
+  ],
   templateUrl: "./login.component.html",
   styleUrl: "./login.component.scss",
+  animations: [
+    trigger('slideAnimation', [
+      transition('void => *', [
+        style({ opacity: 0 }),
+        animate('300ms', style({ opacity: 1 }))
+      ]),
+      transition('* => void', [
+        animate('300ms', style({ opacity: 0 }))
+      ])
+    ])
+  ]
 })
 export class LoginPage implements OnInit {
   private fb = inject(FormBuilder)
@@ -28,6 +49,15 @@ export class LoginPage implements OnInit {
 
   loginForm!: FormGroup
 
+  // Propiedades para el carrusel
+  carouselImages = [
+    'assets/img/isc-01.jpeg',
+    'assets/img/isc-02.jpeg',
+    'assets/img/isc-03.jpeg'
+  ];
+  currentSlide = 0;
+  private intervalId: any;
+
   ngOnInit(): void {
     this.loginForm = this.fb.group({
       username: ["", [Validators.required, Validators.email]],
@@ -40,6 +70,39 @@ export class LoginPage implements OnInit {
       this.loginForm.patchValue({ email: rememberedEmail })
       this.rememberMe = true
     }
+
+    // Iniciar carrusel automático
+    this.startAutoRotation();
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoRotation();
+  }
+
+  startAutoRotation(): void {
+    this.intervalId = setInterval(() => {
+      this.nextSlide();
+    }, 5000);
+  }
+
+  stopAutoRotation(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+  }
+
+  nextSlide(): void {
+    this.currentSlide = (this.currentSlide + 1) % this.carouselImages.length;
+  }
+
+  prevSlide(): void {
+    this.currentSlide = (this.currentSlide - 1 + this.carouselImages.length) % this.carouselImages.length;
+  }
+
+  goToSlide(index: number): void {
+    this.currentSlide = index;
+    this.stopAutoRotation();
+    this.startAutoRotation();
   }
 
   togglePasswordVisibility(): void {
