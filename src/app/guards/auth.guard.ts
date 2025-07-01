@@ -5,37 +5,41 @@ import {
   RouterStateSnapshot,
   Router
 } from '@angular/router';
+import { AuthService } from '../modules/auth/services/auth.service';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
 
-  constructor(private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): boolean {
-
-    const token = localStorage.getItem('token');
-    const menus = JSON.parse(localStorage.getItem('menus') || '[]');
-
-    // Si no hay token, redirigir al login
-    if (!token) {
-      this.router.navigate(['/login']);
+  ): boolean | Observable<boolean> {
+    if (!this.authService.isAuthenticated()) {
+      this.handleUnauthenticated(state.url);
       return false;
     }
 
-    // Verificamos si la ruta solicitada está permitida
-    const requestedUrl = state.url;
-    const tieneAcceso = menus.includes(requestedUrl);
-
-    if (!tieneAcceso) {
-      this.router.navigate(['/404']); // o tu página de error
+    // Verificar si el módulo está permitido
+    if (!this.authService.checkRoutePermission(state.url)) {
+      this.router.navigate(['/not-authorized']);
       return false;
     }
 
     return true;
+  }
+
+  private handleUnauthenticated(returnUrl: string): void {
+    this.authService.logout();
+    this.router.navigate(['/login'], {
+      queryParams: { returnUrl }
+    });
   }
 }
