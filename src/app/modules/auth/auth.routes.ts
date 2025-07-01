@@ -14,5 +14,9 @@ export const authRoutes: Routes = [
     {
         path: 'signin',
         component: SigninPage,
-    }
+    },
+    /*{
+        path: '404',
+        component: 404Page,
+    }*/
 ];
