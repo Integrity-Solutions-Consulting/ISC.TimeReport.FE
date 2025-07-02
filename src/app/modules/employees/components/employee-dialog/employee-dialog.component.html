@@ -4,19 +4,19 @@
 <mat-dialog-content>
   <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()">
 
-    <mat-form-field appearance="fill" class="full-width">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Cargo</mat-label>
       <mat-select formControlName="positionID">
         <mat-option *ngFor="let position of positions" [value]="position.value">{{position.viewValue}}</mat-option>
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="fill" class="full-width">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Código del Empleado</mat-label>
       <input matInput formControlName="employeeCode">
     </mat-form-field>
 
-    <mat-form-field appearance="fill" class="full-width">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Fecha de Contratación</mat-label>
       <input matInput [matDatepicker]="picker1" formControlName="hireDate">
       <mat-hint>MM/DD/YYYY</mat-hint>
@@ -24,7 +24,7 @@
       <mat-datepicker #picker1></mat-datepicker>
     </mat-form-field>
 
-    <mat-form-field appearance="fill" class="full-width">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Fecha de Terminación</mat-label>
       <input matInput [matDatepicker]="picker2" formControlName="terminationDate">
       <mat-hint>MM/DD/YYYY</mat-hint>
@@ -32,19 +32,19 @@
       <mat-datepicker #picker2></mat-datepicker>
     </mat-form-field>
 
-    <mat-form-field appearance="fill" class="full-width">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Tipo de Contrato</mat-label>
       <mat-select formControlName="contractType">
         <mat-option *ngFor="let type of contractTypes" [value]="type.value">{{type.viewValue}}</mat-option>
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="fill" class="full-width">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Departamento</mat-label>
       <input matInput formControlName="department">
     </mat-form-field>
 
-    <mat-form-field appearance="fill" class="full-width">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Correo Corporativo</mat-label>
       <input matInput formControlName="corporateEmail" type="email">
       <mat-error *ngIf="employeeForm.get('email')?.hasError('email')">
@@ -58,36 +58,48 @@
     </mat-form-field>
 
     <div formGroupName="person" *ngIf="!useExistingPerson">
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Tipo de Persona</mat-label>
         <mat-select formControlName="personType">
           <mat-option *ngFor="let type of personType" [value]="type.value">{{type.viewValue}}</mat-option>
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Tipo de Identificación</mat-label>
         <mat-select formControlName="identificationTypeId">
-          <mat-option *ngFor="let type of types" [value]="type.value">{{type.viewValue}}</mat-option>
+          <mat-option *ngFor="let type of identificationTypes" [value]="type.id">{{type.name}}</mat-option>
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Número de Identificación</mat-label>
-        <input matInput formControlName="identificationNumber">
+        <input matInput formControlName="identificationNumber" required>
+        <mat-error *ngIf="employeeForm.get('person.identificationNumber')?.hasError('required')">
+          Este campo es requerido
+        </mat-error>
+        <mat-error *ngIf="employeeForm.get('person.identificationNumber')?.hasError('invalidRucLength')">
+          El RUC debe tener exactamente 13 dígitos
+        </mat-error>
+        <mat-error *ngIf="employeeForm.get('person.identificationNumber')?.hasError('invalidCedulaLength')">
+          La cédula debe tener máximo 10 dígitos
+        </mat-error>
+        <mat-error *ngIf="employeeForm.get('person.identificationNumber')?.hasError('invalidIdentificationType')">
+          Persona jurídica debe usar RUC
+        </mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Nombres</mat-label>
         <input matInput formControlName="firstName">
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Apellidos</mat-label>
         <input matInput formControlName="lastName">
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Fecha de Nacimiento</mat-label>
         <input matInput [matDatepicker]="picker3" formControlName="birthDate">
         <mat-hint>MM/DD/YYYY</mat-hint>
@@ -95,7 +107,7 @@
         <mat-datepicker #picker3></mat-datepicker>
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Correo Electrónico</mat-label>
         <input matInput formControlName="email" type="email">
         <mat-error *ngIf="employeeForm.get('email')?.hasError('email')">
@@ -103,20 +115,23 @@
         </mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Teléfono</mat-label>
-        <input matInput formControlName="phone">
-        <mat-error *ngIf="employeeForm.get('phone')?.hasError('pattern')">
-          Formato de teléfono inválido
+        <input matInput formControlName="phone" required>
+        <mat-error *ngIf="employeeForm.get('person.phone')?.hasError('required')">
+          Este campo es requerido
+        </mat-error>
+        <mat-error *ngIf="employeeForm.get('person.phone')?.hasError('pattern')">
+          El teléfono debe contener solo números (máximo 10 dígitos)
         </mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Dirección</mat-label>
         <input matInput formControlName="address">
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Género</mat-label>
         <mat-select formControlName="genderId">
           @for (gender of genders; track gender) {
@@ -125,7 +140,7 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Nacionalidad</mat-label>
         <mat-select formControlName="nationalityId">
           @for (nation of nationalities; track nation) {
@@ -137,6 +152,12 @@
   </form>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!employeeForm.valid">Guardar</button>
+  <button mat-raised-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button
+        style="background-color: var(--primary); color: var(--light)"
+        (click)="onSubmit()"
+        [disabled]="employeeForm.invalid || employeeForm.pending"
+        [class.disabled-button]="employeeForm.invalid">
+  Guardar
+</button>
 </mat-dialog-actions>

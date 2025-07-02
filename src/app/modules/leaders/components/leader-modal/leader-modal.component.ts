@@ -1,6 +1,6 @@
 import { CommonModule, formatDate } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef, } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -97,8 +97,8 @@ export class LeaderModalComponent {
   ) {
     const leaderData = data?.leader || {};
     this.leaderId = leaderData.id || null;
-    this.originalStatus = data.leader.status;
-    this.isEditMode = !!leaderData.id;
+    this.originalStatus = data?.leader?.status || true;
+    this.isEditMode = !!data?.leader?.id;
 
     this.initializeForm(leaderData);
 
@@ -141,7 +141,7 @@ export class LeaderModalComponent {
         person: this.fb.group({
           personType: [leaderData.person?.personType || 'Natural', Validators.required],
           identificationTypeId: [leaderData.person?.identificationTypeId || 0, Validators.required],
-          identificationNumber: [leaderData.person?.identificationNumber || '', Validators.required],
+          identificationNumber: [leaderData.person?.identificationNumber || '', [Validators.required, this.identificationNumberValidator.bind(this)]],
           firstName: [leaderData.person?.firstName || '', Validators.required],
           lastName: [leaderData.person?.lastName || '', Validators.required],
           birthDate: [birthDateValue],
@@ -152,11 +152,83 @@ export class LeaderModalComponent {
           nationalityId: [leaderData.person?.nationalityId || 0]
         })
       });
+
+      this.leaderForm.get('person.personType')?.valueChanges.subscribe(personType => {
+        this.updateIdentificationValidators(personType);
+      });
+
+      this.leaderForm.get('person.identificationTypeId')?.valueChanges.subscribe(() => {
+        const personType = this.leaderForm.get('person.personType')?.value;
+        this.updateIdentificationValidators(personType);
+      });
+
       this.leaderForm.get('personOption')?.valueChanges.subscribe(value => {
         this.useExistingPerson = value === 'existing';
         this.togglePersonFields();
       });
+
+      const initialPersonType = this.leaderForm.get('person.personType')?.value;
+      this.updateIdentificationValidators(initialPersonType);
     }
+
+    private identificationNumberValidator(control: FormControl): { [key: string]: any } | null {
+      const personType = this.leaderForm?.get('person.personType')?.value;
+      const identificationTypeId = this.leaderForm?.get('person.identificationTypeId')?.value;
+      const value = control.value;
+
+      if (!value) return null;
+
+      // Validación para persona jurídica
+      if (personType === 'Legal') {
+        if (identificationTypeId !== 2) { // 2 = RUC
+          return { invalidIdentificationType: 'Persona jurídica debe usar RUC' };
+        }
+        if (!/^\d{13}$/.test(value)) {
+          return { invalidRucLength: 'El RUC debe tener 13 dígitos' };
+        }
+      }
+
+      // Validación para persona natural
+      if (personType === 'Natural') {
+        if (identificationTypeId === 1) { // 1 = Cédula
+          if (!/^\d{1,10}$/.test(value)) {
+            return { invalidCedulaLength: 'La cédula debe tener máximo 10 dígitos' };
+          }
+        }
+        // Para pasaporte (id: 3) no aplicamos validación de formato específico
+      }
+
+      return null;
+    }
+
+  private updateIdentificationValidators(personType: string): void {
+    const identificationTypeControl = this.leaderForm.get('person.identificationTypeId');
+    const identificationNumberControl = this.leaderForm.get('person.identificationNumber');
+
+    if (personType === 'Legal') {
+      // Persona jurídica solo puede tener RUC (id: 2)
+      identificationTypeControl?.setValue(2);
+      identificationTypeControl?.disable();
+      
+      // Actualizar validación del número de identificación
+      identificationNumberControl?.setValidators([
+        Validators.required,
+        Validators.pattern(/^\d{13}$/),
+        this.identificationNumberValidator.bind(this)
+      ]);
+    } else {
+      // Persona natural puede tener cédula (1) o pasaporte (3)
+      identificationTypeControl?.enable();
+      
+      // Actualizar validación del número de identificación
+      identificationNumberControl?.setValidators([
+        Validators.required,
+        this.identificationNumberValidator.bind(this)
+      ]);
+    }
+
+    identificationNumberControl?.updateValueAndValidity();
+  }
 
   private loadLeaderData(leaderId: number): void {
     this.leaderService.getLeaderByID(leaderId).subscribe({
@@ -260,6 +332,13 @@ export class LeaderModalComponent {
   onSubmit(): void {
     if (this.leaderForm?.invalid) return;
 
+    this.markFormGroupTouched(this.leaderForm);
+
+    if (this.leaderForm.invalid) {
+      console.log('Formulario inválido', this.leaderForm.errors);
+      return;
+    }
+
     const formValue = this.leaderForm?.getRawValue(); // Usa getRawValue() para incluir campos deshabilitados
 
     if (formValue.person?.birthDate) {
@@ -317,6 +396,16 @@ export class LeaderModalComponent {
       };
       this.dialogRef.close({ type: 'withPerson', data: leaderData });
     }
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup) {
+    Object.values(formGroup.controls).forEach(control => {
+      control.markAsTouched();
+
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
+      }
+    });
   }
 
 }
