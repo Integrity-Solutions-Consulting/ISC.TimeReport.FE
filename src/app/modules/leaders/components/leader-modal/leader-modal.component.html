@@ -2,7 +2,7 @@
   {{ isEditMode ? 'Editar Líder' : 'Crear Nuevo Líder' }}
 </h4>
 <mat-dialog-content>
-  <form [formGroup]="leaderForm" (ngSubmit)="onSubmit()" class="customer-form">
+  <form [formGroup]="leaderForm" (ngSubmit)="onSubmit()" class="customer-form" style="margin-top: 6px;">
 
     <!-- Selección de tipo de persona -->
     <mat-radio-group formControlName="personOption" class="radio-group">
@@ -91,7 +91,19 @@
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Número de Identificación</mat-label>
-        <input matInput formControlName="identificationNumber">
+        <input matInput formControlName="identificationNumber" required>
+        <mat-error *ngIf="leaderForm.get('person.identificationNumber')?.hasError('required')">
+          Este campo es requerido
+        </mat-error>
+        <mat-error *ngIf="leaderForm.get('person.identificationNumber')?.hasError('invalidRucLength')">
+          El RUC debe tener exactamente 13 dígitos
+        </mat-error>
+        <mat-error *ngIf="leaderForm.get('person.identificationNumber')?.hasError('invalidCedulaLength')">
+          La cédula debe tener máximo 10 dígitos
+        </mat-error>
+        <mat-error *ngIf="leaderForm.get('person.identificationNumber')?.hasError('invalidIdentificationType')">
+          Persona jurídica debe usar RUC
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
@@ -122,9 +134,12 @@
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Teléfono</mat-label>
-        <input matInput formControlName="phone">
-        <mat-error *ngIf="leaderForm.get('phone')?.hasError('pattern')">
-          Formato de teléfono inválido
+        <input matInput formControlName="phone" required>
+        <mat-error *ngIf="leaderForm.get('person.phone')?.hasError('required')">
+          Este campo es requerido
+        </mat-error>
+        <mat-error *ngIf="leaderForm.get('person.phone')?.hasError('pattern')">
+          El teléfono debe contener solo números (máximo 10 dígitos)
         </mat-error>
       </mat-form-field>
 
@@ -154,6 +169,12 @@
   </form>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!leaderForm.valid">Guardar</button>
+  <button mat-raised-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button
+        style="background-color: var(--primary); color: var(--light)"
+        (click)="onSubmit()"
+        [disabled]="leaderForm.invalid || leaderForm.pending"
+        [class.disabled-button]="leaderForm.valid">
+  Guardar
+</button>
 </mat-dialog-actions>

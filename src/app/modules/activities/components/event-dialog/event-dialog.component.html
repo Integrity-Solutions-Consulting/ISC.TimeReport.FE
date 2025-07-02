@@ -4,7 +4,7 @@
   <div class="form-container">
 
     <!-- Tipo Actividad -->
-    <mat-form-field appearance="fill" class="full-width">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Tipo Actividad</mat-label>
       <mat-select [(ngModel)]="event.activityTypeID" required>
         @for (type of activityTypes; track type) {
@@ -14,7 +14,7 @@
     </mat-form-field>
 
     <!-- Proyecto -->
-    <mat-form-field appearance="fill" class="full-width">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Proyecto</mat-label>
       <mat-select [(ngModel)]="event.projectId" required>
         <mat-option *ngFor="let project of projects" [value]="project.id">
@@ -23,13 +23,13 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="fill" class="full-width">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Descripción</mat-label>
       <textarea matInput [(ngModel)]="event.activityDescription" rows="3" required></textarea>
     </mat-form-field>
 
     <!-- Detalle de la actividad -->
-    <mat-form-field appearance="fill" class="full-width">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Detalle de la actividad</mat-label>
       <textarea matInput [(ngModel)]="event.details" rows="3" required></textarea>
     </mat-form-field>
@@ -44,14 +44,14 @@
 
     <!-- Fecha y horas -->
     <div class="row">
-      <mat-form-field appearance="fill" class="half-width">
+      <mat-form-field appearance="outline" class="half-width">
         <mat-label>Fecha actividad</mat-label>
         <input matInput [matDatepicker]="activityDatePicker" [(ngModel)]="event.activityDate" required>
         <mat-datepicker-toggle matSuffix [for]="activityDatePicker"></mat-datepicker-toggle>
         <mat-datepicker #activityDatePicker></mat-datepicker>
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="half-width" *ngIf="!isFullDay">
+      <mat-form-field appearance="outline" class="half-width" *ngIf="!isFullDay">
         <mat-label>Número de horas</mat-label>
         <input matInput type="text" [(ngModel)]="event.hours" min="1" max="8" [required]="!isFullDay">
       </mat-form-field>
@@ -60,8 +60,8 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-raised-button color="primary" [mat-dialog-close]="preparePayload()" [disabled]="!isFormValid()">
+  <button mat-raised-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button style="background-color: var(--primary); color: var(--light)" [mat-dialog-close]="preparePayload()" [disabled]="!isFormValid()">
     {{ data.isEdit ? 'Editar' : 'Agregar' }}
   </button>
 </mat-dialog-actions>

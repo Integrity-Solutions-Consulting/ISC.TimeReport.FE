@@ -130,7 +130,7 @@ export class ClientModalComponent implements OnInit{
       person: this.fb.group({
         personType: [customerData.person?.personType || 'Natural', Validators.required],
         identificationTypeId: [customerData.person?.identificationTypeId || 0, Validators.required],
-        identificationNumber: [customerData.person?.identificationNumber || '', Validators.required],
+        identificationNumber: [customerData.person?.identificationNumber || '', [Validators.required, Validators.pattern(/^[0-9]+$/)]],
         firstName: [customerData.person?.firstName || '', Validators.required],
         lastName: [customerData.person?.lastName || '', Validators.required],
         birthDate: [birthDateValue],
@@ -141,10 +141,84 @@ export class ClientModalComponent implements OnInit{
         nationalityId: [customerData.person?.nationalityId || 0]
       })
     });
+
+    this.clientForm.get('person.personType')?.valueChanges.subscribe(personType => {
+      this.updateIdentificationValidators(personType);
+    });
+
+    this.clientForm.get('person.identificationTypeId')?.valueChanges.subscribe(() => {
+      const personType = this.clientForm.get('person.personType')?.value;
+      this.updateIdentificationValidators(personType);
+    });
+
     this.clientForm.get('personOption')?.valueChanges.subscribe(value => {
       this.useExistingPerson = value === 'existing';
       this.togglePersonFields();
     });
+
+    const initialPersonType = this.clientForm.get('person.personType')?.value;
+    this.updateIdentificationValidators(initialPersonType);
+  }
+
+  // Validador personalizado para el número de identificación
+  private identificationNumberValidator(control: FormControl): { [key: string]: any } | null {
+    const personType = this.clientForm?.get('person.personType')?.value;
+    const identificationTypeId = this.clientForm?.get('person.identificationTypeId')?.value;
+    const value = control.value;
+
+    if (!value) return null;
+
+    // Validación para persona jurídica
+    if (personType === 'Legal') {
+      if (identificationTypeId !== 2) { // 2 = RUC
+        return { invalidIdentificationType: 'Persona jurídica debe usar RUC' };
+      }
+      if (!/^\d{13}$/.test(value)) {
+        return { invalidRucLength: 'El RUC debe tener 13 dígitos' };
+      }
+    }
+
+    // Validación para persona natural
+    if (personType === 'Natural') {
+      if (identificationTypeId === 1) { // 1 = Cédula
+        if (!/^\d{1,10}$/.test(value)) {
+          return { invalidCedulaLength: 'La cédula debe tener máximo 10 dígitos' };
+        }
+      }
+      // Para pasaporte (id: 3) no aplicamos validación de formato específico
+    }
+
+    return null;
+  }
+
+  // Actualizar validadores según tipo de persona
+  private updateIdentificationValidators(personType: string): void {
+    const identificationTypeControl = this.clientForm.get('person.identificationTypeId');
+    const identificationNumberControl = this.clientForm.get('person.identificationNumber');
+
+    if (personType === 'Legal') {
+      // Persona jurídica solo puede tener RUC (id: 2)
+      identificationTypeControl?.setValue(2);
+      identificationTypeControl?.disable();
+      
+      // Actualizar validación del número de identificación
+      identificationNumberControl?.setValidators([
+        Validators.required,
+        Validators.pattern(/^\d{13}$/),
+        this.identificationNumberValidator.bind(this)
+      ]);
+    } else {
+      // Persona natural puede tener cédula (1) o pasaporte (3)
+      identificationTypeControl?.enable();
+      
+      // Actualizar validación del número de identificación
+      identificationNumberControl?.setValidators([
+        Validators.required,
+        this.identificationNumberValidator.bind(this)
+      ]);
+    }
+
+    identificationNumberControl?.updateValueAndValidity();
   }
 
   private loadClientData(clientId: number): void {
@@ -253,6 +327,13 @@ export class ClientModalComponent implements OnInit{
   }
 
   onSubmit(): void {
+    this.markFormGroupTouched(this.clientForm);
+
+    if (this.clientForm.invalid) {
+      console.log('Formulario inválido', this.clientForm.errors);
+      return;
+    }
+
     if (this.clientForm?.invalid) return;
 
     const formValue = this.clientForm?.getRawValue(); // Usa getRawValue() para incluir campos deshabilitados
@@ -295,5 +376,15 @@ export class ClientModalComponent implements OnInit{
       };
       this.dialogRef.close({ type: 'withPerson', data: clientData });
     }
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup) {
+    Object.values(formGroup.controls).forEach(control => {
+      control.markAsTouched();
+
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
+      }
+    });
   }
 }

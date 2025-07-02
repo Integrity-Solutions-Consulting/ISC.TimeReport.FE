@@ -73,7 +73,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
     customButtons: {
       addActivity: {
         text: 'Agregar actividad',
-        click: this.handleAddActivity
+        click: this.handleAddActivity.bind(this)
       }
     }
     /* you can update a remote database when these fire:

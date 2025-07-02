@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { ProjectService } from '../../services/project.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,6 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 @Component({
   standalone: true,
   imports: [
+    CommonModule,
     MatFormFieldModule,
     MatDialogModule,
     MatSelectModule,
@@ -79,7 +81,22 @@ export class ProjectModalComponent implements OnInit {
       /*this.projectId = this.data.project.projectId;*/
       this.patchFormValues(this.data.project);
     }
+    this.projectForm.get('startDate')?.valueChanges.subscribe(() => {
+      this.projectForm.get('endDate')?.updateValueAndValidity();
+    });
   }
+
+    private dateRangeValidator(): ValidatorFn {
+      return (control: AbstractControl): ValidationErrors | null => {
+        const startDate = control.get('startDate')?.value;
+        const endDate = control.get('endDate')?.value;
+
+        if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+          return { dateRange: true };
+        }
+        return null;
+      };
+    }
 
   private initForm(): void {
     this.projectForm = this.fb.group({
@@ -112,62 +129,59 @@ export class ProjectModalComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.projectForm.valid) {
-      const formValue = this.projectForm.value;
+    if (this.projectForm.invalid) {
+      // Marcar todos los campos como touched para mostrar errores
+      this.projectForm.markAllAsTouched();
+      return;
+    }
 
-      // Validación de fechas
-      if (new Date(formValue.endDate) < new Date(formValue.startDate)) {
-        alert('La fecha de fin no puede ser anterior a la fecha de inicio');
+    const formValue = this.projectForm.value;
+
+    // Validación adicional de fechas (por si acaso)
+    if (new Date(formValue.endDate) < new Date(formValue.startDate)) {
+      alert('La fecha de fin no puede ser anterior a la fecha de inicio');
+      return;
+    }
+
+    const projectData: Project = {
+      id: this.isEditMode && this.data?.project?.id ? this.data.project.id : undefined,
+      clientID: formValue.clientId,
+      projectStatusID: formValue.projectStatusId,
+      code: formValue.code,
+      name: formValue.name,
+      description: formValue.description,
+      startDate: formValue.startDate?.toISOString(),
+      endDate: formValue.endDate?.toISOString(),
+      actualStartDate: formValue.actualStartDate?.toISOString() || null,
+      actualEndDate: formValue.actualEndDate?.toISOString() || null,
+      budget: formValue.budget,
+      status: this.originalStatus,
+    };
+
+    if (this.isEditMode) {
+      const projectId = this.data?.project?.id;
+      if (!projectId) {
+        console.error('No se puede actualizar: ID de proyecto no proporcionado');
         return;
       }
 
-      const projectData: Project = {
-        id: this.isEditMode && this.projectId ? this.projectId : undefined,
-        clientID: formValue.clientId,
-        projectStatusID: formValue.projectStatusId,
-        code: formValue.code,
-        name: formValue.name,
-        description: formValue.description,
-        startDate: formValue.startDate?.toISOString(),
-        endDate: formValue.endDate?.toISOString(),
-        actualStartDate: formValue.startDate?.toISOString() || null,
-        actualEndDate: formValue.endDate?.toISOString() || null,
-        budget: formValue.budget,
-        status: this.originalStatus,
-      };
-
-      if (this.isEditMode && this.data?.project?.id) {
-        projectData.id = this.data.project.id;
-      }
-
-      if (this.isEditMode) {
-        const projectId = this.data?.project?.id;
-        if (!projectId) {
-          console.error('No se puede actualizar: ID de proyecto no proporcionado');
-          return;
+      this.projectService.updateProject(projectId, projectData).subscribe({
+        next: (response) => {
+          this.dialogRef.close(response);
+        },
+        error: (err) => {
+          console.error('Error al actualizar proyecto:', err);
         }
-
-        this.projectService.updateProject(projectId, projectData).subscribe({
-          next: (response) => {
-            this.dialogRef.close(response);
-          },
-          error: (err) => {
-            console.error('Error al actualizar proyecto:', err);
-            // Manejo de errores para el usuario
-            //this.snackBar.open('Error al actualizar proyecto', 'Cerrar', { duration: 5000 });
-          }
-        });
-      } else {
-        this.projectService.createProject(projectData).subscribe({
-          next: (response) => {
-            this.dialogRef.close(response);
-          },
-          error: (err) => {
-            console.error('Error al crear proyecto:', err);
-            // Add user-friendly error handling here
-          }
-        });
-      }
+      });
+    } else {
+      this.projectService.createProject(projectData).subscribe({
+        next: (response) => {
+          this.dialogRef.close(response);
+        },
+        error: (err) => {
+          console.error('Error al crear proyecto:', err);
+        }
+      });
     }
   }
 

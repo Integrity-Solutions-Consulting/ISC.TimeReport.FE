@@ -43,12 +43,11 @@ export class EmployeeDialogComponent implements OnInit {
   personsList: Person[] = [];
   originalStatus: boolean = true;
 
-  // Datos para los selects
-  types = [
-    { value: 1, viewValue: 'Cédula' },
-    { value: 2, viewValue: 'Pasaporte' },
-    { value: 3, viewValue: 'RUC' }
-  ];
+  identificationTypes = [
+      { id: 1, name: 'Cédula' },
+      { id: 2, name: 'RUC' },
+      { id: 3, name: 'Pasaporte' }
+    ];
 
   genders = [
     { value: 1, viewValue: 'Masculino' },
@@ -56,8 +55,8 @@ export class EmployeeDialogComponent implements OnInit {
   ];
 
   personType = [
-    { value: 'natural', viewValue: 'Natural' },
-    { value: 'juridica', viewValue: 'Jurídica' }
+    { value: 'natural', viewValue: 'Persona Natural' },
+    { value: 'juridica', viewValue: 'Persona Jurídica' }
   ];
 
   nationalities = [
@@ -188,22 +187,94 @@ export class EmployeeDialogComponent implements OnInit {
         person: this.fb.group({
           personType: [employeeData.person?.personType || 'Natural', Validators.required],
           identificationTypeId: [employeeData.person?.identificationTypeId || 0, Validators.required],
-          identificationNumber: [employeeData.person?.identificationNumber || '', Validators.required],
+          identificationNumber: [employeeData.person?.identificationNumber || '', [Validators.required, this.identificationNumberValidator.bind(this)]],
           firstName: [employeeData.person?.firstName || '', Validators.required],
           lastName: [employeeData.person?.lastName || '', Validators.required],
           birthDate: [birthDateValue],
           email: [employeeData.person?.email || '', [Validators.required, Validators.email]],
-          phone: [employeeData.person?.phone || '', [Validators.required, Validators.pattern(/^[0-9]+$/)]],
+          phone: [employeeData.person?.phone || '', [Validators.required, Validators.pattern(/^\d{1,10}$/)]],
           address: [employeeData.person?.address || ''],
           genderId: [employeeData.person?.genderId || 0],
           nationalityId: [employeeData.person?.nationalityId || 0]
         })
       });
+
+      this.employeeForm.get('person.personType')?.valueChanges.subscribe(personType => {
+        this.updateIdentificationValidators(personType);
+      });
+
+      this.employeeForm.get('person.identificationTypeId')?.valueChanges.subscribe(() => {
+        const personType = this.employeeForm.get('person.personType')?.value;
+        this.updateIdentificationValidators(personType);
+      });
+
       this.employeeForm.get('personOption')?.valueChanges.subscribe(value => {
         this.useExistingPerson = value === 'existing';
         this.togglePersonFields();
       });
+
+      const initialPersonType = this.employeeForm.get('person.personType')?.value;
+      this.updateIdentificationValidators(initialPersonType);
+  }
+
+  private identificationNumberValidator(control: FormControl): { [key: string]: any } | null {
+    const personType = this.employeeForm?.get('person.personType')?.value;
+    const identificationTypeId = this.employeeForm?.get('person.identificationTypeId')?.value;
+    const value = control.value;
+
+    if (!value) return null;
+
+    // Validación para persona jurídica
+    if (personType === 'Legal') {
+      if (identificationTypeId !== 2) { // 2 = RUC
+        return { invalidIdentificationType: 'Persona jurídica debe usar RUC' };
+      }
+      if (!/^\d{13}$/.test(value)) {
+        return { invalidRucLength: 'El RUC debe tener 13 dígitos' };
+      }
     }
+
+    // Validación para persona natural
+    if (personType === 'Natural') {
+      if (identificationTypeId === 1) { // 1 = Cédula
+        if (!/^\d{1,10}$/.test(value)) {
+          return { invalidCedulaLength: 'La cédula debe tener máximo 10 dígitos' };
+        }
+      }
+      // Para pasaporte (id: 3) no aplicamos validación de formato específico
+    }
+
+    return null;
+  }
+
+  private updateIdentificationValidators(personType: string): void {
+    const identificationTypeControl = this.employeeForm.get('person.identificationTypeId');
+    const identificationNumberControl = this.employeeForm.get('person.identificationNumber');
+
+    if (personType === 'Legal') {
+      // Persona jurídica solo puede tener RUC (id: 2)
+      identificationTypeControl?.setValue(2);
+      identificationTypeControl?.disable();
+      
+      // Actualizar validación del número de identificación
+      identificationNumberControl?.setValidators([
+        Validators.required,
+        Validators.pattern(/^\d{13}$/),
+        this.identificationNumberValidator.bind(this)
+      ]);
+    } else {
+      // Persona natural puede tener cédula (1) o pasaporte (3)
+      identificationTypeControl?.enable();
+      
+      // Actualizar validación del número de identificación
+      identificationNumberControl?.setValidators([
+        Validators.required,
+        this.identificationNumberValidator.bind(this)
+      ]);
+    }
+
+    identificationNumberControl?.updateValueAndValidity();
+  }
 
   private patchFormValues(employeeData: any): void {
     // Formatea la fecha si existe
@@ -270,7 +341,15 @@ export class EmployeeDialogComponent implements OnInit {
   }
 
   onSubmit(): void {
+
     if (this.employeeForm?.invalid) return;
+
+    this.markFormGroupTouched(this.employeeForm);
+
+    if (this.employeeForm.invalid) {
+      console.log('Formulario inválido', this.employeeForm.errors);
+      return;
+    }
 
     const formValue = this.employeeForm?.getRawValue(); // Usa getRawValue() para incluir campos deshabilitados
 
@@ -336,5 +415,15 @@ export class EmployeeDialogComponent implements OnInit {
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup) {
+    Object.values(formGroup.controls).forEach(control => {
+      control.markAsTouched();
+
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
+      }
+    });
   }
 }
