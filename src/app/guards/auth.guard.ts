@@ -27,6 +27,15 @@ export class AuthGuard implements CanActivate {
       return false;
     }
 
+    if (route.routeConfig?.path === '') { // Ruta vacía especial
+      if (this.authService.isAuthenticated()) {
+        this.router.navigate(['/menu']);
+      } else {
+        this.router.navigate(['/auth/login']);
+      }
+      return false;
+    }
+
     // Verificar si el módulo está permitido
     if (!this.authService.checkRoutePermission(state.url)) {
       this.router.navigate(['/not-authorized']);
