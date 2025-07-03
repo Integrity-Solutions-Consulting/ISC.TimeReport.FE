@@ -1,13 +1,19 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { Router } from '@angular/router';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-header',
   standalone: true,
+  imports: [MatToolbarModule, MatIconModule, MatButtonModule, MatMenuModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent {
+  @Output() toggleMenu = new EventEmitter<void>();
   username = 'Usuario'; // Luego puedes pasar esto desde un servicio
 
   constructor(private router: Router) {}

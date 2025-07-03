@@ -1,61 +1,68 @@
-#menu-container {
-  padding: 1.5rem;
-  color: #fff;
-  height: 100vh;
-  width: 240px;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
-
-  ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 10px;
-  }
-
-  li {
-    margin-bottom: 0.5rem;
-
-    a {
-      text-decoration: none;
-      color: #000000cc;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      transition: background-color 0.2s ease, color 0.2s ease;
-
-      &:hover,
-      &.active-link {
-        background-color: #3c4f65;
-        color: #ffffff;
-      }
-
-      &:active {
-        background-color: #506683;
-      }
-    }
-  }
+.sidenav-container {
+  padding: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
-
-.logo-header {
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 16px;
+  margin-bottom: 20px;
   text-align: center;
 }
 
 .logo-img {
-  width: 200px;
+  width: 200px; /* Ajusta según necesidad */
+  height: auto;
   margin-bottom: 10px;
 }
 
 .logo-text {
-  font-family: 'Poppins', sans-serif;
-  font-size: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.company-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.2;
+}
+
+.app-name {
+  font-size: 1.2rem;
   font-weight: 600;
   color: #333;
+  margin-top: 4px;
 }
 
 .logo-dot {
-  color: #3b82f6;
+  color: #3f51b5;
+}
+
+mat-nav-list {
+  padding: 0;
+}
+
+a[mat-list-item] {
+  margin: 4px 0;
+  border-radius: 4px;
+
+  &:hover {
+    background-color: var(--primary);
+    color: #f2f2f2 !important;
+  }
+}
+
+.active-link {
+  background-color: var(--tertiary) !important;
+  color: #f2f2f2 !important;
+
+  &:hover {
+    background-color: var(--secondary) !important;
+  }
 }

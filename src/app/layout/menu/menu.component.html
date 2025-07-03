@@ -1,17 +1,17 @@
-<div id="menu-container">
-  <div class="logo-header">
+<div class="sidenav-container">
+  <div class="logo-container">
     <img src="assets/img/logo-isc.webp" alt="Logo Integrity" class="logo-img" />
     <div class="logo-text">
-      TimeReport<span class="logo-dot">.</span>
+      <div class="app-name">TimeReport<span class="logo-dot">.</span></div>
     </div>
   </div>
 
-  <ul>
-    <li *ngFor="let menu of options">
-      <a
-      [routerLink]="menu.modulePath"
-      routerLinkActive="active-link"
-    >{{ menu.moduleName }}</a>
-    </li>
-  </ul>
+  <mat-nav-list>
+    <a mat-list-item
+       *ngFor="let menu of options"
+       [routerLink]="menu.modulePath"
+       routerLinkActive="active-link">
+      {{ menu.moduleName }}
+    </a>
+  </mat-nav-list>
 </div>

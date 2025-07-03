@@ -1,47 +1,78 @@
-:root {
-  overflow: hidden;
-}
-
 #header-container {
-  color: white;
-  padding: 0.75rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  min-height: 20%;
+  padding: 0 16px;
+  height: 64px;
+  background-color: var(--primary);
 
-  .logo {
-    font-size: 1.3rem;
-    font-weight: 600;
+  .left, .right {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 12px;
+    color: var(--light)
   }
 
-  .right {
+  .logo {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    font-size: 1.2rem;
+    font-weight: 500;
 
-    .username {
-      font-weight: 500;
-      font-size: 1rem;
+    .time-icon {
+      margin-right: 8px;
+    }
+  }
+
+  .username {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+
+    .user-icon {
+      margin-right: 6px;
+      font-size: 20px;
+    }
+  }
+
+  .logout-button {
+    background-color: var(--secondary);
+    color: var(--light);
+
+    &:hover {
+      background-color: var(--tertiary);
     }
 
-    .logout-button {
-      background-color: white;
-      color: #154a91;
-      border: none;
-      padding: 1rem 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s ease-in-out;
+    .logout-text {
+      margin-left: 4px;
+    }
+  }
 
-      &:hover {
-        background-color: #e3e3e3;
-      }
+  .menu-button {
+    display: none;
+    margin-right: 8px;
+    color: var(--light);
+  }
+
+  /* Responsive para móviles */
+  @media (max-width: 767px) {
+    .menu-button {
+      display: block;
+    }
+
+    .logout-text {
+      display: none;
+    }
+
+    .username {
+      font-size: 0.8rem;
+    }
+  }
+
+  /* Versión muy pequeña */
+  @media (max-width: 480px) {
+    .username-text {
+      display: none;
     }
   }
 }

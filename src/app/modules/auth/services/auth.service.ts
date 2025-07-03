@@ -2,16 +2,17 @@ import { HttpClient } from "@angular/common/http";
 import { inject, Injectable, signal } from "@angular/core";
 import { environment } from "../../../../environments/environment";
 import { Observable, catchError, map, of, tap } from "rxjs";
-import { LoginRequest, AuthResponse, Role } from "../interfaces/auth.interface";
+import { LoginRequest, AuthResponse, Role, Module } from "../interfaces/auth.interface";
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private _httpClient = inject(HttpClient);
-  private urlBase: string = environment.URL_BASE;
+  private urlBase: string = environment.URL_TEST;
   private _isAuthenticated = signal<boolean>(false);
   private _userMenus = signal<string[]>([]);
+  private _userRoles = signal<Role[]>([]);
 
   constructor() {
     this.initializeAuthState();
@@ -21,8 +22,10 @@ export class AuthService {
   private initializeAuthState(): void {
     const token = this.getToken();
     const menus = this.getMenus();
+    const roles = this.getRoles();
     this._isAuthenticated.set(!!token);
     this._userMenus.set(menus || []);
+    this._userRoles.set(roles || []);
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
@@ -49,6 +52,7 @@ export class AuthService {
     this.clearSession();
     this._isAuthenticated.set(false);
     this._userMenus.set([]);
+    this._userRoles.set([]);
   }
 
   isAuthenticated(): boolean {
@@ -64,19 +68,41 @@ export class AuthService {
     return menus ? JSON.parse(menus) : [];
   }
 
+  getRoles(): Role[] { // Método para obtener los roles del localStorage
+    const roles = localStorage.getItem('roles');
+    return roles ? JSON.parse(roles) : [];
+  }
+
+  getCurrentUserRoles(): Role[] {
+    return this._userRoles();
+  }
+
+  hasRole(requiredRoleNames: string[]): boolean {
+    if (!this.isAuthenticated()) {
+      return false;
+    }
+    const userRoles = this.getCurrentUserRoles();
+    return requiredRoleNames.some(requiredRoleName =>
+      userRoles.some(userRole => userRole.roleName === requiredRoleName)
+    );
+  }
+
   // Nuevo método para verificar permisos
   checkRoutePermission(requestedUrl: string): boolean {
     const menus = this._userMenus();
     return menus.some(menu => requestedUrl.startsWith(menu));
   }
 
-  // Nuevo método para obtener los menús desde el backend
   loadUserMenus(): Observable<string[]> {
-    // Asumiendo que tienes un endpoint para esto
+    // Esto es útil si los menús no vienen en el login y necesitas un endpoint dedicado
     return this._httpClient.get<string[]>(`${this.urlBase}/api/user/menus`).pipe(
       tap(menus => {
         this._userMenus.set(menus);
         localStorage.setItem('menus', JSON.stringify(menus));
+      }),
+      catchError(error => {
+        console.error('Error loading user menus:', error);
+        return of([]); // Retorna un observable vacío o maneja el error
       })
     );
   }
@@ -97,14 +123,25 @@ export class AuthService {
     }));
 
     // Convertir módulos a rutas de menú
-    const menuPaths = authResult.data.modules.map(module => module.modulePath);
+    const menuPaths = authResult.data.modules.map((module: Module) => module.modulePath);
     localStorage.setItem('menus', JSON.stringify(menuPaths));
     this._userMenus.set(menuPaths);
+
+    localStorage.setItem('roles', JSON.stringify(authResult.data.roles));
+    this._userRoles.set(authResult.data.roles);
+
+    console.log('Session set:', {
+      token: authResult.data.token,
+      menus: menuPaths,
+      roles: authResult.data.roles // Para debug
+    });
   }
 
   private clearSession(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('menus');
+    localStorage.removeItem('roles');
+    localStorage.removeItem('user');
   }
 
   getCurrentUser(): {
@@ -116,9 +153,11 @@ export class AuthService {
     return user ? JSON.parse(user) : null;
   }
 
-  // Para obtener los roles del usuario
-  getCurrentRoles(): Role[] {
-    const roles = localStorage.getItem('roles');
-    return roles ? JSON.parse(roles) : [];
-  }
+  // Mantengo este método, pero el nuevo 'getCurrentUserRoles' usando signals es preferible
+  // para reactividad si lo necesitas.
+  // getCurrentRoles(): Role[] {
+  //   const roles = localStorage.getItem('roles');
+  //   return roles ? JSON.parse(roles) : [];
+  // }
+
 }
