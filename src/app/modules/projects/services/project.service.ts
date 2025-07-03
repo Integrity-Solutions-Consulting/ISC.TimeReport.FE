@@ -2,15 +2,16 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { ApiResponse, Project } from '../interfaces/project.interface';
-import { Observable, tap } from 'rxjs';
+import { catchError, map, Observable, of, tap } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
+import { ProjectDetail } from '../../assigments/interfaces/assignment.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectService {
 
-    urlBase: string = environment.URL_TEST;
+    urlBase: string = environment.URL_BASE;
 
     constructor(private http: HttpClient) { }
 
@@ -20,6 +21,22 @@ export class ProjectService {
 
     getProjectById(id: number): Observable<Project> {
       return this.http.get<Project>(`${this.urlBase}/api/Project/GetProjectByID/${id}`);
+    }
+
+    getProjectDetails(id: number): Observable<any> {
+      return this.http.get(`${this.urlBase}/api/Project/GetProjectDetailByID/${id}`).pipe(
+        map(response => {
+          // Si la respuesta ya tiene employeeProjects directamente
+          if (response.hasOwnProperty('employeeProjects')) {
+            return { data: response }; // Normalizamos a la estructura esperada
+          }
+          return response;
+        }),
+        catchError(error => {
+          console.error('Error en la petición:', error);
+          return of({ data: { employeeProjects: [], employeesPersonInfo: [] } });
+        })
+      );
     }
 
     createProject(createProjectRequest: Project): Observable<SuccessResponse<Project>> {

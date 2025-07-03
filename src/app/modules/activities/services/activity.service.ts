@@ -10,13 +10,14 @@ import { Activity, ApiResponse } from '../interfaces/activity.interface';
 })
 export class ActivityService {
   private http = inject(HttpClient);
-  urlBase: string = environment.URL_TEST;
+  urlBase: string = environment.URL_BASE;
 
   getActivities(): Observable<ApiResponse> {
     return this.http.get<ApiResponse>(`${this.urlBase}/api/DailyActivity/GetAllActivities`).pipe(
       map(response => {
         // Puedes hacer transformaciones adicionales aquí si es necesario
         return response;
+        console.log(response);
       })
     );
   }

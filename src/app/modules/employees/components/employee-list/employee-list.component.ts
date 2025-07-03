@@ -6,7 +6,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginator, MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -126,16 +126,28 @@ export class EmployeeListComponent {
     40: '	Asistente Comercial',
   };
 
+  totalItems: number = 0;
+  pageSize: number = 10;
+  currentPage: number = 0;
+
   ngOnInit(): void {
-    this.loadEmployees();
+    this.loadEmployees(this.currentPage, this.pageSize);
   }
 
-  loadEmployees(): void {
-    this.employeeService.getEmployees().subscribe({
+  loadEmployees(pageNumber: number = 0, pageSize: number = 10): void {
+    this.employeeService.getEmployees(pageNumber, pageSize).subscribe({
       next: (response) => {
         if (response?.items) {
           this.dataSource = new MatTableDataSource<Employee>(response.items);
-          this.dataSource.paginator = this.paginator;
+          this.totalItems = response.totalItems;
+          this.pageSize = response.pageSize;
+          this.currentPage = response.pageNumber;
+
+          if (this.paginator) {
+            this.paginator.length = this.totalItems;
+            this.paginator.pageSize = this.pageSize;
+            this.paginator.pageIndex = this.currentPage;
+          }
           this.dataSource.sort = this.sort;
         } else {
           console.error('La respuesta del API no tiene la estructura esperada:', response);
@@ -143,14 +155,24 @@ export class EmployeeListComponent {
         }
       },
       error: (err) => {
-        console.error('Error al cargar proyectos:', err);
+        console.error('Error al cargar empleados:', err);
         this.dataSource = new MatTableDataSource<Employee>([]); // Tabla vacía en caso de error
       }
     });
   }
 
+  onPageChange(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.currentPage = event.pageIndex;
+    this.loadEmployees(this.currentPage, this.pageSize);
+  }
+
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
+    this.currentPage = 0; // Reinicia a la primera página al filtrar
+    this.loadEmployees(this.currentPage, this.pageSize);
+
+    // Filtrado del lado del cliente (opcional)
     this.dataSource.filter = filterValue.trim().toLowerCase();
 
     if (this.dataSource.paginator) {

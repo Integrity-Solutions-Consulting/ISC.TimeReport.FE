@@ -41,6 +41,10 @@ export const menuRoutes: Routes = [
             loadChildren: () => import('../activities/activities.routes').then((m) => m.activitiesRoutes),
             /*canActivate: [RoleGuard],
             data: { roles: ['Administrador', 'Gerente', 'Líder de Proyecto', 'Colaborador'] }*/
+          },
+          {
+            path: 'assignments',
+            loadChildren: () => import('../assigments/assigment.routes').then((m) => m.assignmentsRoutes),
           }
         ]
     },
