@@ -1,11 +1,12 @@
 import { Routes } from '@angular/router';
 import { RoleGuard } from './shared/guards/role.guard';
 import { ErrorPage } from './modules/auth/pages/error/error.component';
+import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
     {
       path: '',
-      redirectTo: '/menu',
+      redirectTo: 'auth/login',
       pathMatch: 'full'
     },
     {
