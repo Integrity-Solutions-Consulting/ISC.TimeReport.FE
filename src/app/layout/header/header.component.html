@@ -1,10 +1,31 @@
-<div id="header-container">
+<mat-toolbar id="header-container" color="primary">
+  <!-- Botón de menú (visible solo en móvil) -->
+  <button mat-icon-button class="menu-button" (click)="toggleMenu.emit()" aria-label="Menú">
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <!-- Logo y título -->
   <div class="left">
-    <span class="logo">🕒 Time Report</span>
+    <span class="logo">
+      <mat-icon class="time-icon">schedule</mat-icon>
+      Time Report
+    </span>
   </div>
 
+  <!-- Área de usuario -->
   <div class="right">
-    <span class="username">Hola, {{ username }}</span>
-    <button class="logout-button" (click)="logout()">Cerrar sesión</button>
+
+    <button mat-button [matMenuTriggerFor]="menu" class="logout-button">
+      <mat-icon class="user-icon">account_circle</mat-icon>
+      Hola, {{ username }}
+    </button>
+
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item class="logout-button" (click)="logout()" aria-label="Cerrar sesión">
+        <mat-icon>logout</mat-icon>
+        <span class="logout-text">Cerrar sesión</span>
+      </button>
+    </mat-menu>
+
   </div>
-</div>
+</mat-toolbar>

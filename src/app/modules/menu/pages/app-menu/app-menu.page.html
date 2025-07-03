@@ -1,16 +1,25 @@
 <header>
-    <app-header/>
+    <app-header (toggleMenu)="sidenav.toggle()"/>
   </header>
 
-  <main class="main">
-    <div id="menu-container">
+<main class="main-container">
+  <mat-sidenav-container>
+    <mat-sidenav #sidenav
+                 [mode]="isMobile ? 'over' : 'side'"
+                 [fixedInViewport]="isMobile"
+                 [fixedTopGap]="mobileHeaderHeight"
+                 [(opened)]="menuOpen">
       <menu-timereport></menu-timereport>
-    </div>
-    <div id="content-container">
-      <router-outlet />
-    </div>
-  </main>
-  
+    </mat-sidenav>
+
+    <mat-sidenav-content>
+      <div id="content-container">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</main>
+
   <footer>
     <app-footer></app-footer>
   </footer>

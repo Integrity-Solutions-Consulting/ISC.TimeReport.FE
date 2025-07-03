@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterLink, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'menu-timereport',
@@ -8,12 +10,15 @@ import { CommonModule } from '@angular/common';
   imports: [
     RouterLink,
     CommonModule,
-    RouterModule
+    RouterModule,
+    MatListModule,
+    MatIconModule
   ],
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.scss'
 })
 export class MenuComponent implements OnInit {
+  
   public options: { moduleName: string; modulePath: string }[] = [];
 
   ngOnInit(): void {
@@ -23,14 +28,14 @@ export class MenuComponent implements OnInit {
     const parsedMenus = rawMenus ? JSON.parse(rawMenus) : [];
 
     this.options = parsedMenus
-      .filter((item: any) => item.modulePath) // Filter out items without modulePath
+      .filter((item: any) => item.modulePath)
       .map((item: any) => {
         const ruta = item.modulePath.startsWith('/menu/')
-          ? item.modulePath // Changed from item.rutaMenu to item.modulePath for consistency
+          ? item.modulePath
           : `/menu/${item.modulePath.replace(/^\/+/, '')}`;
 
         return {
-          moduleName: item.moduleName || 'Unnamed Module', // Provide fallback if moduleName is missing
+          moduleName: item.moduleName || 'Unnamed Module',
           modulePath: ruta
         };
       });

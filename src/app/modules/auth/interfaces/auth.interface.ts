@@ -3,26 +3,29 @@ export interface LoginRequest {
   Password: string;
 }
 
+export interface AuthResponseData {
+  token: string;
+  email: string;
+  names: string;
+  surnames: string;
+  roles: Role[];
+  modules: Module[];
+}
+
 export interface AuthResponse {
   code: number;
   message: string;
-  data: {
-    email: string;
-    names: string | null;
-    surnames: string | null;
-    corr: string | null;
-    token: string;
-    roles: Role[];
-    modules: Modules[];
-  };
+  data: AuthResponseData;
 }
 
 export interface Role {
-  id: number;
-  rolName: string;
+  roleName: string;
+  roleID?: number;
+  description?: string;
+  status?: boolean;
 }
 
-export interface Modules {
+export interface Module {
   id: number;
   moduleName: string;
   modulePath: string;
