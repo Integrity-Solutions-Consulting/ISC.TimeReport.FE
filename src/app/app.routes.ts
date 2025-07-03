@@ -23,7 +23,7 @@ export const routes: Routes = [
         component: ErrorPage,
     },
     {
-        path: '**',
-        redirectTo: '/404'
+        /*path: '**',
+        redirectTo: '/404'*/
     },
 ];
