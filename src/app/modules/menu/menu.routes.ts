@@ -11,14 +11,14 @@ export const menuRoutes: Routes = [
           {
             path: 'clients',
             loadChildren: () => import('../clients/clients.routes').then((m) => m.clientsRoutes),
-            canActivate: [RoleGuard],
-            data: { roles: ['Administrador'] }
+            /*canActivate: [RoleGuard],
+            data: { roles: ['Administrador'] }*/
           },
           {
             path: 'leaders',
             loadChildren: () => import('../leaders/leaders.routes').then((m) => m.LeaderRoutes),
-            canActivate: [RoleGuard],
-            data: { roles: ['Administrador', 'Gerente'] }
+            /*canActivate: [RoleGuard],
+            data: { roles: ['Administrador', 'Gerente'] }*/
           },
           {
             path: 'persons',
@@ -27,20 +27,20 @@ export const menuRoutes: Routes = [
           {
             path: 'employees',
             loadChildren: () => import('../employees/employees.routes').then((m) => m.employeesRoutes),
-            canActivate: [RoleGuard],
-            data: { roles: ['Administrador'] }
+            /*canActivate: [RoleGuard],
+            data: { roles: ['Administrador'] }*/
           },
           {
             path: 'projects',
             loadChildren: () => import('../projects/projects.routes').then((m) => m.projectsRoutes),
-            canActivate: [RoleGuard],
-            data: { roles: ['Administrador', 'Gerente', 'Líder de Proyecto'] }
+            /*canActivate: [RoleGuard],
+            data: { roles: ['Administrador', 'Gerente', 'Líder de Proyecto'] }*/
           },
           {
             path: 'activities',
             loadChildren: () => import('../activities/activities.routes').then((m) => m.activitiesRoutes),
-            canActivate: [RoleGuard],
-            data: { roles: ['Administrador', 'Gerente', 'Líder de Proyecto', 'Colaborador'] }
+            /*canActivate: [RoleGuard],
+            data: { roles: ['Administrador', 'Gerente', 'Líder de Proyecto', 'Colaborador'] }*/
           }
         ]
     },
