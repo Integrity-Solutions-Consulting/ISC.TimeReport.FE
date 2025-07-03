@@ -10,7 +10,7 @@ import { ApiResponse, Client, ClientRequest, ClientWithPerson, ClientWithPersonI
 })
 export class ClientService{
     private http = inject(HttpClient);
-    urlBase: string = environment.URL_BASE;
+    urlBase: string = environment.URL_TEST;
 
     getClients(): Observable<ApiResponse> {
       return this.http.get<ApiResponse>(`${this.urlBase}/api/Client/GetAllClients`);

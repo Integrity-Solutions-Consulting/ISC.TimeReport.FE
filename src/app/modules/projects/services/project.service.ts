@@ -36,6 +36,7 @@ export class ProjectService {
         id: Number(id),
         ...updateProjectRequest
       };
+      console.log(requestBody);
       return this.http.put<SuccessResponse<Project>>(`${this.urlBase}/api/Project/UpdateProjectByID/${id}`, requestBody);
     }
 
