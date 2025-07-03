@@ -16,8 +16,8 @@ export const routes: Routes = [
     {
       path: 'menu',
       loadChildren: () => import('./modules/menu/menu.routes').then(m => m.menuRoutes),
-      canActivate: [RoleGuard],
-      data: { roles: ['Administrador', 'Gerente', 'Líder de Proyecto', 'Colaborador'] }
+      /*canActivate: [RoleGuard],
+      data: { roles: ['Administrador', 'Gerente', 'Líder de Proyecto', 'Colaborador'] }*/
     },
     {
         path: '404',

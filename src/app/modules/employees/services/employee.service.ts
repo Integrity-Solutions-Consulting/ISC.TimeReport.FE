@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
@@ -10,12 +10,15 @@ import { ApiResponse, Employee, EmployeeWithPerson, EmployeeWithPersonID } from 
 })
 export class EmployeeService {
 
-  urlBase: string = environment.URL_TEST;
+  urlBase: string = environment.URL_BASE;
 
   constructor(private http: HttpClient) { }
 
-  getEmployees():Observable<ApiResponse>{
-      return this.http.get<ApiResponse>(`${this.urlBase}/api/Employee/GetAllEmployees`);
+  getEmployees(pageNumber: number = 0, pageSize: number = 10):Observable<ApiResponse>{
+      const params = new HttpParams()
+      .set('pageNumber', pageNumber.toString())
+      .set('pageSize', pageSize.toString());
+      return this.http.get<ApiResponse>(`${this.urlBase}/api/Employee/GetAllEmployees`, { params });
   }
 
   getEmployeeByID(id: number): Observable<Employee> {
