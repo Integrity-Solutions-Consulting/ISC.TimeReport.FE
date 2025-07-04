@@ -17,6 +17,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { ProjectModalComponent } from '../project-modal/project-modal.component';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 @Injectable()
 export class ProjectPaginatorIntl implements MatPaginatorIntl {
@@ -52,7 +53,8 @@ export class ProjectPaginatorIntl implements MatPaginatorIntl {
     MatInputModule,
     MatSortModule,
     MatPaginatorModule,
-    MatTooltipModule
+    MatTooltipModule,
+    ReactiveFormsModule
   ],
   providers: [
     {
