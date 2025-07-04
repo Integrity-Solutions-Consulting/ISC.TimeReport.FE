@@ -9,7 +9,7 @@ import { LoginRequest, AuthResponse, Role, Module } from "../interfaces/auth.int
 })
 export class AuthService {
   private _httpClient = inject(HttpClient);
-  private urlBase: string = environment.URL_BASE;
+  private urlBase: string = environment.URL_TEST;
   private _isAuthenticated = signal<boolean>(false);
   private _userMenus = signal<string[]>([]);
   private _userRoles = signal<Role[]>([]);

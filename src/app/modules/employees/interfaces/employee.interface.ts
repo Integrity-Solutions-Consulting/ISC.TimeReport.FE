@@ -104,3 +104,14 @@ export interface PersonApiResponse {
   pageSize: number;
   totalPages: number;
 }
+
+export interface GetAllEmployeesResponse {
+  traceId: string;
+  data: {
+    items: Employee[];
+    totalItems: number;
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
+  };
+}

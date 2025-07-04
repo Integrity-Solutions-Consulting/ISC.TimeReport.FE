@@ -18,9 +18,11 @@ import { Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { EmployeeDialogComponent } from '../employee-dialog/employee-dialog.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators'; 
 
 @Injectable()
-export class LeaderPaginatorIntl implements MatPaginatorIntl {
+export class EmployeePaginatorIntl implements MatPaginatorIntl {
   changes = new Subject<void>();
 
   firstPageLabel = `Primera Página`;
@@ -54,7 +56,11 @@ export class LeaderPaginatorIntl implements MatPaginatorIntl {
     MatCheckboxModule,
     MatSortModule,
     MatPaginatorModule,
-    MatTooltipModule
+    MatTooltipModule,
+    ReactiveFormsModule
+  ],
+  providers: [
+    {provide: MatPaginatorIntl, useClass: EmployeePaginatorIntl}
   ],
   templateUrl: './employee-list.component.html',
   styleUrl: './employee-list.component.scss'
@@ -76,6 +82,8 @@ export class EmployeeListComponent {
 
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  searchControl = new FormControl('');
 
   readonly identificationTypesMap: {[key: number]: string} = {
     1: 'Cédula',
@@ -129,26 +137,40 @@ export class EmployeeListComponent {
   totalItems: number = 0;
   pageSize: number = 10;
   currentPage: number = 0;
+  currentSearch: string = '';
 
   ngOnInit(): void {
-    this.loadEmployees(this.currentPage, this.pageSize);
+    this.loadEmployees(this.currentPage + 1, this.pageSize, this.currentSearch);;
+
+    // Suscribirse a los cambios del campo de búsqueda con debounce
+    this.searchControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(value => {
+      this.currentSearch = value || ''; // Update the search string
+      this.currentPage = 0;             // Reset internal 0-based page index to 0
+      this.paginator.firstPage();       // Reset MatPaginator to first page (pageIndex becomes 0)
+      // Calls loadEmployees, passing (0 + 1) = 1 as the page number for the backend
+      this.loadEmployees(this.currentPage + 1, this.pageSize, this.currentSearch);
+    });
   }
 
-  loadEmployees(pageNumber: number = 0, pageSize: number = 10): void {
-    this.employeeService.getEmployees(pageNumber, pageSize).subscribe({
+  loadEmployees(pageNumber: number = 1, pageSize: number = 10, search: string = ''): void {
+    this.employeeService.getEmployees(pageNumber, pageSize, search).subscribe({
       next: (response) => {
         if (response?.items) {
           this.dataSource = new MatTableDataSource<Employee>(response.items);
           this.totalItems = response.totalItems;
           this.pageSize = response.pageSize;
-          this.currentPage = response.pageNumber;
+          this.currentPage = response.pageNumber - 1;
 
           if (this.paginator) {
             this.paginator.length = this.totalItems;
             this.paginator.pageSize = this.pageSize;
             this.paginator.pageIndex = this.currentPage;
           }
-          this.dataSource.sort = this.sort;
+          // No es necesario asignar el sort aquí si ya está en afterViewInit o si se inicializa automáticamente
+          // this.dataSource.sort = this.sort; // Esto solo es necesario si estás usando el filtro del lado del cliente
         } else {
           console.error('La respuesta del API no tiene la estructura esperada:', response);
           this.dataSource = new MatTableDataSource<Employee>([]); // Tabla vacía como fallback
@@ -163,21 +185,9 @@ export class EmployeeListComponent {
 
   onPageChange(event: PageEvent): void {
     this.pageSize = event.pageSize;
-    this.currentPage = event.pageIndex;
-    this.loadEmployees(this.currentPage, this.pageSize);
-  }
-
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.currentPage = 0; // Reinicia a la primera página al filtrar
-    this.loadEmployees(this.currentPage, this.pageSize);
-
-    // Filtrado del lado del cliente (opcional)
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
+    this.currentPage = event.pageIndex + 1;
+    // Pasa el valor de búsqueda actual al cargar los empleados
+    this.loadEmployees(this.currentPage, this.pageSize, this.currentSearch);
   }
 
   getIdentificationTypeName(idtype: number): string {
