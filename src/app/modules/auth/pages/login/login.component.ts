@@ -61,7 +61,7 @@ export class LoginPage implements OnInit {
   ngOnInit(): void {
     this.loginForm = this.fb.group({
       username: ["", [Validators.required, Validators.email]],
-      Password: ["", [Validators.required, Validators.minLength(6)]],
+      password: ["", [Validators.required, Validators.minLength(6)]],
     })
 
     // Load remembered email if exists

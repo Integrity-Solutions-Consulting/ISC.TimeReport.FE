@@ -1,71 +1,131 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
+// project-assignments.component.ts
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { ProjectService } from '../../../projects/services/project.service';
-import { CombinedAssignment, EmployeePersonInfo, EmployeeProject } from '../../interfaces/assignment.interface';
-import { CommonModule } from '@angular/common';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { ProjectService } from '../../../projects/services/project.service'; // Ajusta la ruta a tu servicio
+import { ProjectDetail, EmployeePersonInfo } from '../../interfaces/assignment.interface'; // Ajusta la ruta a tus interfaces
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
+
+// Interfaz para la data que se mostrará en la tabla
+export interface AssignmentDisplayData {
+  projectName: string;
+  projectCode: string;
+  employeeName: string;
+  employeeCode: string;
+  identificationNumber: string;
+  assignmentStatus: boolean;
+}
 
 @Component({
-  selector: 'assigments-list',
+  selector: 'assignments-list',
   standalone: true,
   imports: [
-    CommonModule,
     MatButtonModule,
+    MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatFormFieldModule,
-    MatSnackBarModule,
-    MatTableModule
+    MatPaginatorModule,
+    MatTableModule,
+    ReactiveFormsModule
   ],
   templateUrl: './assigments-list.component.html',
-  styleUrl: './assigments-list.component.scss'
+  styleUrls: ['./assigments-list.component.scss']
 })
-export class AssigmentsListComponent implements OnInit{
+export class AssigmentsListComponent implements OnInit {
+  displayedColumns: string[] = ['projectName', 'projectCode', 'employeeName', 'employeeCode', 'identificationNumber', 'assignmentStatus'];
+  dataSource = new MatTableDataSource<AssignmentDisplayData>();
 
-  displayedColumns: string[] = ['employeeCode', 'fullName', 'identificationNumber', 'assignmentDate', 'status'];
-  dataSource = new MatTableDataSource<CombinedAssignment>();
+  searchControl = new FormControl('');
 
-  snackBar = inject(MatSnackBar);
-
-  isLoading: boolean = false;
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(private projectService: ProjectService) { }
 
   ngOnInit(): void {
-    this.loadProjectDetails(1); // Reemplaza con el ID del proyecto que necesites
+    this.loadProjectAssignments();
   }
 
-  loadProjectDetails(projectId: number): void {
-    this.projectService.getProjectDetails(projectId).subscribe({
-      next: (response) => {
-        console.log(response)
-        // Versión para respuesta SIN propiedad 'data'
-        const employeeProjects = response?.employeeProjects || response || [];
-        const employeesPersonInfo = response?.employeesPersonInfo || [];
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
 
-        const combinedData = employeeProjects.map((assignment: any) => {
-          const employeeInfo = employeesPersonInfo.find(
-            (emp: any) => emp?.id === assignment?.employeeID
-          ) || {};
+  loadProjectAssignments(): void {
+    this.projectService.getAllProjectsDetails().subscribe({
+    next: (projectDetails: ProjectDetail[]) => {
+      console.log('--- Received projectDetails (full array):', projectDetails);
+      const assignmentData: AssignmentDisplayData[] = [];
 
-          return {
-            employeeCode: employeeInfo?.employeeCode || 'N/A',
-            fullName: `${employeeInfo?.firstName || ''} ${employeeInfo?.lastName || ''}`.trim(),
-            identificationNumber: employeeInfo?.identificationNumber || 'N/A',
-            assignmentDate: assignment?.assignment_date ? new Date(assignment.assignment_date) : null,
-            status: assignment?.status ? 'Activo' : 'Inactivo'
-          };
+      projectDetails.forEach((project, projectIndex) => {
+        console.log(`\n--- Processing Project #${projectIndex} (ID: ${project?.id}, Name: ${project?.name || 'N/A'}) ---`);
+
+        // Check 1: Is 'project' itself valid?
+        if (!project) {
+          console.warn(`[SKIP PROJECT] Project at index ${projectIndex} is null or undefined.`);
+          return; // Skip this iteration if the project object itself is invalid
+        }
+
+        // Log the raw arrays from the project detail
+        console.log(`  Project #${project.id} - employeeProjects:`, project.employeeProjects);
+        console.log(`  Project #${project.id} - employeesPersonInfo:`, project.employeesPersonInfo);
+
+        // Check 2: Are employeeProjects and employeesPersonInfo present and valid arrays?
+        if (project.employeeProjects && Array.isArray(project.employeeProjects) &&
+            project.employeesPersonInfo && Array.isArray(project.employeesPersonInfo)) {
+
+          // Check 3: Does this project actually have any employee assignments?
+          if (project.employeeProjects.length === 0) {
+            console.warn(`[SKIP ASSIGNMENTS] Project '${project.name}' (ID: ${project.id}) has an empty 'employeeProjects' array. No assignments will be added from this project.`);
+            return; // Skip to the next project if no assignments exist for this one
+          }
+
+          project.employeeProjects.forEach(employeeProject => {
+            console.log(`    Processing employeeProject (ID: ${employeeProject.id}, EmployeeID: ${employeeProject.employeeID}) for Project: ${project.name}`);
+
+            // Find the matching employee info from the project's employeesPersonInfo array
+            const employeeInfo = project.employeesPersonInfo!.find(
+              emp => emp.id === employeeProject.employeeID // Match by employee ID
+            );
+
+            // Check 4: Is there a matching employee's personal info?
+            if (employeeInfo) {
+              console.log(`    MATCH: Found employeeInfo for Employee ID ${employeeProject.employeeID} (${employeeInfo.firstName} ${employeeInfo.lastName})`);
+              assignmentData.push({
+                projectName: project.name,
+                projectCode: project.code,
+                employeeName: `${employeeInfo.firstName} ${employeeInfo.lastName}`,
+                employeeCode: employeeInfo.employeeCode,
+                identificationNumber: employeeInfo.identificationNumber,
+                assignmentStatus: employeeProject.status // Assuming AssignmentDisplayData.assignmentStatus is boolean
+                // If AssignmentDisplayData.assignmentStatus is string, use:
+                // assignmentStatus: employeeProject.status ? 'Activo' : 'Inactivo'
+              });
+            } else {
+              console.warn(`    NO MATCH: No matching 'employeesPersonInfo' found for 'employeeID': ${employeeProject.employeeID} in Project: ${project.name}. This assignment will be skipped.`);
+            }
+          });
+        } else {
+            console.warn(`[SKIP PROJECT] Project '${project.name}' (ID: ${project.id}) failed initial employee/person info array validation. 'employeeProjects' or 'employeesPersonInfo' is missing or not an array.`);
+          }
         });
 
-        this.dataSource.data = combinedData;
+        console.log('\n--- Final assignmentData for table:', assignmentData);
+        this.dataSource.data = assignmentData;
       },
       error: (err) => {
-        console.error('Error al cargar proyectos:', err);
+        console.error('Error al cargar las asignaciones de proyectos', err);
       }
     });
+  }
+
+  applyFilter(filterValue: string) {
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 }

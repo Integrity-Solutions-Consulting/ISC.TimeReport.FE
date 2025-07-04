@@ -22,3 +22,23 @@
     min-width: 300px;
   }
 }
+
+// assigments-list.component.scss
+.full-width-table {
+  width: 100%;
+}
+
+.mat-chip {
+  font-size: 0.75rem;
+  height: 24px;
+}
+
+.snackbar-error {
+  background-color: #f44336;
+  color: white;
+}
+
+.mat-row:hover {
+  background-color: #f5f5f5;
+  cursor: pointer;
+}

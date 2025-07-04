@@ -1,24 +1,30 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
-import { ApiResponse, Employee, EmployeeWithPerson, EmployeeWithPersonID } from '../interfaces/employee.interface';
+import { ApiResponse, GetAllEmployeesResponse, Employee, EmployeeWithPerson, EmployeeWithPersonID } from '../interfaces/employee.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EmployeeService {
 
-  urlBase: string = environment.URL_BASE;
+  urlBase: string = environment.URL_TEST;
 
   constructor(private http: HttpClient) { }
 
-  getEmployees(pageNumber: number = 0, pageSize: number = 10):Observable<ApiResponse>{
-      const params = new HttpParams()
-      .set('pageNumber', pageNumber.toString())
-      .set('pageSize', pageSize.toString());
-      return this.http.get<ApiResponse>(`${this.urlBase}/api/Employee/GetAllEmployees`, { params });
+  getEmployees(pageNumber: number, pageSize: number, search: string = ''): Observable<ApiResponse> {
+    let params = new HttpParams()
+      .set('PageNumber', pageNumber.toString())
+      .set('PageSize', pageSize.toString());
+
+    if (search) {
+      params = params.set('search', search);
+    }
+
+    return this.http.get<ApiResponse>(`${this.urlBase}/api/Employee/GetAllEmployees`, { params })
   }
 
   getEmployeeByID(id: number): Observable<Employee> {

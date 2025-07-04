@@ -4,7 +4,7 @@
             <mat-label>Buscar por nombres, número de identificación...</mat-label>
             <input matInput
                 placeholder="Escribe para filtrar..."
-                formControl="searchControl"
+                [formControl]="searchControl"
                 #input>
             <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
@@ -15,39 +15,42 @@
         </button>
     </div>
 
-    <table mat-table style="border-radius: 8px 8px 0 0; overflow: hidden;">
-        <!-- Código de Empleado Column -->
+    <table mat-table [dataSource]="dataSource">
+
+        <ng-container matColumnDef="projectName">
+          <th mat-header-cell *matHeaderCellDef> Nombre del Proyecto </th>
+          <td mat-cell *matCellDef="let element"> {{element.projectName}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="projectCode">
+          <th mat-header-cell *matHeaderCellDef> Código del Proyecto </th>
+          <td mat-cell *matCellDef="let element"> {{element.projectCode}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="employeeName">
+          <th mat-header-cell *matHeaderCellDef> Empleado </th>
+          <td mat-cell *matCellDef="let element"> {{element.employeeName}}</td>
+        </ng-container>
+
         <ng-container matColumnDef="employeeCode">
-          <th mat-header-cell *matHeaderCellDef>Código</th>
-          <td mat-cell *matCellDef="let element">{{element.code}}</td>
+          <th mat-header-cell *matHeaderCellDef> Código Empleado </th>
+          <td mat-cell *matCellDef="let element"> {{element.employeeCode}} </td>
         </ng-container>
 
-        <!-- Nombre Completo Column -->
-        <ng-container matColumnDef="fullName">
-          <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
-          <td mat-cell *matCellDef="let element">{{element.fullName}}</td>
-        </ng-container>
-
-        <!-- Identificación Column -->
         <ng-container matColumnDef="identificationNumber">
-          <th mat-header-cell *matHeaderCellDef>Identificación</th>
-          <td mat-cell *matCellDef="let element">{{element.identificationNumber}}</td>
+          <th mat-header-cell *matHeaderCellDef> Identificación </th>
+          <td mat-cell *matCellDef="let element"> {{element.identificationNumber}} </td>
         </ng-container>
 
-        <!-- Fecha Asignación Column -->
-        <ng-container matColumnDef="assignmentDate">
-          <th mat-header-cell *matHeaderCellDef>Fecha Asignación</th>
-          <td mat-cell *matCellDef="let element">{{element.assignmentDate | date:'dd/MM/yyyy'}}</td>
-        </ng-container>
-
-        <!-- Estado Column -->
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>Estado</th>
-          <td mat-cell *matCellDef="let element">{{element.status}}</td>
+        <ng-container matColumnDef="assignmentStatus">
+          <th mat-header-cell *matHeaderCellDef> Estado de Asignación </th>
+          <td mat-cell *matCellDef="let element"> {{element.assignmentStatus}} </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
+      </table>
+
+    <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
 
 </div>
