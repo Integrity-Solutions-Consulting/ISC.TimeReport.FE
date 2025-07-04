@@ -169,8 +169,6 @@ export class EmployeeListComponent {
             this.paginator.pageSize = this.pageSize;
             this.paginator.pageIndex = this.currentPage;
           }
-          // No es necesario asignar el sort aquí si ya está en afterViewInit o si se inicializa automáticamente
-          // this.dataSource.sort = this.sort; // Esto solo es necesario si estás usando el filtro del lado del cliente
         } else {
           console.error('La respuesta del API no tiene la estructura esperada:', response);
           this.dataSource = new MatTableDataSource<Employee>([]); // Tabla vacía como fallback
