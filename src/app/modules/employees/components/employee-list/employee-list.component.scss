@@ -21,6 +21,19 @@ td.mat-cell {
   padding: 8px 16px;
 }
 
+.add-button {
+  background-color: var(--itg-primary);
+  color: var(--itg-bg) !important;
+
+  &:hover {
+    background-color: var(--itg-accent);
+  }
+
+  .logout-text {
+    margin-left: 4px;
+  }
+}
+
 .loading-spinner {
   margin: 50px auto;
 }

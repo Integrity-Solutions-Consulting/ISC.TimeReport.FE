@@ -21,6 +21,19 @@ td.mat-cell {
   padding: 8px 16px;
 }
 
+.add-button {
+    background-color: var(--itg-primary);
+    color: var(--itg-bg) !important;
+
+    &:hover {
+      background-color: var(--itg-accent);
+    }
+
+    .logout-text {
+      margin-left: 4px;
+    }
+  }
+
 .loading-spinner {
   margin: 50px auto;
 }
@@ -41,6 +54,7 @@ td.mat-cell {
 .list-container {
   position: relative;
   min-height: 200px;
+  padding: 16px;
 }
 
 .edit-button {
@@ -58,7 +72,7 @@ td.mat-cell {
 .delete-button {
   opacity: 0;
   transition: opacity 0.1s ease;
-  color: red;
+  color: red !important;
 }
 
 .activate-button {
@@ -94,7 +108,61 @@ tr.mat-mdc-row:hover td.mat-mdc-cell .activate-button {
 }
 
 .search-field {
-  width: 50%;
+  flex-grow: 1; /* Permite que el campo de búsqueda ocupe el espacio disponible */
+  // width: 50%; /* Eliminado para dar control a flex-grow y max-width */
+  max-width: 600px; /* Limita el ancho máximo del campo de búsqueda */
+  min-width: 280px; /* Asegura un ancho mínimo en pantallas medianas/pequeñas */
+  width: 100%; /* Asegura que ocupe el 100% del espacio asignado por flex-grow */
+
+
+  // Estilos para la etiqueta flotante (placeholder) de Mat-form-field
+  // Targeteando específicamente la etiqueta cuando aún no es flotante (placeholder)
+  .mat-mdc-form-field-label {
+    // Apunta a la etiqueta cuando NO está flotando (es decir, cuando actúa como placeholder inicial)
+    &:not(.mdc-floating-label--float) {
+      .mat-mdc-form-field-label-text {
+        text-align: center; // Centra horizontalmente el texto del placeholder
+        width: 100%; // Necesario para que text-align: center funcione.
+        left: 0; // Asegura que el texto comience en el borde izquierdo para centrarse.
+        // Con `align-items: center` en `.mat-mdc-form-field-infix`,
+        // la alineación vertical del placeholder (cuando no flota) debería manejarse automáticamente.
+      }
+    }
+  }
+
+  .mat-mdc-input-element::placeholder {
+    text-align: center; // Centra horizontalmente este placeholder
+  }
+
+  // Estilo para el input real dentro del Mat-form-field
+    .mat-mdc-form-field-infix {
+    display: flex;
+    align-items: center; /* ¡Esto centra verticalmente el input y el mat-label! */
+    // Puedes ajustar el min-height si la altura del campo no es la deseada.
+    // min-height: 48px; // Ejemplo, si necesitas forzar una altura mínima del área de texto.
+
+    .mat-mdc-input-element {
+      text-align: center; /* Centra horizontalmente el texto que el usuario escribe */
+      // Resetear propiedades que puedan interferir con el centrado vertical del flexbox padre.
+      line-height: normal;
+      height: auto;
+      padding: 0; // Quitar cualquier padding extra que pueda desalinear
+    }
+  }
+
+  // Ajustes para el icono de suffix
+  .mat-mdc-form-field-suffix {
+    padding-right: 8px; /* Ajusta el espacio a la derecha del icono */
+    pointer-events: none; /* Asegura que el icono no interfiera con el clic en el input */
+  }
+
+  @media (max-width: 767px) { // Para pantallas pequeñas, el search-field ocupa todo el ancho
+    max-width: 100%;
+  }
+
+  @media (min-width: 600px) and (max-width: 767px) {
+    min-width: 300px; /* Tu min-width original, aplicado a este rango */
+  }
 }
 
 .list-container {
@@ -103,9 +171,23 @@ tr.mat-mdc-row:hover td.mat-mdc-cell .activate-button {
 
 .top-items {
   display: flex;
-  align-items: center;
+  align-items: center; /* Alinea verticalmente el campo de búsqueda y el botón */
+  gap: 20px; /* Espacio entre el campo de búsqueda y el botón */
   margin: 10px 0 20px 0;
   width: 100%;
+  flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+  justify-content: center; /* Centra los elementos horizontalmente en pantallas más grandes */
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between; // Espacio entre ellos para empujar el botón a la derecha
+  }
+
+  @media (max-width: 767px) {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
 }
 
 @media (min-width: 768px) {

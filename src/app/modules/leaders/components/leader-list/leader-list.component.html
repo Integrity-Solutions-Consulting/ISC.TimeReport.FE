@@ -2,7 +2,7 @@
 
   <div class="top-items">
     <mat-form-field appearance="outline" class="search-field">
-      <mat-label>Buscar por nombres, número de identificación...</mat-label>
+      <mat-label style="font-family: 'Poppins'; ">Buscar por nombres, número de identificación...</mat-label>
       <input matInput
             (keyup)="applyFilter($event)"
             placeholder="Escribe para filtrar..."
@@ -11,7 +11,7 @@
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
 
-    <button mat-flat-button style="background-color: var(--primary);" (click)="openCreateDialog()">
+    <button mat-flat-button class="add-button" (click)="openCreateDialog()">
         <mat-icon>add</mat-icon>
         Agregar Nuevo
     </button>

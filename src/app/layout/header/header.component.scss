@@ -4,7 +4,8 @@
   align-items: center;
   padding: 0 16px;
   height: 64px;
-  background-color: var(--primary);
+  background-color: var(--itg-primary);
+  color: var(--itg-bg);
 
   .left, .right {
     display: flex;
@@ -36,11 +37,11 @@
   }
 
   .logout-button {
-    background-color: var(--secondary);
-    color: var(--light);
+    background-color: var(--itg-accent);
+    color: var(--itg-text);
 
     &:hover {
-      background-color: var(--tertiary);
+      background-color: var(--itg-secondary);
     }
 
     .logout-text {

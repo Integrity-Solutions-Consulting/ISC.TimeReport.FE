@@ -9,7 +9,7 @@ import { environment } from '../../../../environments/environment';
 })
 export class PersonService {
 
-  urlBase: string = environment.URL_TEST; // Ajusta según tu API
+  urlBase: string = environment.URL_BASE; // Ajusta según tu API
 
   constructor(private http: HttpClient) { }
 

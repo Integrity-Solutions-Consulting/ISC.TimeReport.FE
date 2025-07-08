@@ -12,6 +12,19 @@
   overflow: hidden;
 }
 
+.add-button {
+  background-color: var(--itg-primary);
+  color: var(--itg-bg) !important;
+
+  &:hover {
+    background-color: var(--itg-accent);
+  }
+
+  .logout-text {
+    margin-left: 4px;
+  }
+}
+
 th.mat-header-cell {
   font-weight: bold;
   background-color: #f5f5f5;
