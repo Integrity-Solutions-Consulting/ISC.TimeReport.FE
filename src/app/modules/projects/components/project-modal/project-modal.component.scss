@@ -4,8 +4,42 @@
 
 .full-width {
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 10px; // This margin applies to full-width fields when not in a row layout
 }
+
+// New styles for the two-column layout
+.form-row {
+  display: flex;
+  justify-content: space-between; // Distributes space between items
+  gap: 20px; // Adds space between form fields in a row
+  margin-bottom: 15px; // Space between rows
+
+  // Specific styles for fields that should take half width
+  .form-field-half {
+    flex: 1; // Allows fields to grow and shrink
+    min-width: calc(50% - 10px); // Ensures roughly half the width, accounting for gap
+  }
+
+  // Ensure full-width fields within a form-row take up all available space
+  .full-width {
+    width: 100%;
+    margin-bottom: 0; // Reset margin for full-width fields when inside a row
+  }
+}
+
+// Optional: Adjust for smaller screens to stack fields vertically
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column; // Stacks fields vertically on small screens
+    gap: 0; // Remove gap when stacked
+  }
+
+  .form-field-half {
+    width: 100%; // Make them full width on small screens
+    min-width: 100%; // Ensure it takes full width
+  }
+}
+
 
 .mat-elevation-z8 {
   width: 100%;
@@ -40,11 +74,15 @@
 
     &.mat-button {
       border: 1px solid #ccc;
+      background-color: transparent; // Ensure regular buttons are transparent
+      color: var(--primary); // Set text color for regular buttons
     }
 
     &.mat-raised-button {
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       transition: all 0.3s ease;
+      background-color: var(--primary); // Ensure raised buttons use primary color by default
+      color: white; // Ensure raised buttons have white text
 
       &:hover {
         transform: translateY(-2px);
@@ -52,4 +90,10 @@
       }
     }
   }
+}
+
+// Ensure the disabled button has appropriate styling
+.disabled-button {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

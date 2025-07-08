@@ -7,11 +7,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { environment } from '../../../../../environments/environment';
+import { AuthService } from '../../services/auth.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-change-password',
   standalone: true,
   imports: [
+    CommonModule,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
@@ -24,18 +28,20 @@ import { Router } from '@angular/router';
 export class ChangePasswordComponent implements OnInit{
 
   passwordChangeForm!: FormGroup;
+  private urlBase: string = environment.URL_TEST;
 
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
     this.passwordChangeForm = this.fb.group({
       oldPassword: ['', Validators.required],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required]
     }, { validators: this.passwordMatchValidator });
   }
@@ -57,7 +63,8 @@ export class ChangePasswordComponent implements OnInit{
 
       if (!token) {
         this.snackBar.open('No hay sesión activa. Por favor, inicie sesión.', 'Cerrar', { duration: 3000 });
-        this.router.navigate(['/login']); // Redirigir al login si no hay token
+        this.authService.logout();
+        this.router.navigate(['/auth/login']); // Redirigir al login si no hay token
         return;
       }
 
@@ -65,13 +72,13 @@ export class ChangePasswordComponent implements OnInit{
 
       const body = { oldPassword, newPassword, confirmPassword };
 
-      this.http.put('/api/users/ChangePassword', body, { headers }).subscribe({
+      this.http.put(`${this.urlBase}/api/users/ChangePassword`, body, { headers }).subscribe({
         next: (response: any) => {
           this.snackBar.open('Contraseña cambiada exitosamente!', 'Cerrar', {
             duration: 3000,
           });
           this.passwordChangeForm.reset(); // Limpiar el formulario
-          this.router.navigate(['/dashboard']); // O a donde desees redirigir después del cambio
+          this.router.navigate(['auth/login']); // O a donde desees redirigir después del cambio
         },
         error: (error) => {
           console.error('Error al cambiar la contraseña:', error);
@@ -83,6 +90,10 @@ export class ChangePasswordComponent implements OnInit{
             duration: 5000,
             panelClass: ['error-snackbar']
           });
+          if (error.status === 401 || error.status === 403) {
+            this.authService.logout();
+            this.router.navigate(['/auth/login']);
+          }
         }
       });
     }

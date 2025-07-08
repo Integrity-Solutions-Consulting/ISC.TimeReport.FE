@@ -155,7 +155,7 @@ export class ListProjectComponent implements OnInit{
 
     openCreateDialog(): void {
       const dialogRef = this.dialog.open(ProjectModalComponent, {
-        width: '500px',
+        width: '800px',
         disableClose: true,
         data: { project: null }
       });
