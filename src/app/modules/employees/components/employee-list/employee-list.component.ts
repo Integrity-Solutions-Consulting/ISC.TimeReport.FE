@@ -19,7 +19,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { EmployeeDialogComponent } from '../employee-dialog/employee-dialog.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators'; 
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Injectable()
 export class EmployeePaginatorIntl implements MatPaginatorIntl {
@@ -198,7 +198,7 @@ export class EmployeeListComponent {
 
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(EmployeeDialogComponent, {
-      width: '600px',
+      width: '800px',
       disableClose: true,
       data: { employee: null }
     });

@@ -1,78 +1,88 @@
-<h4 mat-dialog-title style="margin: 10px;">
+<h4 mat-dialog-title style="margin: 10px; font-family: 'Poppins'">
   {{ isEditMode ? 'Editar Proyecto' : 'Crear Nuevo Proyecto' }}
 </h4>
 <mat-dialog-content>
-    <form [formGroup]="projectForm" class="full-width" style="margin-top: 5px;">
+  <form [formGroup]="projectForm" class="full-width" style="margin-top: 5px;">
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label style="font-family: 'Poppins'; ">Código</mat-label>
-            <input matInput formControlName="code">
-        </mat-form-field>
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-label style="font-family: 'Poppins'; ">Código</mat-label>
+        <input matInput formControlName="code">
+      </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label style="font-family: 'Poppins'; ">Nombre</mat-label>
-            <input matInput formControlName="name">
-        </mat-form-field>
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-label style="font-family: 'Poppins'; ">Nombre</mat-label>
+        <input matInput formControlName="name">
+      </mat-form-field>
+    </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label style="font-family: 'Poppins'; ">Descripción</mat-label>
-            <textarea matInput formControlName="description"></textarea>
-        </mat-form-field>
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label style="font-family: 'Poppins'; ">Descripción</mat-label>
+        <textarea matInput formControlName="description"></textarea>
+      </mat-form-field>
+    </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label style="font-family: 'Poppins'; ">Cliente</mat-label>
-            <mat-select formControlName="clientId">
-              @for (code of clients; track code) {
-                <mat-option [value]="code.id">{{code.name}}</mat-option>
-              }
-            </mat-select>
-        </mat-form-field>
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-label style="font-family: 'Poppins'; ">Cliente</mat-label>
+        <mat-select formControlName="clientId">
+          @for (code of clients; track code) {
+            <mat-option [value]="code.id">{{code.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label style="font-family: 'Poppins'; ">Estado del Proyecto</mat-label>
-            <mat-select formControlName="projectStatusId">
-              @for (code of projectCodes; track code) {
-                <mat-option [value]="code.id">{{code.name}}</mat-option>
-              }
-            </mat-select>
-        </mat-form-field>
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-label style="font-family: 'Poppins'; ">Estado del Proyecto</mat-label>
+        <mat-select formControlName="projectStatusId">
+          @for (code of projectCodes; track code) {
+            <mat-option [value]="code.id">{{code.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
 
-        <mat-form-field class="full-width" appearance="outline">
-            <mat-label style="font-family: 'Poppins'; ">Fecha de Inicio</mat-label>
-            <input matInput [matDatepicker]="picker1" formControlName="startDate">
-            <mat-hint>MM/DD/YYYY</mat-hint>
-            <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
-            <mat-datepicker #picker1></mat-datepicker>
-        </mat-form-field>
+    <div class="form-row">
+      <mat-form-field class="form-field-half" appearance="outline">
+        <mat-label style="font-family: 'Poppins'; ">Fecha de Inicio</mat-label>
+        <input matInput [matDatepicker]="picker1" formControlName="startDate">
+        <mat-hint>MM/DD/YYYY</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
+        <mat-datepicker #picker1></mat-datepicker>
+      </mat-form-field>
 
-        <mat-form-field class="full-width" appearance="outline">
-            <mat-label style="font-family: 'Poppins'; ">Fecha de Terminación</mat-label>
-            <input matInput [matDatepicker]="picker2" formControlName="endDate" [min]="projectForm.get('startDate')?.value">
-            <mat-hint>MM/DD/YYYY</mat-hint>
-            <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
-            <mat-datepicker #picker2></mat-datepicker>
-            <mat-error *ngIf="projectForm.get('endDate')?.hasError('required')">
-              La fecha de fin es requerida
-            </mat-error>
-            <mat-error *ngIf="projectForm.hasError('dateRange')">
-              La fecha de fin no puede ser anterior a la fecha de inicio
-            </mat-error>
-        </mat-form-field>
+      <mat-form-field class="form-field-half" appearance="outline">
+        <mat-label style="font-family: 'Poppins'; ">Fecha de Terminación</mat-label>
+        <input matInput [matDatepicker]="picker2" formControlName="endDate" [min]="projectForm.get('startDate')?.value">
+        <mat-hint>MM/DD/YYYY</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
+        <mat-datepicker #picker2></mat-datepicker>
+        <mat-error *ngIf="projectForm.get('endDate')?.hasError('required')">
+          La fecha de fin es requerida
+        </mat-error>
+        <mat-error *ngIf="projectForm.hasError('dateRange')">
+          La fecha de fin no puede ser anterior a la fecha de inicio
+        </mat-error>
+      </mat-form-field>
+    </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label style="font-family: 'Poppins'; ">Presupuesto</mat-label>
-            <input matInput formControlName="budget" type="number" min="0">
-        </mat-form-field>
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label style="font-family: 'Poppins'; ">Presupuesto</mat-label>
+        <input matInput formControlName="budget" type="number" min="0">
+      </mat-form-field>
+    </div>
 
-    </form>
+  </form>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-raised-button (click)="onCancel()" >Cancelar</button>
   <button mat-raised-button
-        style="background-color: var(--itg-primary); color: var(--itg-bg)"
-        (click)="onSubmit()"
-        [disabled]="projectForm.invalid || projectForm.pending"
-        [class.disabled-button]="projectForm.invalid">
-  Guardar
-</button>
+          style="background-color: var(--itg-primary); color: var(--itg-bg)"
+          (click)="onSubmit()"
+          [disabled]="projectForm.invalid || projectForm.pending"
+          [class.disabled-button]="projectForm.invalid">
+    Guardar
+  </button>
 </mat-dialog-actions>

@@ -22,4 +22,8 @@ export class HeaderComponent {
     localStorage.clear();
     this.router.navigate(['/auth/login']);
   }
+
+  navigateToChangePassword(): void {
+    this.router.navigate(['/auth/change-password']); // Asegúrate de que 'change-password' sea la ruta configurada para tu componente
+  }
 }

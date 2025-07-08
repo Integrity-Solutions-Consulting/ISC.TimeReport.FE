@@ -2,10 +2,62 @@
   padding: 20px;
 }
 
+// Global full-width, if used outside of .form-row
 .full-width {
   width: 100%;
   margin-bottom: 10px;
 }
+
+// Section title for better organization
+.section-title {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  color: var(--primary); // Or any color that fits your theme
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 5px;
+}
+
+// Styles for the two-column layout
+.form-row {
+  display: flex;
+  justify-content: space-between; // Distributes space between items
+  gap: 20px; // Adds space between form fields in a row
+  margin-bottom: 15px; // Space between rows
+
+  // Specific styles for fields that should take half width
+  .form-field-half {
+    flex: 1; // Allows fields to grow and shrink
+    min-width: calc(50% - 10px); // Ensures roughly half the width, accounting for gap
+    // Make sure margin-bottom is consistent for fields in a row
+    margin-bottom: 0;
+  }
+
+  // Override full-width behavior when it's inside a form-row
+  // This is crucial for fields like "Número de Identificación" that might need full width
+  // even within a 'form-row' to display error messages clearly.
+  .full-width {
+    width: 100%;
+    margin-bottom: 0; // Reset individual field margin-bottom if row handles it
+  }
+}
+
+// Media query for responsiveness: stack fields vertically on small screens
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column; // Stacks fields vertically on small screens
+    gap: 0; // Remove gap when stacked
+  }
+
+  .form-field-half,
+  .full-width { // Apply to both half and full width fields when stacked
+    width: 100%; // Make them full width on small screens
+    min-width: 100%; // Ensure it takes full width
+    margin-bottom: 10px; // Add back individual field margin for stacking
+  }
+}
+
 
 .mat-elevation-z8 {
   width: 100%;
@@ -16,6 +68,13 @@
   width: 80px;
   text-align: center;
 }
+
+// No need for a separate .mat-label style if applied inline or through global theme
+/*
+.mat-label {
+  font-family: 'Poppins';
+}
+*/
 
 .mat-dialog-actions {
   justify-content: flex-end;
@@ -36,11 +95,15 @@
 
     &.mat-button {
       border: 1px solid #ccc;
+      background-color: transparent; // Ensure regular buttons are transparent
+      color: var(--primary); // Set text color for regular buttons
     }
 
     &.mat-raised-button {
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       transition: all 0.3s ease;
+      background-color: var(--primary); // Ensure raised buttons use primary color by default
+      color: var(--light); // Ensure raised buttons have light text as per your current style
 
       &:hover {
         transform: translateY(-2px);
@@ -48,4 +111,12 @@
       }
     }
   }
+}
+
+// Styling for disabled buttons
+.disabled-button {
+  opacity: 0.6;
+  cursor: not-allowed;
+  // You might want to make the background color slightly different for disabled state
+  // background-color: #cccccc !important;
 }
