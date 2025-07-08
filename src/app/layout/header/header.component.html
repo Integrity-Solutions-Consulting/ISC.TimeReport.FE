@@ -21,6 +21,10 @@
     </button>
 
     <mat-menu #menu="matMenu">
+      <button mat-menu-item class="logout-button" (click)="logout()" aria-label="Cambiar Contraseña">
+        <mat-icon>lock_reset</mat-icon>
+        <span class="logout-text">Cambiar Contraseña</span>
+      </button>
       <button mat-menu-item class="logout-button" (click)="logout()" aria-label="Cerrar sesión">
         <mat-icon>logout</mat-icon>
         <span class="logout-text">Cerrar sesión</span>
