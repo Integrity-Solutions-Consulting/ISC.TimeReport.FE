@@ -11,7 +11,7 @@ import { ApiResponse, GetAllEmployeesResponse, Employee, EmployeeWithPerson, Emp
 })
 export class EmployeeService {
 
-  urlBase: string = environment.URL_TEST;
+  urlBase: string = environment.URL_BASE;
 
   constructor(private http: HttpClient) { }
 

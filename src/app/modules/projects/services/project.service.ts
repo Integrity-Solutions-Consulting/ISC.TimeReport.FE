@@ -11,7 +11,7 @@ import { ProjectDetail, AllProjectsResponse, SimpleProjectItem} from '../../assi
 })
 export class ProjectService {
 
-    urlBase: string = environment.URL_TEST;
+    urlBase: string = environment.URL_BASE;
 
     constructor(private http: HttpClient) { }
 

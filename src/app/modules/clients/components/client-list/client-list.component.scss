@@ -10,6 +10,19 @@
   background-color: #faf9fd;
 }
 
+.add-button {
+  background-color: var(--itg-primary);
+  color: var(--itg-bg) !important;
+
+  &:hover {
+    background-color: var(--itg-accent);
+  }
+
+  .logout-text {
+    margin-left: 4px;
+  }
+}
+
 .mat-elevation-z8 {
   box-shadow: 0 8px 5px -3px rgba(0,0,0,.2);
   border-radius: 12px;

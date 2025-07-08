@@ -8,7 +8,7 @@ import { Observable } from "rxjs";
 })
 export class MenuService {
   private _httpClient = inject(HttpClient);
-  private urlBase: string = environment.URL_TEST;
+  private urlBase: string = environment.URL_BASE;
 
   // menu.service.ts
     getMenuByRoles(roles: string[]) {
