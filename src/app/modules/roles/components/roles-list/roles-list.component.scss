@@ -1,0 +1,18 @@
+.top-items {
+  display: flex;
+  justify-content: space-between;
+
+  @media (max-width: 767px) {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+}
+
+.search-field {
+  width: 50%;
+
+  @media (max-width: 767px) {
+    width: auto;
+  }
+}

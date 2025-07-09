@@ -1,139 +1,168 @@
-<h4 mat-dialog-title style="margin: 10px;">
+<h4 mat-dialog-title style="margin: 10px; font-family: 'Poppins'">
   {{ isEditMode ? 'Editar Cliente' : 'Crear Nuevo Cliente' }}
 </h4>
 <mat-dialog-content>
   <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="customer-form" style="margin-top: 6px;">
 
-    <!-- Selección de tipo de persona -->
-    <mat-radio-group formControlName="personOption" class="radio-group">
-      <mat-radio-button value="new">Crear nueva persona</mat-radio-button>
-      <mat-radio-button value="existing">Usar persona existente</mat-radio-button>
-    </mat-radio-group>
+    <div class="form-row">
+      <mat-radio-group formControlName="personOption" class="radio-group full-width">
+        <mat-radio-button value="new">Crear nueva persona</mat-radio-button>
+        <mat-radio-button value="existing">Usar persona existente</mat-radio-button>
+      </mat-radio-group>
+    </div>
 
-    <!-- Selección de persona existente (solo visible cuando se selecciona esa opción) -->
-    <mat-form-field appearance="outline" class="full-width" *ngIf="useExistingPerson">
-      <mat-label style="font-family: 'Poppins'; ">Seleccionar persona existente</mat-label>
-      <mat-select formControlName="existingPerson">
-        <mat-option>-- Seleccione una persona --</mat-option>
-        <mat-option *ngIf="isLoadingPersons" disabled>
-          <div style="display: flex; align-items: center;">
-            <mat-spinner diameter="20"></mat-spinner>
-            <span style="margin-left: 8px;">Cargando personas...</span>
-          </div>
-        </mat-option>
-        <mat-option *ngFor="let person of personsList" [value]="person.id">
-          {{ person.firstName }} {{ person.lastName }} ({{ person.identificationNumber }})
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
+    <div class="form-row" *ngIf="useExistingPerson">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label style="font-family: 'Poppins'; ">Seleccionar persona existente</mat-label>
+        <mat-select formControlName="existingPerson">
+          <mat-option>-- Seleccione una persona --</mat-option>
+          <mat-option *ngIf="isLoadingPersons" disabled>
+            <div style="display: flex; align-items: center;">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span style="margin-left: 8px;">Cargando personas...</span>
+            </div>
+          </mat-option>
+          @for (person of personsList; track person) {
+            <mat-option [value]="person.id">
+              {{ person.firstName }} {{ person.lastName }} ({{ person.identificationNumber }})
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
 
-    <!-- Datos del cliente -->
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label style="font-family: 'Poppins'; ">Nombre Comercial</mat-label>
-      <input matInput formControlName="tradeName">
-    </mat-form-field>
+    <div class="section-title" style="font-family: 'Poppins';">Datos del Cliente</div>
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-label style="font-family: 'Poppins'; ">Nombre Comercial</mat-label>
+        <input matInput formControlName="tradeName">
+      </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label style="font-family: 'Poppins'; ">Razón Social</mat-label>
-      <input matInput formControlName="legalName">
-    </mat-form-field>
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-label style="font-family: 'Poppins'; ">Razón Social</mat-label>
+        <input matInput formControlName="legalName">
+      </mat-form-field>
+    </div>
 
-    <!-- Datos de persona (solo para nueva persona) -->
     <div formGroupName="person" *ngIf="!useExistingPerson">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Tipo de Persona</mat-label>
-        <mat-select formControlName="personType">
-          <mat-option *ngFor="let type of personTypes" [value]="type.id">{{type.name}}</mat-option>
-        </mat-select>
-      </mat-form-field>
+      <div class="section-title" style="font-family: 'Poppins';">Datos Personales</div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Tipo de Identificación</mat-label>
-        <mat-select formControlName="identificationTypeId">
-          <mat-option *ngFor="let type of identificationTypes" [value]="type.id">{{type.name}}</mat-option>
-        </mat-select>
-      </mat-form-field>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins'; ">Tipo de Persona</mat-label>
+          <mat-select formControlName="personType">
+            @for (type of personTypes; track type) {
+              <mat-option [value]="type.id">{{type.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Número de Identificación</mat-label>
-        <input matInput formControlName="identificationNumber" required>
-        <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('required')">
-          Este campo es requerido
-        </mat-error>
-        <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('invalidRucLength')">
-          El RUC debe tener exactamente 13 dígitos
-        </mat-error>
-        <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('invalidCedulaLength')">
-          La cédula debe tener máximo 10 dígitos
-        </mat-error>
-        <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('invalidIdentificationType')">
-          Persona jurídica debe usar RUC
-        </mat-error>
-      </mat-form-field>
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins'; ">Tipo de Identificación</mat-label>
+          <mat-select formControlName="identificationTypeId">
+            @for (type of identificationTypes; track type) {
+              <mat-option [value]="type.id">{{type.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Nombres</mat-label>
-        <input matInput formControlName="firstName">
-      </mat-form-field>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label style="font-family: 'Poppins'; ">Número de Identificación</mat-label>
+          <input matInput formControlName="identificationNumber" required>
+          <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('required')">
+            Este campo es requerido
+          </mat-error>
+          <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('invalidRucLength')">
+            El RUC debe tener exactamente 13 dígitos
+          </mat-error>
+          <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('invalidCedulaLength')">
+            La cédula debe tener máximo 10 dígitos
+          </mat-error>
+          <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('invalidIdentificationType')">
+            Persona jurídica debe usar RUC
+          </mat-error>
+        </mat-form-field>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Apellidos</mat-label>
-        <input matInput formControlName="lastName">
-      </mat-form-field>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins'; ">Nombres</mat-label>
+          <input matInput formControlName="firstName">
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Fecha de Nacimiento</mat-label>
-        <input matInput [matDatepicker]="picker" formControlName="birthDate">
-        <mat-hint>MM/DD/YYYY</mat-hint>
-        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-      </mat-form-field>
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins'; ">Apellidos</mat-label>
+          <input matInput formControlName="lastName">
+        </mat-form-field>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Correo Electrónico</mat-label>
-        <input matInput formControlName="email" type="email">
-        <mat-error *ngIf="clientForm.get('email')?.hasError('email')">
-          Formato de email inválido
-        </mat-error>
-      </mat-form-field>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins'; ">Fecha de Nacimiento</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="birthDate">
+          <mat-hint>MM/DD/YYYY</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Teléfono</mat-label>
-        <input matInput formControlName="phone" required>
-        <mat-error *ngIf="clientForm.get('person.phone')?.hasError('required')">
-          Este campo es requerido
-        </mat-error>
-        <mat-error *ngIf="clientForm.get('person.phone')?.hasError('pattern')">
-          El teléfono debe contener solo números (máximo 10 dígitos)
-        </mat-error>
-      </mat-form-field>
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins'; ">Correo Electrónico</mat-label>
+          <input matInput formControlName="email" type="email">
+          <mat-error *ngIf="clientForm.get('person.email')?.hasError('email')">
+            Formato de email inválido
+          </mat-error>
+        </mat-form-field>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Dirección</mat-label>
-        <input matInput formControlName="address">
-      </mat-form-field>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins'; ">Teléfono</mat-label>
+          <input matInput formControlName="phone" required>
+          <mat-error *ngIf="clientForm.get('person.phone')?.hasError('required')">
+            Este campo es requerido
+          </mat-error>
+          <mat-error *ngIf="clientForm.get('person.phone')?.hasError('pattern')">
+            El teléfono debe contener solo números (máximo 10 dígitos)
+          </mat-error>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Género</mat-label>
-        <mat-select formControlName="genderId">
-          @for (gender of genders; track gender) {
-            <mat-option [value]="gender.id">{{gender.name}}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins'; ">Dirección</mat-label>
+          <input matInput formControlName="address">
+        </mat-form-field>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Nacionalidad</mat-label>
-        <mat-select formControlName="nationalityId">
-          @for (nation of nationalities; track nation) {
-            <mat-option [value]="nation.id">{{nation.name}}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins'; ">Género</mat-label>
+          <mat-select formControlName="genderId">
+            @for (gender of genders; track gender) {
+              <mat-option [value]="gender.id">{{gender.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins'; ">Nacionalidad</mat-label>
+          <mat-select formControlName="nationalityId">
+            @for (nation of nationalities; track nation) {
+              <mat-option [value]="nation.id">{{nation.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
     </div>
   </form>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-raised-button (click)="onCancel()">Cancelar</button>
-  <button mat-raised-button style="background-color: var(--primary); color: var(--light)" (click)="onSubmit()" [disabled]="!clientForm.valid">Guardar</button>
+  <button mat-raised-button
+          style="background-color: var(--primary); color: var(--light)"
+          (click)="onSubmit()"
+          [disabled]="!clientForm.valid || clientForm.pending"
+          [class.disabled-button]="!clientForm.valid">
+    Guardar
+  </button>
 </mat-dialog-actions>

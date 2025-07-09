@@ -22,7 +22,7 @@ td.mat-cell {
 }
 
 .add-button {
-  background-color: var(--itg-primary);
+  background-color: var(--itg-primary) !important;
   color: var(--itg-bg) !important;
 
   &:hover {

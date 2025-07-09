@@ -27,6 +27,7 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
 import { Subject } from 'rxjs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Injectable()
 export class CustomerPaginatorIntl implements MatPaginatorIntl {
@@ -227,32 +228,46 @@ export class ClientListComponent implements OnInit{
       ? '¿Estás seguro de que deseas desactivar este cliente?'
       : '¿Estás seguro de que deseas activar este cliente?';
 
-    if (confirm(confirmationMessage)) {
-      if (client.status) {
-        // Lógica para desactivar
-        this.clientService.inactivateClient(client.id, {
-          status: false
-        }).subscribe({
-          next: () => {
-            this.snackBar.open('Cliente desactivado con éxito', 'Cerrar', { duration: 3000 });
-            this.loadClients(); // Recargar la lista
-          },
-          error: (err) => {
-            this.snackBar.open('Error al desactivar cliente', 'Cerrar', { duration: 3000 });
-          }
-        });
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '400px',
+      data: { message: confirmationMessage }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) { // If user clicked 'Sí'
+        if (client.status) {
+          // Logic to deactivate
+          this.clientService.inactivateClient(client.id, {
+            status: false // Make sure the status is correctly set for inactivation
+          }).subscribe({
+            next: () => {
+              this.snackBar.open('Cliente desactivado con éxito', 'Cerrar', { duration: 3000 });
+              this.loadClients(); // Reload the list
+            },
+            error: (err) => {
+              this.snackBar.open('Error al desactivar cliente', 'Cerrar', { duration: 3000 });
+              console.error('Error al desactivar cliente:', err); // Log the actual error
+            }
+          });
+        } else {
+          // Logic to activate
+          this.clientService.activateClient(client.id, {
+            status: true // Make sure the status is correctly set for activation
+          }).subscribe({
+            next: () => {
+              this.snackBar.open('Cliente activado con éxito', 'Cerrar', { duration: 3000 });
+              this.loadClients(); // Reload the list
+            },
+            error: (err) => {
+              this.snackBar.open('Error al activar cliente', 'Cerrar', { duration: 3000 });
+              console.error('Error al activar cliente:', err); // Log the actual error
+            }
+          });
+        }
       } else {
-        // Lógica para activar
-        this.clientService.activateClient(client.id, {}).subscribe({
-          next: () => {
-            this.snackBar.open('Cliente activado con éxito', 'Cerrar', { duration: 3000 });
-            this.loadClients(); // Recargar la lista
-          },
-          error: (err) => {
-            this.snackBar.open('Error al activar cliente', 'Cerrar', { duration: 3000 });
-          }
-        });
+        // User cancelled the action
+        this.snackBar.open('Acción cancelada', 'Cerrar', { duration: 2000 });
       }
-    }
+    });
   }
 }

@@ -18,8 +18,8 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './menu.component.scss'
 })
 export class MenuComponent implements OnInit {
-  
-  public options: { moduleName: string; modulePath: string }[] = [];
+
+  public options: { moduleName: string; modulePath: string; icon: string}[] = [];
 
   ngOnInit(): void {
     const rawMenus = localStorage.getItem('modules');
@@ -36,7 +36,8 @@ export class MenuComponent implements OnInit {
 
         return {
           moduleName: item.moduleName || 'Unnamed Module',
-          modulePath: ruta
+          modulePath: ruta,
+          icon: item.icon
         };
       });
 

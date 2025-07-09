@@ -7,10 +7,15 @@
   </div>
 
   <mat-nav-list>
-    <a mat-list-item
-       *ngFor="let menu of options"
-       [routerLink]="menu.modulePath"
-       routerLinkActive="active-link">
+    <a  mat-list-item
+        *ngFor="let menu of options"
+        [routerLink]="menu.modulePath"
+        routerLinkActive="active-link"
+        class="menu-items"
+    >
+      <mat-icon>
+        {{menu.icon}}
+      </mat-icon>
       {{ menu.moduleName }}
     </a>
   </mat-nav-list>

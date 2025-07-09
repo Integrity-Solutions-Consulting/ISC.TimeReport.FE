@@ -15,7 +15,7 @@
 }
 
 .logo-img {
-  width: 200px; /* Ajusta según necesidad */
+  width: 100px;
   height: auto;
   margin-bottom: 10px;
 }
@@ -48,21 +48,26 @@ mat-nav-list {
   padding: 0;
 }
 
-a[mat-list-item] {
-  margin: 4px 0;
-  border-radius: 4px;
+a.mdc-list-item {
+  position: relative; /* para posicionar el pseudo-elemento */
+  padding-left: 16px; /* espacio para el borde, ajusta según necesites */
+  border-left: 4px solid transparent; /* borde invisible por defecto */
+  transition: border-color 0.3s ease;
 
   &:hover {
-    background-color: var(--itg-primary);
-    color: var(--itg-bg) !important;
+    color: var(--itg-primary) !important;
   }
 }
 
+.menu-items {
+  display: flex;
+  justify-content: space-between;
+}
+
 .active-link {
-  background-color: var(--itg-accent) !important;
-  color: var(--itg-bg) !important;
+  color: var(--itg-primary) !important;
 
   &:hover {
-    background-color: var(--itg-secondary) !important;
+    background-color: var(--itg-primary-bg) !important;
   }
 }
