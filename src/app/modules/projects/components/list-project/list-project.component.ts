@@ -18,6 +18,7 @@ import { ProjectModalComponent } from '../project-modal/project-modal.component'
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Injectable()
 export class ProjectPaginatorIntl implements MatPaginatorIntl {
@@ -82,7 +83,7 @@ export class ListProjectComponent implements OnInit{
 
     selection = new SelectionModel<any>(true, []);
 
-    displayedColumns: string[] = ['projectStatus', 'status', 'code', 'name', 'description', 'startDate', 'endDate', 'options'];
+    displayedColumns: string[] = ['code', 'name', 'description', 'startDate', 'endDate', 'options'];
 
     readonly projectCodesMap: {[key: string]: string} = {
     '1': 'Planificación',
@@ -193,50 +194,63 @@ export class ListProjectComponent implements OnInit{
         ? '¿Estás seguro de que deseas desactivar este proyecto?'
         : '¿Estás seguro de que deseas activar este proyecto?';
 
-      if (confirm(confirmationMessage)) {
-        if (project.status) {
-          // Lógica para desactivar
-          this.projectService.inactivateProject(project.id, {
-            clientID: project.clientID,
-            projectStatusID: project.projectStatusID,
-            code: project.code,
-            name: project.name,
-            description: project.description,
-            startDate: project.startDate,
-            endDate: project.endDate,
-            budget: project.budget,
-            status: true
-          }).subscribe({
-            next: () => {
-              this.snackBar.open('Proyecto desactivado con éxito', 'Cerrar', { duration: 3000 });
-              this.loadProjects(); // Recargar la lista
-            },
-            error: (err) => {
-              this.snackBar.open('Error al desactivar proyecto', 'Cerrar', { duration: 3000 });
-            }
-          });
+      const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+        width: '600px',
+        data: { message: confirmationMessage }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          // User confirmed, proceed with status change
+          if (project.status) {
+            // Logic to deactivate
+            this.projectService.inactivateProject(project.id, {
+              clientID: project.clientID,
+              projectStatusID: project.projectStatusID,
+              code: project.code,
+              name: project.name,
+              description: project.description,
+              startDate: project.startDate,
+              endDate: project.endDate,
+              budget: project.budget,
+              status: false // Set status to false for inactivation
+            }).subscribe({
+              next: () => {
+                this.snackBar.open('Proyecto desactivado con éxito', 'Cerrar', { duration: 3000 });
+                this.loadProjects(); // Reload the list
+              },
+              error: (err) => {
+                this.snackBar.open('Error al desactivar proyecto', 'Cerrar', { duration: 3000 });
+                console.error('Error inactivating project:', err);
+              }
+            });
+          } else {
+            // Logic to activate
+            this.projectService.activateProject(project.id, {
+              clientID: project.clientID,
+              projectStatusID: project.projectStatusID,
+              code: project.code,
+              name: project.name,
+              description: project.description,
+              startDate: project.startDate,
+              endDate: project.endDate,
+              budget: project.budget,
+              status: true // Set status to true for activation
+            }).subscribe({
+              next: () => {
+                this.snackBar.open('Proyecto activado con éxito', 'Cerrar', { duration: 3000 });
+                this.loadProjects(); // Reload the list
+              },
+              error: (err) => {
+                this.snackBar.open('Error al activar proyecto', 'Cerrar', { duration: 3000 });
+                console.error('Error activating project:', err);
+              }
+            });
+          }
         } else {
-          // Lógica para activar
-          this.projectService.activateProject(project.id, {
-            clientID: project.clientID,
-            projectStatusID: project.projectStatusID,
-            code: project.code,
-            name: project.name,
-            description: project.description,
-            startDate: project.startDate,
-            endDate: project.endDate,
-            budget: project.budget,
-            status: true
-          }).subscribe({
-            next: () => {
-              this.snackBar.open('Proyecto activado con éxito', 'Cerrar', { duration: 3000 });
-              this.loadProjects(); // Recargar la lista
-            },
-            error: (err) => {
-              this.snackBar.open('Error al activar proyecto', 'Cerrar', { duration: 3000 });
-            }
-          });
+          // User cancelled the action
+          this.snackBar.open('Acción cancelada', 'Cerrar', { duration: 2000 });
         }
-      }
+      });
     }
 }

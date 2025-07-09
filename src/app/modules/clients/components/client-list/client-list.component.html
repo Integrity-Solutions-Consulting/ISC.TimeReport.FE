@@ -2,10 +2,9 @@
 
   <div class="top-items">
     <mat-form-field appearance="outline" class="search-field">
-      <mat-label style="font-family: 'Poppins'; ">Buscar por nombres, número de identificación...</mat-label>
       <input matInput
             (keyup)="applyFilter($event)"
-            placeholder="Escribe para filtrar..."
+            placeholder="Buscar por nombres, número de identificación..."
             formControl="searchControl"
             #input>
       <mat-icon matSuffix>search</mat-icon>

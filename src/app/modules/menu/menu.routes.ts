@@ -9,6 +9,14 @@ export const menuRoutes: Routes = [
         component: AppMenuPage,
         children:[
           {
+            path: '',
+            loadChildren: () => import('../dashboard/dashboard.routes').then((m) => m.dashboardRoutes),
+          },
+          {
+            path: 'dashboard',
+            loadChildren: () => import('../dashboard/dashboard.routes').then((m) => m.dashboardRoutes),
+          },
+          {
             path: 'clients',
             loadChildren: () => import('../clients/clients.routes').then((m) => m.clientsRoutes),
             /*canActivate: [RoleGuard],
@@ -45,6 +53,10 @@ export const menuRoutes: Routes = [
           {
             path: 'assignments',
             loadChildren: () => import('../assigments/assigment.routes').then((m) => m.assignmentsRoutes),
+          },
+          {
+            path: 'roles',
+            loadChildren: () => import('../roles/roles.routes').then((m) => m.rolesRoutes),
           }
         ]
     },

@@ -20,6 +20,7 @@ import { EmployeeDialogComponent } from '../employee-dialog/employee-dialog.comp
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Injectable()
 export class EmployeePaginatorIntl implements MatPaginatorIntl {
@@ -253,31 +254,42 @@ export class EmployeeListComponent {
       ? '¿Estás seguro de que deseas desactivar este empleado?'
       : '¿Estás seguro de que deseas activar este empleado?';
 
-    if (confirm(confirmationMessage)) {
-      if (employee.status) {
-        // Lógica para desactivar
-        this.employeeService.inactivateEmployee(employee.id, {
-        }).subscribe({
-          next: () => {
-            this.snackBar.open('Líder desactivado con éxito', 'Cerrar', { duration: 3000 });
-            this.loadEmployees(); // Recargar la lista
-          },
-          error: (err) => {
-            this.snackBar.open('Error al desactivar líder', 'Cerrar', { duration: 3000 });
-          }
-        });
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '600px',
+      data: { message: confirmationMessage }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) { // If user clicked 'Sí'
+        if (employee.status) {
+          // Logic to deactivate
+          this.employeeService.inactivateEmployee(employee.id, {}).subscribe({ // Empty object as second argument assumes API only needs ID
+            next: () => {
+              this.snackBar.open('Empleado desactivado con éxito', 'Cerrar', { duration: 3000 });
+              this.loadEmployees(); // Reload the list
+            },
+            error: (err) => {
+              this.snackBar.open('Error al desactivar empleado', 'Cerrar', { duration: 3000 });
+              console.error('Error inactivating employee:', err); // Log the actual error
+            }
+          });
+        } else {
+          // Logic to activate
+          this.employeeService.activateEmployee(employee.id, {}).subscribe({ // Empty object as second argument assumes API only needs ID
+            next: () => {
+              this.snackBar.open('Empleado activado con éxito', 'Cerrar', { duration: 3000 });
+              this.loadEmployees(); // Reload the list
+            },
+            error: (err) => {
+              this.snackBar.open('Error al activar empleado', 'Cerrar', { duration: 3000 });
+              console.error('Error activating employee:', err); // Log the actual error
+            }
+          });
+        }
       } else {
-        // Lógica para activar
-        this.employeeService.activateEmployee(employee.id, {}).subscribe({
-          next: () => {
-            this.snackBar.open('Líder activado con éxito', 'Cerrar', { duration: 3000 });
-            this.loadEmployees(); // Recargar la lista
-          },
-          error: (err) => {
-            this.snackBar.open('Error al activar líder', 'Cerrar', { duration: 3000 });
-          }
-        });
+        // User cancelled the action
+        this.snackBar.open('Acción cancelada', 'Cerrar', { duration: 2000 });
       }
-    }
+    });
   }
 }

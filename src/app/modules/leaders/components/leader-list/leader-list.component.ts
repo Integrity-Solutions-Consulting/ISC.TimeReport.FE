@@ -19,6 +19,7 @@ import { ProjectService } from '../../../projects/services/project.service';
 import { Project } from '../../../projects/interfaces/project.interface';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Injectable()
 export class LeaderPaginatorIntl implements MatPaginatorIntl {
@@ -77,7 +78,7 @@ export class LeaderListComponent implements OnInit{
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  displayedColumns: string[] = ['idtype', 'idnumber', 'leadertype', 'status', 'names', 'surnames', 'project', 'options'];
+  displayedColumns: string[] = ['idtype', 'idnumber', 'leadertype', 'names', 'surnames', 'project', 'status', 'options'];
 
   selection = new SelectionModel<any>(true, []);
 
@@ -129,7 +130,7 @@ export class LeaderListComponent implements OnInit{
 
   openCreateDialog(): void {
       const dialogRef = this.dialog.open(LeaderModalComponent, {
-        width: '600px',
+        width: '800px',
         disableClose: true,
         data: { customer: null }
       });
@@ -207,47 +208,59 @@ export class LeaderListComponent implements OnInit{
       ? '¿Estás seguro de que deseas desactivar este líder?'
       : '¿Estás seguro de que deseas activar este líder?';
 
-    if (confirm(confirmationMessage)) {
-      if (leader.status) {
-        // Lógica para desactivar
-        this.leaderService.inactivateLeader(leader.id, {
-          personID: leader.person.id,
-          projectID: leader.projectID,
-          leadershipType: leader.leadershipType,
-          startDate: leader.startDate,
-          endDate: leader.endDate,
-          responsibilities: leader.responsibilities,
-          status: true
-        }).subscribe({
-          next: () => {
-            this.snackBar.open('Líder desactivado con éxito', 'Cerrar', { duration: 3000 });
-            this.loadLeaders(); // Recargar la lista
-          },
-          error: (err) => {
-            this.snackBar.open('Error al desactivar líder', 'Cerrar', { duration: 3000 });
-          }
-        });
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '400px',
+      data: { message: confirmationMessage }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) { // If user clicked 'Sí'
+        if (leader.status) {
+          // Logic to deactivate
+          this.leaderService.inactivateLeader(leader.id, {
+            personID: leader.person.id,
+            projectID: leader.projectID,
+            leadershipType: leader.leadershipType,
+            startDate: leader.startDate,
+            endDate: leader.endDate,
+            responsibilities: leader.responsibilities,
+            status: false // Set status to false for inactivation
+          }).subscribe({
+            next: () => {
+              this.snackBar.open('Líder desactivado con éxito', 'Cerrar', { duration: 3000 });
+              this.loadLeaders(); // Reload the list
+            },
+            error: (err) => {
+              this.snackBar.open('Error al desactivar líder', 'Cerrar', { duration: 3000 });
+              console.error('Error al desactivar líder:', err); // Log the actual error
+            }
+          });
+        } else {
+          // Logic to activate
+          this.leaderService.activateLeader(leader.id, {
+            personID: leader.person.id,
+            projectID: leader.projectID,
+            leadershipType: leader.leadershipType,
+            startDate: leader.startDate,
+            endDate: leader.endDate,
+            responsibilities: leader.responsibilities,
+            status: true // Set status to true for activation
+          }).subscribe({
+            next: () => {
+              this.snackBar.open('Líder activado con éxito', 'Cerrar', { duration: 3000 });
+              this.loadLeaders(); // Reload the list
+            },
+            error: (err) => {
+              this.snackBar.open('Error al activar líder', 'Cerrar', { duration: 3000 });
+              console.error('Error al activar líder:', err); // Log the actual error
+            }
+          });
+        }
       } else {
-        // Lógica para activar
-        this.leaderService.activateLeader(leader.id, {
-          personID: leader.person.id,
-          projectID: leader.projectID,
-          leadershipType: leader.leadershipType,
-          startDate: leader.startDate,
-          endDate: leader.endDate,
-          responsibilities: leader.responsibilities,
-          status: true
-        }).subscribe({
-          next: () => {
-            this.snackBar.open('Líder activado con éxito', 'Cerrar', { duration: 3000 });
-            this.loadLeaders(); // Recargar la lista
-          },
-          error: (err) => {
-            this.snackBar.open('Error al activar líder', 'Cerrar', { duration: 3000 });
-          }
-        });
+        // User cancelled the action
+        this.snackBar.open('Acción cancelada', 'Cerrar', { duration: 2000 });
       }
-    }
+    });
   }
 
   applyFilter(event: Event) {

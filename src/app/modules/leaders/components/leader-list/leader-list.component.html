@@ -2,10 +2,9 @@
 
   <div class="top-items">
     <mat-form-field appearance="outline" class="search-field">
-      <mat-label style="font-family: 'Poppins'; ">Buscar por nombres, número de identificación...</mat-label>
       <input matInput
             (keyup)="applyFilter($event)"
-            placeholder="Escribe para filtrar..."
+            placeholder="Buscar por nombres, número de identificación..."
             formControl="searchControl"
             #input>
       <mat-icon matSuffix>search</mat-icon>
@@ -49,16 +48,6 @@
       <td mat-cell *matCellDef="let element">{{getLeaderTypeName(element.leadershipType)}}</td>
     </ng-container>
 
-    <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
-      <td mat-cell *matCellDef="let element">
-        <div class="status-container" [ngClass]="{'active': element.status, 'inactive': !element.status}">
-          <div class="status-dot"></div>
-          <div class="status-text">{{element.status ? 'Activo' : 'Inactivo'}}</div>
-        </div>
-      </td>
-    </ng-container>
-
     <ng-container matColumnDef="names">
       <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombres </th>
       <td mat-cell *matCellDef="let element">{{element.person.firstName}}</td>
@@ -72,6 +61,16 @@
     <ng-container matColumnDef="project">
       <th mat-header-cell *matHeaderCellDef mat-sort-header> Proyecto </th>
       <td mat-cell *matCellDef="let element">{{getProjectName(element.projectID)}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+      <td mat-cell *matCellDef="let element">
+        <div class="status-container" [ngClass]="{'active': element.status, 'inactive': !element.status}">
+          <div class="status-dot"></div>
+          <div class="status-text">{{element.status ? 'Activo' : 'Inactivo'}}</div>
+        </div>
+      </td>
     </ng-container>
 
     <ng-container matColumnDef="options">
