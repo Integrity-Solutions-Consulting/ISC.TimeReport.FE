@@ -1,5 +1,5 @@
 import { Component, effect, inject } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import { InterceptorService } from './shared/services/interceptor.service';
 import { CommonModule } from '@angular/common';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -9,6 +9,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     RouterOutlet,
     NgbModule,
   ],

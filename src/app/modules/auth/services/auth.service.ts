@@ -160,4 +160,12 @@ export class AuthService {
   //   return roles ? JSON.parse(roles) : [];
   // }
 
+  requestPasswordRecovery(username: string): Observable<any> {
+    return this._httpClient.post(`${this.urlBase}/api/auth/recuperar-password`, { username });
+  }
+
+  resetPassword(token: string, newPassword: string, confirmPassword: string): Observable<any> {
+    return this._httpClient.post(`${this.urlBase}/api/auth/reset-password?token=${token}`, { newPassword, confirmPassword });
+  }
+
 }

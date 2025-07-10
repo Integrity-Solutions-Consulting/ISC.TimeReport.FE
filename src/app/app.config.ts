@@ -8,8 +8,8 @@ import { Interceptor } from './shared/services/interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }), 
-    provideRouter(routes), 
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes),
     provideAnimationsAsync(),
     provideHttpClient(
       withInterceptorsFromDi()
