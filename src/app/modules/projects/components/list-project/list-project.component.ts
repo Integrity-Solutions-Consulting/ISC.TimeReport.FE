@@ -19,6 +19,7 @@ import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Injectable()
 export class ProjectPaginatorIntl implements MatPaginatorIntl {
@@ -101,6 +102,11 @@ export class ListProjectComponent implements OnInit{
     pageSize: number = 10;
     currentPage: number = 0;
     currentSearch: string = '';
+
+    constructor(
+      private router: Router,
+      private route: ActivatedRoute
+    ) {}
 
     ngOnInit(): void {
       this.loadProjects();
@@ -273,5 +279,9 @@ export class ListProjectComponent implements OnInit{
           this.snackBar.open('Acción cancelada', 'Cerrar', { duration: 2000 });
         }
       });
+    }
+
+    viewProjectDetails(projectId: number): void {
+      this.router.navigate([projectId], { relativeTo: this.route });
     }
 }

@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 import { ApiResponse, GetAllEmployeesResponse, Employee, EmployeeWithPerson, EmployeeWithPersonID } from '../interfaces/employee.interface';
@@ -29,6 +29,19 @@ export class EmployeeService {
 
   getEmployeeByID(id: number): Observable<Employee> {
     return this.http.get<Employee>(`${this.urlBase}/api/Employee/GetEmployeeByID/${id}`);
+  }
+
+  getEmployeeId(id: number): Observable<any> {
+    return this.http.get<any>(`${this.urlBase}/api/Employee/GetEmployeeByID/${id}`).pipe(
+      map(response => {
+        // Si la respuesta tiene propiedad data, la usamos, sino usamos la respuesta completa
+        return response.data || response;
+      }),
+      catchError(error => {
+        console.error('Error fetching employee', error);
+        return throwError(() => new Error(error));
+      })
+    );
   }
 
   createEmployeeWithPerson(employeeWithPersonRequest: EmployeeWithPerson): Observable<SuccessResponse<Employee>> {

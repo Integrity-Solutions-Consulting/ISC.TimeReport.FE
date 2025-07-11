@@ -35,3 +35,8 @@ export interface ApiResponse {
   pageSize: number;
   totalPages: number;
 }
+
+export interface ApiResponseByID {
+  traceId: string;
+  data: []
+}

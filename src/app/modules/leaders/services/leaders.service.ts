@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { Leader, LeaderWithPerson, LeaderWithPersonID, ApiResponse } from '../interfaces/leader.interface';
-import { Observable } from 'rxjs';
+import { catchError, map, Observable, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 
 @Injectable({
@@ -26,6 +26,22 @@ export class LeadersService {
 
   getLeaderByID(id: number): Observable<Leader> {
     return this.http.get<Leader>(`${this.urlBase}/api/Leader/GetLeaderByID/${id}`);
+  }
+
+  getLeaderId(id: number): Observable<any> {
+    return this.http.get<any>(`${this.urlBase}/api/Leader/GetLeaderByID/${id}`).pipe(
+      tap(response => console.log('Respuesta cruda del API:', response)),
+      map(response => {
+        // Maneja tanto la estructura con wrapper {data: ...} como respuesta directa
+        const data = response.data || response;
+        console.log('Datos procesados:', data);
+        return data;
+      }),
+      catchError(error => {
+        console.error('Error al obtener líder:', error);
+        return throwError(() => new Error(error));
+      })
+    );
   }
 
   createLeaderWithPerson(leaderWithPersonRequest: LeaderWithPerson): Observable<SuccessResponse<Leader>> {

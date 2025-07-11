@@ -1,0 +1,67 @@
+<div class="project-detail-container">
+  <mat-card class="project-card" *ngIf="!isLoading && project">
+    <!-- Header con título y estado -->
+    <mat-card-header class="project-header">
+      <div class="header-content">
+        <mat-card-title class="project-title">{{project.name}}</mat-card-title>
+        <mat-card-subtitle class="project-subtitle">
+          <span>Código: {{project.code}}</span>
+          <mat-chip class="status-chip" [ngClass]="{
+            'active': project.status,
+            'inactive': !project.status
+          }">
+            {{project.status ? 'ACTIVO' : 'INACTIVO'}}
+          </mat-chip>
+        </mat-card-subtitle>
+      </div>
+      <div class="budget-badge">
+        <span class="budget-amount">{{project.budget | currency}}</span>
+        <span class="budget-label">PRESUPUESTO</span>
+      </div>
+    </mat-card-header>
+
+    <mat-divider></mat-divider>
+
+    <!-- Contenido principal -->
+    <mat-card-content class="project-content">
+      <div class="description-section">
+        <h3 class="section-title">DESCRIPCIÓN</h3>
+        <p class="description-text">{{project.description || 'No hay descripción disponible'}}</p>
+      </div>
+
+      <div class="timeline-section">
+        <div class="timeline-item">
+          <h3 class="section-title">FECHA INICIO</h3>
+          <p class="date-value">{{project.startDate | date:'dd/MM/yyyy'}}</p>
+        </div>
+
+        <div class="timeline-item">
+          <h3 class="section-title">FECHA FIN ESTIMADA</h3>
+          <p class="date-value">{{project.endDate | date:'dd/MM/yyyy'}}</p>
+        </div>
+      </div>
+
+      <div class="client-section">
+        <h3 class="section-title">CLIENTE</h3>
+        <div class="client-info">
+          <mat-icon class="client-icon">business</mat-icon>
+          <span class="client-id">ID: {{project.clientID}}</span>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <!-- Acciones -->
+    <mat-card-actions class="project-actions">
+      <button mat-stroked-button color="primary" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        VOLVER
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Loader -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando detalles del proyecto...</p>
+  </div>
+</div>

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ApiResponse, Project } from '../interfaces/project.interface';
-import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, tap } from 'rxjs';
+import { ApiResponse, ApiResponseByID, Project } from '../interfaces/project.interface';
+import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 import { ProjectDetail, AllProjectsResponse, SimpleProjectItem} from '../../assigments/interfaces/assignment.interface';
 
@@ -50,8 +50,19 @@ export class ProjectService {
       );
     }
 
-    getProjectById(id: number): Observable<Project> {
-      return this.http.get<Project>(`${this.urlBase}/api/Project/GetProjectByID/${id}`);
+    getProjectById(id: number): Observable<any> {
+      const url = `${this.urlBase}/api/Project/GetProjectByID/${id}`;
+
+      return this.http.get<any>(url).pipe(
+        map(response => {
+          // Si la respuesta ya es el objeto del proyecto, lo devolvemos directamente
+          return response.data || response;
+        }),
+        catchError(error => {
+          console.error('Error fetching project', error);
+          return throwError(() => new Error(error));
+        })
+      );
     }
 
     getProjectDetailByID(id: number): Observable<ProjectDetail> {

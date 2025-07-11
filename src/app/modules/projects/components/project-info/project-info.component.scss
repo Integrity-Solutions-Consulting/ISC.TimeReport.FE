@@ -1,0 +1,171 @@
+.project-detail-container {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.project-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px 24px 16px;
+  background-color: #f5f7fa;
+
+  .header-content {
+    flex: 1;
+  }
+}
+
+.project-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.project-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #7f8c8d;
+}
+
+.status-chip {
+  font-weight: 600;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 16px;
+
+  &.active {
+    background-color: #2ecc71;
+    color: white;
+  }
+
+  &.inactive {
+    background-color: #e74c3c;
+    color: white;
+  }
+}
+
+.budget-badge {
+  text-align: center;
+  background: #3498db;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  min-width: 120px;
+
+  .budget-amount {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .budget-label {
+    font-size: 12px;
+    opacity: 0.9;
+  }
+}
+
+.project-content {
+  padding: 24px;
+
+  .section-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #7f8c8d;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+}
+
+.description-section {
+  margin-bottom: 24px;
+
+  .description-text {
+    line-height: 1.6;
+    color: #34495e;
+  }
+}
+
+.timeline-section {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 24px;
+
+  .timeline-item {
+    flex: 1;
+
+    .date-value {
+      font-size: 16px;
+      font-weight: 500;
+      color: #2c3e50;
+    }
+  }
+}
+
+.client-section {
+  .client-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .client-icon {
+      color: #3498db;
+    }
+
+    .client-id {
+      font-weight: 500;
+      color: #34495e;
+    }
+  }
+}
+
+.project-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-top: 1px solid #ecf0f1;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #7f8c8d;
+
+  mat-spinner {
+    margin-bottom: 16px;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .project-header {
+    flex-direction: column;
+    gap: 16px;
+
+    .budget-badge {
+      align-self: flex-start;
+    }
+  }
+
+  .timeline-section {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
