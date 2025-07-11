@@ -13,7 +13,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSort, MatSortModule } from '@angular/material/sort';
-import { MatPaginator, MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Subject } from 'rxjs';
 import { ProjectService } from '../../../projects/services/project.service';
 import { Project } from '../../../projects/interfaces/project.interface';
@@ -82,6 +82,11 @@ export class LeaderListComponent implements OnInit{
 
   selection = new SelectionModel<any>(true, []);
 
+  totalItems: number = 0;
+  pageSize: number = 10;
+  currentPage: number = 0;
+  currentSearch: string = '';
+
   ngOnInit(): void {
     this.loadLeaders();
     this.loadProjects();
@@ -98,13 +103,20 @@ export class LeaderListComponent implements OnInit{
     return project ? project.name : 'Proyecto no encontrado';
   }
 
-  loadLeaders(): void {
-    this.leaderService.getLeaders().subscribe({
+  loadLeaders(pageNumber: number = 1, pageSize: number = 10, search: string = ''): void {
+    this.leaderService.getLeaders(pageNumber, pageSize, search).subscribe({
       next: (response) => {
         if (response?.items) {
           this.dataSource = new MatTableDataSource<Leader>(response.items);
-          this.dataSource.paginator = this.paginator;
-          this.dataSource.sort = this.sort;
+          this.totalItems = response.totalItems;
+          this.pageSize = response.pageSize;
+          this.currentPage = response.pageNumber - 1;
+
+          if (this.paginator) {
+            this.paginator.length = this.totalItems;
+            this.paginator.pageSize = this.pageSize;
+            this.paginator.pageIndex = this.currentPage;
+          }
         } else {
           console.error('La respuesta del API no tiene la estructura esperada:', response);
           this.dataSource = new MatTableDataSource<Leader>([]); // Tabla vacía como fallback
@@ -115,6 +127,13 @@ export class LeaderListComponent implements OnInit{
         this.dataSource = new MatTableDataSource<Leader>([]); // Tabla vacía en caso de error
       }
     });
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.currentPage = event.pageIndex + 1;
+    // Pasa el valor de búsqueda actual al cargar los empleados
+    this.loadLeaders(this.currentPage, this.pageSize, this.currentSearch);
   }
 
   loadProjects(): void {

@@ -12,7 +12,8 @@ export class MenuService {
 
   // menu.service.ts
     getMenuByRoles(roles: string[]) {
-    return this._httpClient.post<string[]>(this.urlBase + '/menus/porRoles', { roles });
+      console.log(roles)
+      return this._httpClient.post<string[]>(this.urlBase + '/menus/porRoles', { roles });
     }
 
 }

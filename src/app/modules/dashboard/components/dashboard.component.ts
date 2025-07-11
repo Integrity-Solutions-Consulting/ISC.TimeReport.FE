@@ -15,7 +15,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { MatSelectModule } from '@angular/material/select';
 import { Project } from '../interfaces/dashboard.interface';
 import { CommonModule } from '@angular/common';
-import { Color, ScaleType, NgxChartsModule } from '@swimlane/ngx-charts';
+import { Color, ScaleType, NgxChartsModule, LegendPosition } from '@swimlane/ngx-charts';
 
 export interface PeriodicElement {
   name: string;
@@ -105,7 +105,8 @@ export class DashboardComponent implements OnInit{
   gradient: boolean = true;
   showLegend: boolean = true;
   showLabels: boolean = true;
-  isDoughnut: boolean = false;
+  isDoughnut: boolean = true;
+  legendPosition: LegendPosition = LegendPosition.Right;
 
   constructor() {}
 

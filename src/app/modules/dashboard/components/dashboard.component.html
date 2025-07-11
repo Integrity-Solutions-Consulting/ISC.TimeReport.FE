@@ -61,19 +61,19 @@
     </mat-grid-tile>
 </mat-grid-list>
 <div class="card-row-container">
-    <mat-card class="card-60-width">
+    <mat-card class="card-40-width">
         <mat-card-header>
             Actividades/Horas
         </mat-card-header>
         <mat-card-content>
             <ngx-charts-bar-vertical
-                [view]="[600,200]"
+                [view]="[400,200]"
                 [scheme]="colorScheme"
                 [results]="data"
                 [gradient]="false"
                 [xAxis]="true"
                 [yAxis]="true"
-                [legend]="true"
+                [legend]="false"
                 [showXAxisLabel]="true"
                 [showYAxisLabel]="true"
                 xAxisLabel="Año"
@@ -81,18 +81,22 @@
             </ngx-charts-bar-vertical>
         </mat-card-content>
     </mat-card>
-    <mat-card class="card-40-width">
+    <mat-card class="card-60-width">
         <mat-card-header>
             Recursos Por Cliente
         </mat-card-header>
         <mat-card-content>
-            <ngx-charts-advanced-pie-chart
-              [view]="[400, 200]"
+            <ngx-charts-pie-chart
+              [view]="[600, 200]"
               [scheme]="colorScheme"
               [results]="data2"
               [gradient]="gradient"
+              [legend]="showLegend"
+              [legendPosition]="legendPosition"
+              [labels]="showLabels"
+              [doughnut]="isDoughnut"
               >
-            </ngx-charts-advanced-pie-chart>
+            </ngx-charts-pie-chart>
         </mat-card-content>
     </mat-card>
 </div>
@@ -101,9 +105,8 @@
         Proyectos
     </mat-card-header>
     <mat-card-content>
-        <mat-form-field>
-          <mat-label>Filter</mat-label>
-          <input matInput (keyup)="applyFilter($event)" placeholder="Ex. ium" #input>
+        <mat-form-field appearance="outline" class="search-field">
+          <input matInput (keyup)="applyFilter($event)" placeholder="Buscar" #input>
         </mat-form-field>
         <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
 

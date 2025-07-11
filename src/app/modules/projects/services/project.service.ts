@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { ApiResponse, Project } from '../interfaces/project.interface';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, tap } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
@@ -25,6 +25,18 @@ export class ProjectService {
           return of({ data: [] });
         })
       );
+    }
+
+    getProjectsForTables(pageNumber: number, pageSize: number, search: string = ''): Observable<ApiResponse> {
+        let params = new HttpParams()
+          .set('PageNumber', pageNumber.toString())
+          .set('PageSize', pageSize.toString());
+
+        if (search) {
+          params = params.set('search', search);
+        }
+
+        return this.http.get<ApiResponse>(`${this.urlBase}/api/Project/GetAllProjects`, { params })
     }
 
     getProjectsForDetails(): Observable<AllProjectsResponse> {

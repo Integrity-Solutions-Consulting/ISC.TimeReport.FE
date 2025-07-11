@@ -24,10 +24,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatSort, MatSortModule } from '@angular/material/sort';
-import { MatPaginator, MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
-import { Subject } from 'rxjs';
+import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 @Injectable()
 export class CustomerPaginatorIntl implements MatPaginatorIntl {
@@ -67,7 +68,8 @@ export class CustomerPaginatorIntl implements MatPaginatorIntl {
     MatCheckboxModule,
     MatSortModule,
     MatPaginatorModule,
-    MatTooltipModule
+    MatTooltipModule,
+    ReactiveFormsModule
   ],
   providers: [
     {provide: MatPaginatorIntl, useClass: CustomerPaginatorIntl}
@@ -90,13 +92,31 @@ export class ClientListComponent implements OnInit{
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
+  searchControl = new FormControl('');
+
   editingCustomer: any = null;
 
   isLoading = true;
   errorMessage = '';
 
+  totalItems: number = 0;
+  pageSize: number = 10;
+  currentPage: number = 0;
+  currentSearch: string = '';
+
   ngOnInit(): void {
-    this.loadClients();
+    this.loadClients(this.currentPage + 1, this.pageSize, this.currentSearch);
+
+    this.searchControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(value => {
+      this.currentSearch = value || ''; // Update the search string
+      this.currentPage = 0;             // Reset internal 0-based page index to 0
+      this.paginator.firstPage();       // Reset MatPaginator to first page (pageIndex becomes 0)
+
+      this.loadClients(this.currentPage + 1, this.pageSize, this.currentSearch);
+    });
   }
 
   readonly identificationTypesMap: {[key: string]: string} = {
@@ -117,14 +137,21 @@ export class ClientListComponent implements OnInit{
     });
   }*/
 
-  loadClients(): void {
-    this.clientService.getClients().subscribe({
+  loadClients(pageNumber: number = 1, pageSize: number = 10, search: string = ''): void {
+    this.clientService.getClients(pageNumber, pageSize, search).subscribe({
       next: (response) => {
         if (response?.items) {
-          this.dataSource = new MatTableDataSource<Client>(response.items);
-          this.dataSource.paginator = this.paginator;
-          this.dataSource.sort = this.sort;
-        } else {
+            this.dataSource = new MatTableDataSource<Client>(response.items);
+            this.totalItems = response.totalItems;
+            this.pageSize = response.pageSize;
+            this.currentPage = response.pageNumber - 1;
+
+            if (this.paginator) {
+              this.paginator.length = this.totalItems;
+              this.paginator.pageSize = this.pageSize;
+              this.paginator.pageIndex = this.currentPage;
+            }
+          } else {
           console.error('La respuesta del API no tiene la estructura esperada:', response);
           this.dataSource = new MatTableDataSource<Client>([]); // Tabla vacía como fallback
         }
@@ -135,6 +162,13 @@ export class ClientListComponent implements OnInit{
       }
     });
   }
+
+  onPageChange(event: PageEvent): void {
+      this.pageSize = event.pageSize;
+      this.currentPage = event.pageIndex + 1;
+      // Pasa el valor de búsqueda actual al cargar los empleados
+      this.loadClients(this.currentPage, this.pageSize, this.currentSearch);
+    }
 
   ngAfterViewInit(){
     if (this.paginator || this.sort){

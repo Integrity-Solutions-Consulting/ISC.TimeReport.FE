@@ -6,7 +6,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginator, MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { Subject } from 'rxjs';
@@ -81,6 +81,8 @@ export class ListProjectComponent implements OnInit{
     @ViewChild(MatSort) sort!: MatSort;
     @ViewChild(MatPaginator) paginator!: MatPaginator;
 
+    searchControl = new FormControl('');
+
     selection = new SelectionModel<any>(true, []);
 
     displayedColumns: string[] = ['code', 'name', 'description', 'startDate', 'endDate', 'options'];
@@ -95,18 +97,30 @@ export class ListProjectComponent implements OnInit{
     '7': 'Aplazado'
     }
 
+    totalItems: number = 0;
+    pageSize: number = 10;
+    currentPage: number = 0;
+    currentSearch: string = '';
+
     ngOnInit(): void {
       this.loadProjects();
     }
 
-    loadProjects(): void {
-      this.projectService.getProjects().subscribe({
+    loadProjects(pageNumber: number = 1, pageSize: number = 10, search: string = ''): void {
+      this.projectService.getProjectsForTables(pageNumber, pageSize, search).subscribe({
         next: (response) => {
           if (response?.items) {
-            this.dataSource = new MatTableDataSource<Project>(response.items);
-            this.dataSource.paginator = this.paginator;
-            this.dataSource.sort = this.sort;
-          } else {
+              this.dataSource = new MatTableDataSource<Project>(response.items);
+              this.totalItems = response.totalItems;
+              this.pageSize = response.pageSize;
+              this.currentPage = response.pageNumber - 1;
+
+              if (this.paginator) {
+                this.paginator.length = this.totalItems;
+                this.paginator.pageSize = this.pageSize;
+                this.paginator.pageIndex = this.currentPage;
+              }
+            } else {
             console.error('La respuesta del API no tiene la estructura esperada:', response);
             this.dataSource = new MatTableDataSource<Project>([]); // Tabla vacía como fallback
           }
@@ -116,6 +130,13 @@ export class ListProjectComponent implements OnInit{
           this.dataSource = new MatTableDataSource<Project>([]); // Tabla vacía en caso de error
         }
       });
+    }
+
+    onPageChange(event: PageEvent): void {
+      this.pageSize = event.pageSize;
+      this.currentPage = event.pageIndex + 1;
+      // Pasa el valor de búsqueda actual al cargar los empleados
+      this.loadProjects(this.currentPage, this.pageSize, this.currentSearch);
     }
 
     ngAfterViewInit(){

@@ -50,7 +50,7 @@ import { ClientService } from '../../services/client.service';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ClientModalComponent implements OnInit{
+export class ClientModalComponent implements OnInit {
   clientForm!: FormGroup;
   isEditMode: boolean = false;
   useExistingPerson: boolean = false;
@@ -103,7 +103,6 @@ export class ClientModalComponent implements OnInit{
     this.isEditMode = !!customerData.id;
 
     this.initializeForm(customerData);
-    this.loadPersons();
   }
 
   ngOnInit(): void {
@@ -156,8 +155,24 @@ export class ClientModalComponent implements OnInit{
       this.togglePersonFields();
     });
 
+    // Añadir listener para el cambio en existingPerson
+    this.clientForm.get('existingPerson')?.valueChanges.subscribe(value => {
+        if (this.useExistingPerson) { // Solo si estamos en modo "existing"
+            if (value) {
+                this.clientForm.get('existingPerson')?.setErrors(null);
+            } else {
+                this.clientForm.get('existingPerson')?.setErrors({ 'required': true });
+            }
+            this.clientForm.updateValueAndValidity(); // Forzar la revalidación del formulario completo
+        }
+    });
+
+
     const initialPersonType = this.clientForm.get('person.personType')?.value;
     this.updateIdentificationValidators(initialPersonType);
+
+    // Inicializa los campos de persona según el modo
+    this.togglePersonFields();
   }
 
   // Validador personalizado para el número de identificación
@@ -200,7 +215,7 @@ export class ClientModalComponent implements OnInit{
       // Persona jurídica solo puede tener RUC (id: 2)
       identificationTypeControl?.setValue(2);
       identificationTypeControl?.disable();
-      
+
       // Actualizar validación del número de identificación
       identificationNumberControl?.setValidators([
         Validators.required,
@@ -210,7 +225,7 @@ export class ClientModalComponent implements OnInit{
     } else {
       // Persona natural puede tener cédula (1) o pasaporte (3)
       identificationTypeControl?.enable();
-      
+
       // Actualizar validación del número de identificación
       identificationNumberControl?.setValidators([
         Validators.required,
@@ -297,29 +312,49 @@ export class ClientModalComponent implements OnInit{
   }
 
   private togglePersonFields(): void {
-    const personGroup = this.clientForm?.get('person') as FormGroup;
+    const personGroup = this.clientForm.get('person') as FormGroup;
+    const existingPersonControl = this.clientForm.get('existingPerson');
 
     if (this.useExistingPerson) {
-      personGroup.disable(); // Deshabilita pero mantiene los valores
+      personGroup.disable();
+      // Elimina validadores de los campos de persona para que no afecten la validez general
+      Object.keys(personGroup.controls).forEach(key => {
+        personGroup.get(key)?.clearValidators();
+        personGroup.get(key)?.updateValueAndValidity();
+      });
+
+      existingPersonControl?.setValidators(Validators.required);
     } else {
       personGroup.enable();
+      // Restaura los validadores de los campos de persona
+      personGroup.get('personType')?.setValidators(Validators.required);
+      personGroup.get('identificationTypeId')?.setValidators(Validators.required);
+      personGroup.get('identificationNumber')?.setValidators([Validators.required, Validators.pattern(/^[0-9]+$/), this.identificationNumberValidator.bind(this)]);
+      personGroup.get('firstName')?.setValidators(Validators.required);
+      personGroup.get('lastName')?.setValidators(Validators.required);
+      personGroup.get('email')?.setValidators([Validators.required, Validators.email]);
+      personGroup.get('phone')?.setValidators([Validators.required, Validators.pattern(/^[0-9]+$/)]);
+
+      Object.keys(personGroup.controls).forEach(key => {
+        personGroup.get(key)?.updateValueAndValidity();
+      });
+
+      existingPersonControl?.clearValidators();
+      existingPersonControl?.setValue(null); // Limpiar el valor seleccionado
     }
+    // Forzar la revalidación del formulario completo
+    this.clientForm.updateValueAndValidity();
   }
 
-  private fillPersonData(person: Person): void {
-    this.clientForm.patchValue({
-      personType: person.personType,
-      identificationTypeId: person.identificationTypeId,
-      identificationNumber: person.identificationNumber,
-      firstName: person.firstName,
-      lastName: person.lastName,
-      birthDate: person.birthDate,
-      email: person.email,
-      phone: person.phone,
-      address: person.address,
-      genderId: person.genderId,
-      nationalityId: person.nationalityId
-    });
+  // Se añade esta función para manejar la selección de persona existente
+  onPersonSelected(event: any): void {
+    this.selectedPerson = event.value;
+    if (this.selectedPerson) {
+      this.clientForm.get('existingPerson')?.setErrors(null);
+    } else {
+      this.clientForm.get('existingPerson')?.setErrors({ 'required': true });
+    }
+    this.clientForm.updateValueAndValidity();
   }
 
   onCancel(): void {
@@ -333,8 +368,6 @@ export class ClientModalComponent implements OnInit{
       console.log('Formulario inválido', this.clientForm.errors);
       return;
     }
-
-    if (this.clientForm?.invalid) return;
 
     const formValue = this.clientForm?.getRawValue(); // Usa getRawValue() para incluir campos deshabilitados
 
