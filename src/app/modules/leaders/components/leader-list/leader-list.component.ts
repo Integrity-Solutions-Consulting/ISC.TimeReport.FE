@@ -20,6 +20,7 @@ import { Project } from '../../../projects/interfaces/project.interface';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Injectable()
 export class LeaderPaginatorIntl implements MatPaginatorIntl {
@@ -69,6 +70,11 @@ export class LeaderListComponent implements OnInit{
   private projectService = inject(ProjectService);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
 
   leaders: Leader[] = [];
   projects: Project[] = [];
@@ -291,4 +297,7 @@ export class LeaderListComponent implements OnInit{
     }
   }
 
+  viewLeaderDetails(projectId: number): void {
+    this.router.navigate([projectId], { relativeTo: this.route });
+  }
 }

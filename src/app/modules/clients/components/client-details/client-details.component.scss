@@ -1,0 +1,165 @@
+.client-detail-container {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.client-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.client-header {
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  background-color: #f5f7fa;
+  gap: 24px;
+}
+
+.client-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  background-color: #e3f2fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .avatar-icon {
+    font-size: 60px;
+    width: 60px;
+    height: 60px;
+    color: #1976d2;
+  }
+}
+
+.client-main-info {
+  flex: 1;
+
+  .client-name {
+    font-size: 24px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+  }
+
+  .client-legal-name {
+    font-size: 14px;
+    color: #7f8c8d;
+  }
+}
+
+.client-status {
+  margin-top: 8px;
+
+  .status-chip {
+    font-weight: 600;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 16px;
+
+    &.active {
+      background-color: #2ecc71;
+      color: white;
+    }
+
+    &.inactive {
+      background-color: #e74c3c;
+      color: white;
+    }
+  }
+}
+
+.client-content {
+  padding: 24px;
+}
+
+.client-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.client-section {
+  .section-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #7f8c8d;
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #ecf0f1;
+    padding-bottom: 8px;
+  }
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  .info-icon {
+    color: #3498db;
+    flex-shrink: 0;
+  }
+
+  .info-content {
+    display: flex;
+    flex-direction: column;
+
+    .info-label {
+      font-size: 12px;
+      color: #7f8c8d;
+    }
+
+    .info-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #2c3e50;
+    }
+  }
+}
+
+.client-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-top: 1px solid #ecf0f1;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #7f8c8d;
+
+  mat-spinner {
+    margin-bottom: 16px;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .client-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .client-header {
+    flex-direction: column;
+    text-align: center;
+
+    .client-avatar {
+      margin-bottom: 16px;
+    }
+  }
+}

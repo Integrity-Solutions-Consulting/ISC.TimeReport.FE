@@ -21,6 +21,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Injectable()
 export class EmployeePaginatorIntl implements MatPaginatorIntl {
@@ -71,7 +72,11 @@ export class EmployeeListComponent {
   private employeeService = inject(EmployeeService);
   readonly snackBar = inject(MatSnackBar);
 
-  constructor(private dialog: MatDialog) {}
+  constructor(
+    private dialog: MatDialog,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
 
   employees: Employee[] = [];
 
@@ -291,5 +296,9 @@ export class EmployeeListComponent {
         this.snackBar.open('Acción cancelada', 'Cerrar', { duration: 2000 });
       }
     });
+  }
+
+  viewEmployeeDetails(projectId: number): void {
+    this.router.navigate([projectId], { relativeTo: this.route });
   }
 }

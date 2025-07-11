@@ -29,6 +29,7 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Injectable()
 export class CustomerPaginatorIntl implements MatPaginatorIntl {
@@ -76,6 +77,11 @@ export class CustomerPaginatorIntl implements MatPaginatorIntl {
   ]
 })
 export class ClientListComponent implements OnInit{
+
+  constructor(
+      private route: ActivatedRoute,
+      private router: Router
+    ) {}
 
   private clientService = inject(ClientService);
   readonly dialog = inject(MatDialog);
@@ -303,5 +309,9 @@ export class ClientListComponent implements OnInit{
         this.snackBar.open('Acción cancelada', 'Cerrar', { duration: 2000 });
       }
     });
+  }
+
+  viewClientDetails(projectId: number): void {
+    this.router.navigate([projectId], { relativeTo: this.route });
   }
 }
