@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { Leader, LeaderWithPerson, LeaderWithPersonID, ApiResponse } from '../interfaces/leader.interface';
@@ -13,8 +13,15 @@ export class LeadersService {
   private http = inject(HttpClient);
   urlBase: string = environment.URL_BASE;
 
-  getLeaders():Observable<ApiResponse>{
-      return this.http.get<ApiResponse>(`${this.urlBase}/api/Leader/GetAllLeaders`);
+  getLeaders(pageNumber: number, pageSize: number, search: string = ''):Observable<ApiResponse>{
+      let params = new HttpParams()
+        .set('PageNumber', pageNumber.toString())
+        .set('PageSize', pageSize.toString());
+
+      if (search) {
+        params = params.set('search', search);
+      }
+      return this.http.get<ApiResponse>(`${this.urlBase}/api/Leader/GetAllLeaders`, { params });
   }
 
   getLeaderByID(id: number): Observable<Leader> {

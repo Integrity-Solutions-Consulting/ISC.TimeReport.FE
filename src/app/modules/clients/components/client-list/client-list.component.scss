@@ -61,44 +61,19 @@ td.mat-cell {
 }
 
 .edit-button {
-  opacity: 0;
-  transition: opacity 0.1s ease;
   color: var(--primary)
 }
 
 .view-button {
-  opacity: 0;
-  transition: opacity 0.1s ease;
   color: orange;
 }
 
 .delete-button {
-  opacity: 0;
-  transition: opacity 0.1s ease;
   color: red;
 }
 
 .activate-button {
-  opacity: 0;
-  transition: opacity 0.1s ease;
   color: #4caf50; /* Verde para activar */
-}
-
-/* Muestra el botón al hacer hover en la fila */
-tr.mat-mdc-row:hover td.mat-mdc-cell .edit-button {
-  opacity: 1;
-}
-
-tr.mat-mdc-row:hover td.mat-mdc-cell .view-button {
-  opacity: 1;
-}
-
-tr.mat-mdc-row:hover td.mat-mdc-cell .delete-button {
-  opacity: 1;
-}
-
-tr.mat-mdc-row:hover td.mat-mdc-cell .activate-button {
-  opacity: 1;
 }
 
 /* Estilo adicional para las filas */

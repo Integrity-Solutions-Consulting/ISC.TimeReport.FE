@@ -4,12 +4,16 @@
   margin-top: 4px;
 }
 
+.card-40-width {
+  flex: 2; /* This makes it take up 60% of the available space */
+  /* You could also use: width: 60%; */
+}
+
 .card-60-width {
   flex: 3; /* This makes it take up 60% of the available space */
   /* You could also use: width: 60%; */
 }
 
-.card-40-width {
-  flex: 2; /* This makes it take up 40% of the available space */
-  /* You could also use: width: 40%; */
+.search-field {
+  width: 50%;
 }

@@ -1,8 +1,14 @@
 .sidenav-container {
   padding: 16px;
+  /* Establece la altura del contenedor al 100% del viewport */
+  /* Usa 'min-height' y 'max-height' para mayor control si es necesario */
   height: 100%;
   display: flex;
   flex-direction: column;
+  /* Importante: Asegura que el padding se incluya en la altura */
+  box-sizing: border-box;
+  /* Evita que el propio contenedor principal tenga un scrollbar */
+  overflow: hidden;
 }
 
 .logo-container {
@@ -12,6 +18,7 @@
   padding: 10px 16px;
   margin-bottom: 20px;
   text-align: center;
+  flex-shrink: 0; /* Prevent the logo from shrinking */
 }
 
 .logo-img {
@@ -46,6 +53,9 @@
 
 mat-nav-list {
   padding: 0;
+  flex-grow: 1; /* Allow the nav list to take up remaining space */
+  overflow-y: auto; /* This is key: allow scrolling only for the list items */
+  -webkit-overflow-scrolling: touch; /* Improves scrolling on touch devices */
 }
 
 a.mdc-list-item {

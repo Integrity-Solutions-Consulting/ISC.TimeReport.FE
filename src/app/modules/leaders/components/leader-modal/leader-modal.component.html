@@ -1,4 +1,4 @@
-<h4 mat-dialog-title style="margin: 10px; font-family: var(--font-title);">
+<h4 mat-dialog-title style="margin: 10px; font-family: 'Poppins'">
   {{ isEditMode ? 'Editar Líder' : 'Crear Nuevo Líder' }}
 </h4>
 <mat-dialog-content>
@@ -14,8 +14,7 @@
     <div class="form-row" *ngIf="useExistingPerson">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label style="font-family: 'Poppins'; ">Seleccionar persona existente</mat-label>
-        <mat-select formControlName="existingPerson">
-          <mat-option>-- Seleccione una persona --</mat-option>
+        <mat-select formControlName="existingPerson" (selectionChange)="onPersonSelected($event)"> <mat-option>-- Seleccione una persona --</mat-option>
           <mat-option *ngIf="isLoadingPersons" disabled>
             <div style="display: flex; align-items: center;">
               <mat-spinner diameter="20"></mat-spinner>
@@ -28,6 +27,9 @@
             </mat-option>
           }
         </mat-select>
+        <mat-error *ngIf="leaderForm.get('existingPerson')?.hasError('required') && leaderForm.get('existingPerson')?.touched">
+          Este campo es requerido
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -35,19 +37,20 @@
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field-half">
         <mat-label style="font-family: 'Poppins'; ">Tipo de Líder</mat-label>
-        <mat-select formControlName="leadershipType">
-          @for (type of leaderTypes; track type) {
+        <mat-select formControlName="leadershipType" required> @for (type of leaderTypes; track type) {
             <mat-option [value]="type.id">
               {{type.name}}
             </mat-option>
           }
         </mat-select>
+        <mat-error *ngIf="leaderForm.get('leadershipType')?.hasError('required') && leaderForm.get('leadershipType')?.touched">
+          Este campo es requerido
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field-half">
         <mat-label style="font-family: 'Poppins'; ">Proyecto</mat-label>
-        <mat-select formControlName="projectID">
-          <mat-option>-- Seleccione un proyecto --</mat-option>
+        <mat-select formControlName="projectID" required> <mat-option>-- Seleccione un proyecto --</mat-option>
           <mat-option *ngIf="isLoadingProjects" disabled>
             <div style="display: flex; align-items: center;">
               <mat-spinner diameter="20"></mat-spinner>
@@ -60,24 +63,31 @@
             </mat-option>
           }
         </mat-select>
+        <mat-error *ngIf="leaderForm.get('projectID')?.hasError('required') && leaderForm.get('projectID')?.touched">
+          Este campo es requerido
+        </mat-error>
       </mat-form-field>
     </div>
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field-half">
         <mat-label style="font-family: 'Poppins'; ">Fecha de Inicio</mat-label>
-        <input matInput [matDatepicker]="picker1" formControlName="startDate">
-        <mat-hint>MM/DD/YYYY</mat-hint>
+        <input matInput [matDatepicker]="picker1" formControlName="startDate" required> <mat-hint>MM/DD/YYYY</mat-hint>
         <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
         <mat-datepicker #picker1></mat-datepicker>
+        <mat-error *ngIf="leaderForm.get('startDate')?.hasError('required') && leaderForm.get('startDate')?.touched">
+          Este campo es requerido
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field-half">
         <mat-label style="font-family: 'Poppins'; ">Fecha de Fin</mat-label>
-        <input matInput [matDatepicker]="picker2" formControlName="endDate">
-        <mat-hint>MM/DD/YYYY</mat-hint>
+        <input matInput [matDatepicker]="picker2" formControlName="endDate" [min]="leaderForm.get('startDate')?.value" required> <mat-hint>MM/DD/YYYY</mat-hint>
         <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
         <mat-datepicker #picker2></mat-datepicker>
+        <mat-error *ngIf="leaderForm.get('endDate')?.hasError('required') && leaderForm.get('endDate')?.touched">
+          Este campo es requerido
+        </mat-error>
       </mat-form-field>
     </div>
 

@@ -1,4 +1,4 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { environment } from "../../../../environments/environment";
 import { catchError, map, Observable } from "rxjs";
@@ -12,8 +12,15 @@ export class ClientService{
     private http = inject(HttpClient);
     urlBase: string = environment.URL_BASE;
 
-    getClients(): Observable<ApiResponse> {
-      return this.http.get<ApiResponse>(`${this.urlBase}/api/Client/GetAllClients`);
+    getClients(pageNumber: number, pageSize: number, search: string = ''): Observable<ApiResponse> {
+      let params = new HttpParams()
+        .set('PageNumber', pageNumber.toString())
+        .set('PageSize', pageSize.toString());
+
+      if (search) {
+        params = params.set('search', search);
+      }
+      return this.http.get<ApiResponse>(`${this.urlBase}/api/Client/GetAllClients`, {params});
     }
 
     getClientByID(id: number): Observable<Client> {

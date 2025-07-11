@@ -14,8 +14,7 @@
     <div class="form-row" *ngIf="useExistingPerson">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label style="font-family: 'Poppins'; ">Seleccionar persona existente</mat-label>
-        <mat-select formControlName="existingPerson">
-          <mat-option>-- Seleccione una persona --</mat-option>
+        <mat-select formControlName="existingPerson" (selectionChange)="onPersonSelected($event)"> <mat-option>-- Seleccione una persona --</mat-option>
           <mat-option *ngIf="isLoadingPersons" disabled>
             <div style="display: flex; align-items: center;">
               <mat-spinner diameter="20"></mat-spinner>
@@ -28,6 +27,9 @@
             </mat-option>
           }
         </mat-select>
+        <mat-error *ngIf="clientForm.get('existingPerson')?.hasError('required') && clientForm.get('existingPerson')?.touched">
+          Este campo es requerido
+        </mat-error>
       </mat-form-field>
     </div>
 
