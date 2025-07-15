@@ -49,7 +49,7 @@ export class EventDialogComponent implements OnInit{
     { id: 1, value: 'Desarrollo' },
     { id: 2, value: 'Reunión' },
     { id: 3, value: 'Análisis' },
-    { id: 4, value: 'Testing' }, 
+    { id: 4, value: 'Testing' },
     { id: 5, value: 'Documentación' },
     { id: 6, value: 'Soporte' },
     { id: 7, value: 'Capacitación' },
@@ -136,18 +136,34 @@ export class EventDialogComponent implements OnInit{
   }
 
   preparePayload(): any {
+
+    console.log('Valores actuales:', {
+      isFullDay: this.isFullDay,
+      eventHours: this.event.hours,
+      activityTypeID: this.event.activityTypeID,
+      projectId: this.event.projectId
+    });
+
     const payload = {
       id: this.data.isEdit ? this.event.id : undefined,
       projectId: this.event.projectId,
       activityTypeID: this.event.activityTypeID,
-      hoursQuantity: this.isFullDay ? 8 : this.event.hours,
+      hoursQuantity: this.isFullDay ? 8 : Number(this.event.hours || 4),
       activityDate: this.formatDate(this.event.activityDate),
       activityDescription: this.event.activityDescription,
-      notes: this.event.details,
+      notes: this.event.details || '',
       fullDay: this.isFullDay // Esto se usa solo internamente en el diálogo
     };
     console.log(payload);
     return payload;
+  }
+
+  validateHours(): void {
+    if (!this.isFullDay) {
+      // Asegurar que sea un número válido entre 1 y 8
+      const hours = Number(this.event.hours);
+      this.event.hours = isNaN(hours) ? 4 : Math.max(1, Math.min(8, hours));
+    }
   }
 
   private getActivityTypeId(activityType: string): number {

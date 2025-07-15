@@ -287,19 +287,29 @@ export class DailyActivitiesComponent implements AfterViewInit {
   }
 
   private createActivity(eventData: any): void {
+
+    console.log('Datos recibidos del diálogo:', eventData);
+
+    if (!eventData.hoursQuantity && !eventData.activityDate) {
+      console.error('Datos incompletos:', eventData);
+      this.snackBar.open('Datos incompletos en la actividad', 'Cerrar');
+      return;
+    }
+
     const activityDate = this.ensureDateObject(eventData.activityDate);
 
     const activityPayload = {
-      projectID: eventData.projectId,
+      projectID: eventData.projectId, // Mapea projectId → projectID
       activityTypeID: eventData.activityTypeID,
-      hoursQuantity: eventData.fullDay ? 8 : eventData.hours,
-      activityDate: activityDate.toISOString().split('T')[0], // Formato YYYY-MM-DD
+      hoursQuantity: eventData.hoursQuantity, // Asegúrate que esto viene con valor
+      activityDate: eventData.activityDate,
       activityDescription: eventData.activityDescription,
-      notes: eventData.details,
-      // Añade estos campos si son obligatorios en el backend
-      isBillable: false, // Por defecto
-      status: true       // Por defecto
+      notes: eventData.notes || '', // Valor por defecto si es undefined
+      isBillable: eventData.isBillable || false,
+      status: eventData.status !== undefined ? eventData.status : true
     };
+
+     console.log('Payload antes de enviar:', activityPayload);
 
     this.activityService.createActivity(activityPayload).subscribe({
       next: (response) => {
