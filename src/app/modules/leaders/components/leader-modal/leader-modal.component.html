@@ -102,13 +102,16 @@
       <div class="section-title" style="font-family: 'Poppins';">Datos Personales</div>
 
       <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Tipo de Persona</mat-label>
-          <mat-select formControlName="personType">
-            @for (type of personTypes; track type) {
-              <mat-option [value]="type.id">{{type.name}}</mat-option>
-            }
+        <mat-form-field appearance="outline">
+          <mat-label>Tipo de Persona</mat-label>
+          <mat-select formControlName="personType" required>
+            <mat-option *ngFor="let type of personTypes" [value]="type.value">
+              {{type.viewValue}}
+            </mat-option>
           </mat-select>
+          <mat-error *ngIf="leaderForm.get('personType')?.hasError('required')">
+            El tipo de persona es requerido
+          </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">

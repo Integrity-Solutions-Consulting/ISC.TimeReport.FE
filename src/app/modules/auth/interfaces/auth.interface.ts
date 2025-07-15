@@ -20,13 +20,15 @@ export interface AuthResponse {
 
 export interface Role {
   roleName: string;
-  roleID?: number;
+  id: number;
   description?: string;
   status?: boolean;
+  modules?: Module[];
 }
 
 export interface Module {
   id: number;
   moduleName: string;
   modulePath: string;
+  icon: string;
 }

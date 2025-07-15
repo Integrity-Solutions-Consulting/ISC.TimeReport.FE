@@ -11,15 +11,17 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { Subject } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogActions, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
 import { ApiResponse, Project, ProjectWithID } from '../../interfaces/project.interface';
 import { SelectionModel } from '@angular/cdk/collections';
 import { ProjectModalComponent } from '../project-modal/project-modal.component';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
+
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AssignmentDialogComponent } from '../assignment-dialog/assignment-dialog.component';
 
 @Injectable()
 export class ProjectPaginatorIntl implements MatPaginatorIntl {
@@ -283,5 +285,12 @@ export class ListProjectComponent implements OnInit{
 
     viewProjectDetails(projectId: number): void {
       this.router.navigate([projectId], { relativeTo: this.route });
+    }
+
+    openAssignDialog() {
+      const dialogRef = this.dialog.open(AssignmentDialogComponent, {restoreFocus: false});
+
+      // Manually restore focus to the menu trigger since the element that
+      // opens the dialog won't be in the DOM any more when the dialog closes.
     }
 }

@@ -1,8 +1,10 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable, signal } from "@angular/core";
 import { environment } from "../../../../environments/environment";
-import { Observable, catchError, map, of, tap } from "rxjs";
+import { Observable, catchError, map, of, switchMap, tap, throwError } from "rxjs";
 import { LoginRequest, AuthResponse, Role, Module } from "../interfaces/auth.interface";
+import { UserWithFullName } from "../../roles/interfaces/role.interface";
+import { EmployeeWithPerson } from "../../employees/interfaces/employee.interface";
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +27,7 @@ export class AuthService {
     const roles = this.getRoles();
     this._isAuthenticated.set(!!token);
     this._userMenus.set(menus || []);
-    this._userRoles.set(roles || []);
+    //this._userRoles.set(roles || []);
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
@@ -68,10 +70,34 @@ export class AuthService {
     return menus ? JSON.parse(menus) : [];
   }
 
-  getRoles(): Role[] { // Método para obtener los roles del localStorage
-    const roles = localStorage.getItem('roles');
-    return roles ? JSON.parse(roles) : [];
-  }
+  /*getRoles(): Role[] {
+    try {
+      const roles = localStorage.getItem('roles');
+
+      if (!roles) {
+        return [];
+      }
+
+      const parsedRoles = JSON.parse(roles);
+
+      // Validación adicional para asegurar que es un array
+      if (!Array.isArray(parsedRoles)) {
+        console.error('Los roles almacenados no tienen el formato correcto');
+        return [];
+      }
+
+      // Validación opcional de la estructura de cada rol
+      if (parsedRoles.length > 0 && !parsedRoles[0].id) {
+        console.error('La estructura de los roles no es válida');
+        return [];
+      }
+
+      return parsedRoles;
+    } catch (error) {
+      console.error('Error al parsear los roles del localStorage:', error);
+      return [];
+    }
+  }*/
 
   getCurrentUserRoles(): Role[] {
     return this._userRoles();
@@ -166,6 +192,72 @@ export class AuthService {
 
   resetPassword(token: string, newPassword: string, confirmPassword: string): Observable<any> {
     return this._httpClient.post(`${this.urlBase}/api/auth/reset-password?token=${token}`, { newPassword, confirmPassword });
+  }
+
+  getRoles(): Observable<Role[]> {
+    return this._httpClient.get<{data: Role[]}>(`${this.urlBase}/api/auth/GetRoles`).pipe(
+      map(response => response.data)
+    );
+  }
+
+  createRole(role: {roleName: string, description: string, moduleIds: number[]}): Observable<any> {
+    return this._httpClient.post(`${this.urlBase}/api/auth/roles`, role);
+  }
+
+  updateRole(id: number, role: {roleName: string, description: string, moduleIds: number[]}): Observable<any> {
+    return this._httpClient.put(`${this.urlBase}/api/auth/UpdateRole/${id}`, role);
+  }
+
+  assignRolesToUser(userID: number, rolesIDs: number[]): Observable<boolean> {
+    const payload = {
+        userID: Number(userID),
+        rolesIDs: rolesIDs.map(id => Number(id))
+    };
+
+    return this._httpClient.post(`${this.urlBase}/api/users/AssignRolesToUser`, payload).pipe(
+      map((response: any) => {
+        // Asume éxito si no hay error
+        return true;
+      }),
+      catchError(error => {
+        console.error('Error en asignación:', error);
+        return of(false);
+      })
+    );
+  }
+
+  private enrichUserData(user: UserWithFullName): Observable<UserWithFullName> {
+    if (!user?.employeeID) {
+      return of({
+        ...user,
+        fullName: 'Nombre no disponible'
+      });
+    }
+
+    return this._httpClient.get<EmployeeWithPerson>(
+      `${this.urlBase}/api/Employee/GetEmployeeByID/${user.employeeID}`
+    ).pipe(
+      map(employee => ({
+        ...user,
+        fullName: `${employee.person.firstName} ${employee.person.lastName}`
+      })),
+      catchError(() => of({
+        ...user,
+        fullName: 'Nombre no disponible'
+      }))
+    );
+  }
+
+  private getUpdatedUser(userID: number): Observable<UserWithFullName> {
+    return this._httpClient.get<UserWithFullName>(
+      `${this.urlBase}/api/users/${userID}`
+    ).pipe(
+      switchMap(user => this.enrichUserData(user))
+    );
+  }
+
+  getRolesOfUser(userId: number): Observable<any> {
+    return this._httpClient.get(`${this.urlBase}/api/users/GetRolesOfUser/${userId}`);
   }
 
 }

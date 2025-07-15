@@ -192,7 +192,11 @@ export class LeaderListComponent implements OnInit{
       width: '800px',
       disableClose: true,
       data: {
-        leader: leader,
+        leader: {
+          ...leader,
+          personType: leader.person.personType,
+          endDate: leader.endDate ? new Date(leader.endDate) : null
+        },
         isEdit: true
       }
     });
