@@ -17,6 +17,7 @@ import { ProjectService } from '../../../projects/services/project.service';
 import { Activity } from '../../interfaces/activity.interface';
 import { Observable, take, map, catchError, throwError } from 'rxjs';
 import { ApiResponse } from '../../interfaces/activity.interface';
+import { ReportDialogComponent } from '../report-dialog/report-dialog.component';
 
 @Component({
   selector: 'daily-activities',
@@ -59,7 +60,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
-      right: 'addActivity'
+      right: 'generateReport addActivity'
     },
     locale: 'es',
     initialView: 'dayGridMonth', // alternatively, use the `events` setting to fetch from a feed
@@ -69,6 +70,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
     selectMirror: true,
     dayMaxEvents: true,
     dayMaxEventRows: 3,
+    fixedWeekCount: false,
     select: this.handleDateSelect.bind(this),
     eventClick: this.handleEventClick.bind(this),
     eventsSet: this.handleEvents.bind(this),
@@ -76,6 +78,10 @@ export class DailyActivitiesComponent implements AfterViewInit {
       addActivity: {
         text: 'Agregar actividad',
         click: this.handleAddActivity.bind(this)
+      },
+      generateReport: {
+        text: 'Generar Reporte',
+        click: this.handleGenerateReport.bind(this)
       }
     },
     eventDidMount: (info) => {
@@ -285,6 +291,23 @@ export class DailyActivitiesComponent implements AfterViewInit {
       }
     });
   }
+
+  handleGenerateReport() {
+    const dialogRef = this.dialog.open(ReportDialogComponent, {
+      width: '500px',
+      data: {
+
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Payload generado:', result);
+        // Aquí puedes hacer lo que necesites con el payload
+      }
+    });
+  }
+
 
   private createActivity(eventData: any): void {
 
