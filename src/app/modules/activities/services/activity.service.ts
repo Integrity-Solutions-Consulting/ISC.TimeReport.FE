@@ -23,10 +23,16 @@ export class ActivityService {
   }
 
   createActivity(activityData: any): Observable<any> {
-    console.log(activityData);
-    if (!activityData.activityDate || !activityData.hoursQuantity) {
+    console.log('Datos recibidos en servicio:', JSON.parse(JSON.stringify(activityData)));
+
+    if (!activityData.activityDate || activityData.hoursQuantity === undefined) {
+      console.error('Datos faltantes:', {
+        date: activityData.activityDate,
+        hours: activityData.hoursQuantity
+      });
       return throwError(() => new Error('Datos incompletos'));
     }
+
     return this.http.post(`${this.urlBase}/api/DailyActivity/CreateActivity`, activityData);
   }
 
