@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>Asignar Roles a {{data.user.fullName || data.user.username}}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="rolesForm" *ngIf="!isLoading">
+    <mat-selection-list formControlName="roles" class="roles-list">
+      <mat-list-option *ngFor="let role of allRoles" [value]="role.id" checkboxPosition="before">
+        <div class="role-item">
+          <span class="role-name">{{role.roleName}}: </span>
+          <span class="role-description">{{role.description}}</span>
+        </div>
+      </mat-list-option>
+    </mat-selection-list>
+  </form>
+
+  <mat-spinner *ngIf="isLoading" diameter="40"></mat-spinner>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="onSave()">Guardar</button>
+</mat-dialog-actions>

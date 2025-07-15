@@ -85,6 +85,9 @@
           <mat-icon aria-hidden="false"
                     [fontIcon]="element.status ? 'delete' : 'check_circle'"></mat-icon>
         </button>
+        <button mat-icon-button class="assign-button" (click)="openAssignDialog()" matTooltip="Asignar">
+          <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="assignment"></mat-icon>
+        </button>
       </td>
     </ng-container>
 

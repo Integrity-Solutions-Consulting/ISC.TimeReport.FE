@@ -65,8 +65,8 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
   ];
 
   personTypes = [
-    { id: 'Natural', name: 'Persona Natural' },
-    { id: 'Legal', name: 'Persona Jurídica' }
+    { value: 'NATURAL', viewValue: 'Natural' },
+    { value: 'JURIDICA', viewValue: 'Jurídica' }
   ];
 
   leaderTypes = [
@@ -109,6 +109,9 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
     if (this.isEditMode && this.leaderId) {
       this.loadLeaderData(this.leaderId);
     }
+    if (this.data.isEdit && this.data.leader) {
+      this.loadLeaderData(this.data.leader);
+    }
     this.loadProjects();
   }
 
@@ -138,7 +141,7 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
 
       // Grupo anidado para 'person'
       person: this.fb.group({
-        personType: [leaderData.person?.personType || 'Natural', Validators.required],
+        personType: [leaderData.person?.personType || 'NATURAL', Validators.required],
         identificationTypeId: [leaderData.person?.identificationTypeId || 0, Validators.required],
         identificationNumber: [leaderData.person?.identificationNumber || '', [Validators.required, this.identificationNumberValidator.bind(this)]],
         firstName: [leaderData.person?.firstName || '', Validators.required],
@@ -331,7 +334,7 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
       endDate: endDateValue,
       responsibilities: leaderData.responsibilities,
       person: {
-        personType: leaderData.person?.personType,
+        personType: leaderData.person?.personType || 'NATURAL',
         identificationTypeId: leaderData.person?.identificationTypeId,
         identificationNumber: leaderData.person?.identificationNumber,
         firstName: leaderData.person?.firstName,
