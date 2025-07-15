@@ -10,6 +10,9 @@ import { Project } from '../../interfaces/project.interface';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { Client } from '../../../clients/interfaces/client.interface';
+import { ClientService } from '../../../clients/services/client.service';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @Component({
   standalone: true,
@@ -20,6 +23,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatSelectModule,
     MatInputModule,
     MatDatepickerModule,
+    MatProgressBarModule,
     ReactiveFormsModule,
     MatButtonModule
   ],
@@ -33,10 +37,13 @@ export class ProjectModalComponent implements OnInit {
   isEditMode: boolean = false;
   projectId: number | null = null;
   originalStatus: boolean = true;
+  clients: Client[] = [];
+  isLoadingClients = false;
 
   constructor(
     private fb: FormBuilder,
     private projectService: ProjectService,
+    private clientService: ClientService,
     private dialogRef: MatDialogRef<ProjectModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { project?: Project }
   ) {
@@ -62,18 +69,9 @@ export class ProjectModalComponent implements OnInit {
     { id: 7, name: 'Aplazado' }
   ];
 
-  clients = [
-    { id: 1, name: 'Banco Guayaquil' },
-    { id: 2, name: 'Banco Bolivariano' },
-    { id: 3, name: 'Ferretería Don Diego' },
-    { id: 4, name: 'Salchipapas El Negro' },
-    { id: 5, name: 'GLK' },
-    { id: 6, name: 'La Carreta del Caballo Paralítico' },
-    { id: 7, name: 'Donde Sea' }
-  ];
-
   ngOnInit(): void {
     this.initForm();
+    this.loadClients();
 
     if (this.data?.project) {
       this.isEditMode = true;
@@ -110,6 +108,22 @@ export class ProjectModalComponent implements OnInit {
       actualStartDate: [null],
       actualEndDate: [null],
       budget: [0]
+    });
+  }
+
+  private loadClients(): void {
+    this.isLoadingClients = true;
+    // Puedes ajustar los parámetros según necesites
+    this.clientService.getClients(1, 1000, '').subscribe({
+      next: (response) => {
+        // Asume que response es un array de clientes o tiene una propiedad data que lo contiene
+        this.clients = Array.isArray(response) ? response : response.items;
+        this.isLoadingClients = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar clientes:', err);
+        this.isLoadingClients = false;
+      }
     });
   }
 

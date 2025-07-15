@@ -27,10 +27,17 @@
       <mat-form-field appearance="outline" class="form-field-half">
         <mat-label style="font-family: 'Poppins'; ">Cliente</mat-label>
         <mat-select formControlName="clientId">
-          @for (code of clients; track code) {
-            <mat-option [value]="code.id">{{code.name}}</mat-option>
+          @if (isLoadingClients) {
+            <mat-option disabled>Cargando clientes...</mat-option>
+          } @else {
+            @for (client of clients; track client.id) {
+              <mat-option [value]="client.id">{{client.tradeName}}</mat-option>
+            }
           }
         </mat-select>
+        @if (isLoadingClients) {
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field-half">

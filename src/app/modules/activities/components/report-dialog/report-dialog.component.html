@@ -1,0 +1,89 @@
+<h2 mat-dialog-title>Generar Payload</h2>
+<mat-dialog-content>
+  <form [formGroup]="payloadForm" (ngSubmit)="onSubmit()">
+    <!-- Campo de empleado con autocompletado -->
+    <div class="form-field">
+      <mat-form-field appearance="outline">
+        <input matInput formControlName="employeeName"
+               (input)="handleEmployeeInput($event)"
+               placeholder="Empleado">
+        <mat-hint *ngIf="loadingEmployees">Buscando empleados...</mat-hint>
+      </mat-form-field>
+
+      <div class="options-container" *ngIf="payloadForm.get('employeeName')?.value">
+        <div class="option-item" *ngFor="let employee of employees"
+             (click)="selectEmployee(employee)">
+          {{ employee.name }}
+        </div>
+        <div class="load-more" *ngIf="hasMoreEmployees && !loadingEmployees"
+             (click)="loadMoreEmployees()">
+          Cargar más...
+        </div>
+        <div *ngIf="loadingEmployees">Cargando...</div>
+        <div *ngIf="employees.length === 0 && !loadingEmployees">
+          No se encontraron empleados
+        </div>
+      </div>
+
+      <input type="hidden" formControlName="employeeID">
+    </div>
+
+    <!-- Campo de cliente con autocompletado -->
+    <div class="form-field">
+      <mat-form-field appearance="outline">
+        <input matInput formControlName="clientName"
+               (input)="handleClientInput($event)"
+               placeholder="Cliente">
+        <mat-hint *ngIf="loadingClients">Buscando clientes...</mat-hint>
+      </mat-form-field>
+
+      <div class="options-container" *ngIf="payloadForm.get('clientName')?.value">
+        <div class="option-item" *ngFor="let client of clients"
+             (click)="selectClient(client)">
+          {{ client.name }}
+        </div>
+        <div class="load-more" *ngIf="hasMoreClients && !loadingClients"
+             (click)="loadMoreClients()">
+          Cargar más...
+        </div>
+        <div *ngIf="loadingClients">Cargando...</div>
+        <div *ngIf="clients.length === 0 && !loadingClients">
+          No se encontraron clientes
+        </div>
+      </div>
+
+      <input type="hidden" formControlName="clientID">
+    </div>
+
+    <!-- Resto de campos (año, mes, toggle) -->
+    <div class="form-field">
+      <mat-form-field appearance="outline">
+        <mat-select formControlName="year" required>
+          <mat-option *ngFor="let year of years" [value]="year">
+            {{ year }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field">
+      <mat-form-field appearance="outline">
+        <mat-select formControlName="month" required>
+          <mat-option *ngFor="let month of months" [value]="month.value">
+            {{ month.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field">
+      <mat-slide-toggle formControlName="isFullMonth">
+        Mes completo
+      </mat-slide-toggle>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button background-color="var(--itg-primary)" (click)="onSubmit()">Generar</button>
+</mat-dialog-actions>

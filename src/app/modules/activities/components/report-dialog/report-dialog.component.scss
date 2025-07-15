@@ -1,0 +1,37 @@
+.form-field {
+  width: 100%;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.options-container {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 8px;
+  padding: 8px;
+}
+
+.option-item {
+  padding: 8px;
+  cursor: pointer;
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+.load-more {
+  padding: 8px;
+  text-align: center;
+  font-style: italic;
+  color: #666;
+  cursor: pointer;
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
