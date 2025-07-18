@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -7,8 +7,8 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { BrowserModule } from '@angular/platform-browser';
@@ -16,26 +16,45 @@ import { MatSelectModule } from '@angular/material/select';
 import { Project } from '../interfaces/dashboard.interface';
 import { CommonModule } from '@angular/common';
 import { Color, ScaleType, NgxChartsModule, LegendPosition } from '@swimlane/ngx-charts';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { MomentDateAdapter } from '@angular/material-moment-adapter';
+import { HttpClient } from '@angular/common/http';
+import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs';
+import { environment } from '../../../../environments/environment';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-export interface PeriodicElement {
-  name: string;
-  position: number;
-  weight: number;
-  symbol: string;
+interface ActividadResponse {
+  tipoActividad: string;
+  totalHoras: number;
 }
 
-const ELEMENT_DATA: PeriodicElement[] = [
-  {position: 1, name: 'Hydrogen', weight: 1.0079, symbol: 'H'},
-  {position: 2, name: 'Helium', weight: 4.0026, symbol: 'He'},
-  {position: 3, name: 'Lithium', weight: 6.941, symbol: 'Li'},
-  {position: 4, name: 'Beryllium', weight: 9.0122, symbol: 'Be'},
-  {position: 5, name: 'Boron', weight: 10.811, symbol: 'B'},
-  {position: 6, name: 'Carbon', weight: 12.0107, symbol: 'C'},
-  {position: 7, name: 'Nitrogen', weight: 14.0067, symbol: 'N'},
-  {position: 8, name: 'Oxygen', weight: 15.9994, symbol: 'O'},
-  {position: 9, name: 'Fluorine', weight: 18.9984, symbol: 'F'},
-  {position: 10, name: 'Neon', weight: 20.1797, symbol: 'Ne'},
-];
+interface RecursoResponse {
+  clientName: string;
+  totalRecursos: number;
+  porcentaje: number
+}
+
+interface Proyecto {
+  proyecto: string;
+  cliente: string;
+  lider_Tecnico: string;
+  fecha_Inicio: string;
+  fecha_Finalizacion: string;
+  colaboradores: string;
+}
+
+export const MY_FORMATS = {
+  parse: {
+    dateInput: 'YYYY-MM-DD',
+  },
+  display: {
+    dateInput: 'YYYY-MM-DD',
+    monthYearLabel: 'MMM YYYY',
+    dateA11yLabel: 'LL',
+    monthYearA11yLabel: 'MMMM YYYY',
+  },
+};
 
 @Component({
   selector: 'dashboard',
@@ -45,6 +64,7 @@ const ELEMENT_DATA: PeriodicElement[] = [
     FormsModule,
     ReactiveFormsModule,
     MatCardModule,
+    MatDatepickerModule,
     MatGridListModule,
     MatToolbarModule,
     MatIconModule,
@@ -54,46 +74,50 @@ const ELEMENT_DATA: PeriodicElement[] = [
     MatInputModule,
     MatTableModule,
     MatPaginatorModule,
+    MatProgressSpinnerModule,
     MatSelectModule,
     MatSortModule,
     MatMenuModule,
     NgxChartsModule
   ],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.scss'
+  styleUrl: './dashboard.component.scss',
+  providers: [
+    {
+      provide: DateAdapter,
+      useClass: MomentDateAdapter,
+      deps: [MAT_DATE_LOCALE],
+    },
+    { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
+  ],
 })
 
 export class DashboardComponent implements OnInit{
 
-  displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
-  dataSource = new MatTableDataSource(ELEMENT_DATA);
+  urlBase: string = environment.URL_BASE;
 
-  data = [
-    { name: '2021', value: 150 },
-    { name: '2022', value: 200 },
-    { name: '2023', value: 180 },
-    { name: '2024', value: 220 },
-    { name: '2025', value: 240 }
+  dateControl = new FormControl<Date>(new Date());
+  chartData: any[] = [];
+  circleData: any[] = [];
+
+  displayedColumns: string[] = ['proyecto', 'cliente', 'lider_Tecnico', 'fecha_Inicio', 'fecha_Finalizacion', 'colaboradores'];
+  dataSource = new MatTableDataSource<Proyecto>();
+  loading = true;
+  filterControl = new FormControl();
+  tipoFiltroControl = new FormControl('proyecto');
+
+  @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  categorias = [
+    'Desarrollo',
+    'Reuniones',
+    'Análisis',
+    'Testing',
+    'Documentación',
+    'Soporte',
+    'Capacitación'
   ];
-
-  data2 = [
-  {
-    "name": "Banco Guayaquil",
-    "value": 52.1
-  },
-  {
-    "name": "Banco Pacífico",
-    "value": 22.8
-  },
-  {
-    "name": "Banco Bolivariano",
-    "value": 13.9
-  },
-  {
-    "name": "Conecel",
-    "value": 11.2
-  }
-]
 
   colorScheme: Color = {
     name: 'customColors', // A unique name for your scheme
@@ -155,15 +179,188 @@ export class DashboardComponent implements OnInit{
 
   cardColor: string = "var(--itg-bg)";
 
-  constructor() {}
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    // You might fetch data here
+    this.loadDataForDate(new Date());
+    this.loadResourcesData();
+    this.loadDataForTable();
+    this.dateControl.valueChanges.subscribe((date: Date | null) => {
+      if (date) {
+        this.loadDataForDate(date);
+      } else {
+        console.warn('Fecha es null o undefined');
+        // Opcional: Puedes cargar datos con una fecha por defecto
+        this.loadDataForDate(new Date());
+      }
+    });
+    this.filterControl.valueChanges
+      .pipe(
+        debounceTime(300), // Esperar 300ms después de cada tecla
+        distinctUntilChanged(), // Solo si el valor cambió
+        switchMap(value => this.fetchData(this.tipoFiltroControl.value, value))
+      )
+      .subscribe({
+        next: (data) => this.updateTable(data),
+        error: (err) => this.handleError(err)
+      });
+
+    // Reaccionar a cambios en el tipo de filtro
+    this.tipoFiltroControl.valueChanges
+      .subscribe(() => {
+        this.filterControl.setValue(''); // Resetear filtro
+        this.loadInitialData();
+      });
   }
 
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+  loadInitialData(): void {
+    this.loading = true;
+    this.fetchData(this.tipoFiltroControl.value, '').subscribe({
+      next: (data) => this.updateTable(data),
+      error: (err) => this.handleError(err)
+    });
+  }
+
+  fetchData(tipoFiltro: string | null, valor: string | null) {
+    this.loading = true;
+
+    // Asegurar valores no nulos con valores por defecto
+    const params = {
+      tipoFiltro: tipoFiltro ?? 'proyecto',  // Si es null, usa 'proyecto'
+      valor: valor ?? ''                     // Si es null, usa string vacío
+    };
+
+    return this.http.get<Proyecto[]>(`${this.urlBase}/api/Dashboard/resumen-proyectos`, { params });
+  }
+
+  updateTable(data: Proyecto[]): void {
+    this.dataSource.data = data;
+    this.dataSource.sort = this.sort;
+    this.dataSource.paginator = this.paginator;
+    this.loading = false;
+  }
+
+  handleError(err: any): void {
+    console.error('Error:', err);
+    this.loading = false;
+    // Opcional: Mostrar mensaje de error al usuario
+  }
+
+  loadResourcesData(): void {
+    this.http.get<RecursoResponse[]>(`${this.urlBase}/api/Dashboard/recursos-por-cliente`)
+      .subscribe({
+        next: (data) => {
+          // Transformar los datos al formato que necesita ngx-charts
+          this.circleData = data.map(item => ({
+            name: item.clientName,
+            value: item.porcentaje
+          }));
+        },
+        error: (err) => {
+          console.error('Error al cargar recursos por cliente:', err);
+        }
+      });
+  }
+
+  loadDataForTable(): void {
+    this.loading = true;
+    const tipoFiltro = this.tipoFiltroControl.value || 'proyecto';;
+    const valor = this.filterControl.value || '';
+
+    this.http.get<Proyecto[]>(`${this.urlBase}/api/Dashboard/resumen-proyectos`, {
+      params: { tipoFiltro, valor }
+    }).subscribe({
+      next: (data) => {
+        this.dataSource.data = data;
+        this.dataSource.sort = this.sort;
+        this.dataSource.paginator = this.paginator;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading data:', err);
+        this.loading = false;
+      }
+    });
+  }
+
+  loadDataForDate(date: Date | string | null): void {
+    const formattedDate = this.formatDate(date);
+    console.log('Fecha formateada:', formattedDate);
+
+    // Especificamos el tipo de respuesta esperada
+    this.http.get<ActividadResponse[]>(`${this.urlBase}/api/Dashboard/horas-por-actividad?fecha=${formattedDate}`,
+      {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }
+    )
+      .pipe(
+        map((response: ActividadResponse[]) => this.processData(response))
+      )
+      .subscribe((data: any[]) => {
+        this.chartData = data;
+      });
+  }
+
+  applyFilter(): void {
+    this.loadDataForTable();
+  }
+
+  changeFilterType(): void {
+    this.filterControl.setValue(''); // Resetear filtro al cambiar tipo
+    this.loadDataForTable();
+  }
+
+  private processData(response: any[]): any[] {
+    // Inicializamos todas las categorías con 0 horas
+    const processedData = this.categorias.map(cat => ({
+      name: cat,
+      value: 0
+    }));
+
+    // Actualizamos los valores con los datos del servidor
+    response.forEach(item => {
+      // Normalizamos el nombre de la actividad para hacer coincidir con nuestras categorías
+      const normalizedName = this.normalizeActivityName(item.tipoActividad);
+      const foundCategory = processedData.find(cat => cat.name === normalizedName);
+
+      if (foundCategory) {
+        foundCategory.value = item.totalHoras;
+      }
+    });
+
+    return processedData;
+  }
+
+  private normalizeActivityName(activityName: string): string {
+    // Mapeamos nombres del API a nuestras categorías
+    const mapping: {[key: string]: string} = {
+      'Reunión': 'Reuniones',
+      // Puedes añadir más mapeos aquí si es necesario
+    };
+
+    return mapping[activityName] || activityName;
+  }
+
+  private formatDate(dateInput: Date | string | null): string {
+    if (!dateInput) return this.formatDate(new Date());
+
+    // Extraer directamente YYYY-MM-DD si es un string ISO
+    if (typeof dateInput === 'string' && dateInput.includes('T')) {
+      const datePart = dateInput.split('T')[0];
+      if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        return datePart;
+      }
+    }
+
+    // Resto de la lógica para otros formatos...
+    const date = new Date(dateInput);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 
 }

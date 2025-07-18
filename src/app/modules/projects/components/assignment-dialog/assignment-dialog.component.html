@@ -1,6 +1,65 @@
+<h2 mat-dialog-title>Asignación de Recursos</h2>
 <mat-dialog-content>
-  ¡EN CONSTRUCCIÓN!
+
+  <div class="resource-type-section">
+    <div class="type-selector">
+      <span>Tipo de Recurso</span>
+      <mat-form-field appearance="outline">
+        <mat-label>Seleccione tipo</mat-label>
+        <mat-select>
+          @for (type of types; track type) {
+            <mat-option [value]="type.id">{{type.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <button mat-raised-button style="background-color: var(--itg-primary-bg); color: var(--itg-primary)">
+      Agregar
+      <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="add"></mat-icon>
+    </button>
+  </div>
+
+  <div class="resource-details">
+    <div class="field-group">
+      <span>Recurso</span>
+      <mat-form-field appearance="outline">
+        <mat-select>
+          @for (type of types; track type) {
+            <mat-option [value]="type.id">{{type.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-group">
+      <span>Perfil</span>
+      <mat-form-field appearance="outline">
+        <mat-select>
+          @for (type of types; track type) {
+            <mat-option [value]="type.id">{{type.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-group">
+      <span>Costo/Hora</span>
+      <mat-form-field appearance="outline">
+        <input matInput type="number" placeholder="Ej. 10">
+      </mat-form-field>
+    </div>
+
+    <div class="field-group">
+      <span>Total Horas</span>
+      <mat-form-field appearance="outline">
+        <input matInput type="number" placeholder="Ej. 40">
+      </mat-form-field>
+    </div>
+  </div>
+
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button style="background-color: var(--itg-primary); color: var(--itg-bg)"mat-button mat-dialog-close>Cerrar</button>
+  <button style="color: var(--itg-primary)" mat-raised-button mat-dialog-close>Cancelar</button>
+  <button style="background-color: var(--itg-primary); color: var(--itg-bg)" mat-raised-button mat-dialog-close>Agregar</button>
 </mat-dialog-actions>
