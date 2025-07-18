@@ -123,9 +123,11 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
       // Controles principales
       personOption: ['new'],
       existingPerson: [null],
-      projectID: [leaderData.projectID || '', Validators.required], // Agregado Validators.required
-      leadershipType: [leaderData.leadershipType || true, Validators.required], // Agregado Validators.required
-      responsibilities: [leaderData.responsibilities || ''],
+      projectID: [leaderData?.projectID || '', Validators.required], // Agregado Validators.required
+      leadershipType: [leaderData?.leadershipType || true, Validators.required], // Agregado Validators.required
+      responsibilities: [leaderData?.responsibilities || ''],
+      startDate: [new Date()],
+      endDate: [new Date()],
 
       // Grupo anidado para 'person'
       person: this.fb.group({
@@ -136,10 +138,10 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
         lastName: [leaderData.person?.lastName || '', Validators.required],
         birthDate: [birthDateValue],
         email: [leaderData.person?.email || '', [Validators.required, Validators.email]],
-        phone: [leaderData.person?.phone || '', [Validators.required, Validators.pattern(/^[0-9]+$/)]],
+        phone: [leaderData.person?.phone || '', [Validators.pattern(/^[0-9]+$/)]],
         address: [leaderData.person?.address || ''],
-        genderID: [leaderData.person?.genderID || 0],
-        nationalityId: [leaderData.person?.nationalityId || 0]
+        genderID: [leaderData.person?.genderID || null],
+        nationalityId: [leaderData.person?.nationalityId || null]
       })
     });
 
@@ -202,7 +204,7 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
     if (!value) return null;
 
     // Validación para persona jurídica
-    if (personType === 'Legal') {
+    if (personType === 'JURIDICA') {
       if (identificationTypeId !== 2) { // 2 = RUC
         return { invalidIdentificationType: 'Persona jurídica debe usar RUC' };
       }
@@ -212,7 +214,7 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
     }
 
     // Validación para persona natural
-    if (personType === 'Natural') {
+    if (personType === 'NATURAL') {
       if (identificationTypeId === 1) { // 1 = Cédula
         if (!/^\d{1,10}$/.test(value)) {
           return { invalidCedulaLength: 'La cédula debe tener máximo 10 dígitos' };
@@ -411,10 +413,14 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
 
     if (formValue.startDate) {
       formValue.startDate = formatDate(formValue.startDate, 'yyyy-MM-dd', 'en-US');
+    } else {
+      formValue.startDate = null;
     }
 
     if (formValue.endDate) {
       formValue.endDate = formatDate(formValue.endDate, 'yyyy-MM-dd', 'en-US');
+    } else {
+      formValue.endDate = null;
     }
 
     if (this.isEditMode) {
@@ -424,7 +430,7 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
         leadershipType: formValue.leadershipType,
         startDate: formValue.startDate,
         endDate: formValue.endDate,
-        responsibilities: formValue.responsabilities, // Corregido: responsibilities
+        responsibilities: formValue.responsibilities, // Corregido: responsibilities
         status: this.originalStatus,
         person: formValue.person
       };

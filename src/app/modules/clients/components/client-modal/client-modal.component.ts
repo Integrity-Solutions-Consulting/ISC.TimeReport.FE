@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl, AbstractControl } from '@angular/forms';
 import { CommonModule, formatDate } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -133,10 +133,10 @@ export class ClientModalComponent implements OnInit {
         email: [customerData.person?.email || '', [Validators.required, Validators.email]],
         address: [customerData.person?.address || ''],
         phone: [customerData.person?.phone || ''],
-        genderID: [customerData.person?.genderId || 0],
-        nationalityId: [customerData.person?.nationalityId || 0],
+        genderID: [customerData.person?.genderId || null],
+        nationalityId: [customerData.person?.nationalityId || null],
         identificationTypeId: [customerData.person?.identificationTypeId || 0],
-        identificationNumber: [customerData.person?.identificationNumber || 0]
+        identificationNumber: [customerData.person?.identificationNumber || '']
       })
     });
 
@@ -175,7 +175,7 @@ export class ClientModalComponent implements OnInit {
   }
 
   // Validador personalizado para el número de identificación
-  private identificationNumberValidator(control: FormControl): { [key: string]: any } | null {
+  private identificationNumberValidator(control: AbstractControl): { [key: string]: any } | null {
     const personType = this.clientForm?.get('person.personType')?.value;
     const identificationTypeId = this.clientForm?.get('person.identificationTypeId')?.value;
     const value = control.value;
@@ -183,7 +183,7 @@ export class ClientModalComponent implements OnInit {
     if (!value) return null;
 
     // Validación para persona jurídica
-    if (personType === 'Legal') {
+    if (personType === 'JURIDICA') {
       if (identificationTypeId !== 2) { // 2 = RUC
         return { invalidIdentificationType: 'Persona jurídica debe usar RUC' };
       }
@@ -193,7 +193,7 @@ export class ClientModalComponent implements OnInit {
     }
 
     // Validación para persona natural
-    if (personType === 'Natural') {
+    if (personType === 'NATURAL') {
       if (identificationTypeId === 1) { // 1 = Cédula
         if (!/^\d{1,10}$/.test(value)) {
           return { invalidCedulaLength: 'La cédula debe tener máximo 10 dígitos' };
@@ -217,7 +217,6 @@ export class ClientModalComponent implements OnInit {
 
       // Actualizar validación del número de identificación
       identificationNumberControl?.setValidators([
-        Validators.required,
         Validators.pattern(/^\d{13}$/),
         this.identificationNumberValidator.bind(this)
       ]);
@@ -227,7 +226,6 @@ export class ClientModalComponent implements OnInit {
 
       // Actualizar validación del número de identificación
       identificationNumberControl?.setValidators([
-        Validators.required,
         this.identificationNumberValidator.bind(this)
       ]);
     }
@@ -328,11 +326,11 @@ export class ClientModalComponent implements OnInit {
       // Restaura los validadores de los campos de persona
       personGroup.get('personType')?.setValidators(Validators.required);
       personGroup.get('identificationTypeId')?.setValidators(Validators.required);
-      personGroup.get('identificationNumber')?.setValidators([Validators.required, Validators.pattern(/^[0-9]+$/), this.identificationNumberValidator.bind(this)]);
+      personGroup.get('identificationNumber')?.setValidators([Validators.pattern(/^[0-9]+$/), this.identificationNumberValidator.bind(this)]);
       personGroup.get('firstName')?.setValidators(Validators.required);
       personGroup.get('lastName')?.setValidators(Validators.required);
       personGroup.get('email')?.setValidators([Validators.required, Validators.email]);
-      personGroup.get('phone')?.setValidators([Validators.required, Validators.pattern(/^[0-9]+$/)]);
+      personGroup.get('phone')?.setValidators([Validators.pattern(/^[0-9]+$/)]);
 
       Object.keys(personGroup.controls).forEach(key => {
         personGroup.get(key)?.updateValueAndValidity();
