@@ -1,0 +1,147 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.mat-dialog-container {
+  padding: 24px;
+  border-radius: 8px;
+}
+
+.mat-dialog-title {
+  color: var(--itg-primary);
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 0;
+  margin: 0;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.resource-type-section {
+  display: flex;
+  justify-content: space-between; /* Cambiado para alinear elementos a los extremos */
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  .type-selector {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex: 1;
+    min-width: 200px;
+
+    > span {
+      font-weight: 500;
+      color: #555;
+      flex: 0 0 100px;
+    }
+
+    .mat-form-field {
+      flex: 1;
+    }
+  }
+
+  button {
+    margin-bottom: 5px;
+  }
+}
+
+.resource-details {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  margin-top: 10px;
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+    flex: 1;
+
+    span {
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    .mat-form-field {
+      width: 100%;
+    }
+  }
+}
+
+.mat-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 20px 0 0;
+  margin: 0;
+
+  button {
+    min-width: 120px;
+  }
+}
+
+// Estilos responsivos
+@media (max-width: 992px) {
+  .resource-details {
+    .field-group {
+      min-width: 150px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .resource-type-section {
+    flex-direction: column;
+    align-items: stretch;
+
+    .type-selector {
+      > span {
+        flex: none;
+        margin-bottom: -15px;
+      }
+    }
+  }
+
+  .resource-details {
+    .field-group {
+      min-width: calc(50% - 8px);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .mat-dialog-container {
+    padding: 16px;
+  }
+
+  .resource-details {
+    .field-group {
+      min-width: 100%;
+    }
+  }
+
+  .mat-dialog-actions {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
+}

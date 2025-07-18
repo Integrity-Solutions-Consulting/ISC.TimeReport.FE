@@ -8,20 +8,25 @@
     <mat-card class="card-40-width">
         <mat-card-header>
             Actividades/Horas
+            <mat-form-field appearance="outline">
+              <input matInput [matDatepicker]="picker" [formControl]="dateControl">
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
         </mat-card-header>
         <mat-card-content>
             <ngx-charts-bar-vertical
                 [view]="[400,200]"
                 [scheme]="colorScheme"
-                [results]="data"
+                [results]="chartData"
                 [gradient]="false"
                 [xAxis]="true"
                 [yAxis]="true"
                 [legend]="false"
                 [showXAxisLabel]="true"
                 [showYAxisLabel]="true"
-                xAxisLabel="Año"
-                yAxisLabel="Ventas">
+                xAxisLabel="Actividades"
+                yAxisLabel="Horas">
             </ngx-charts-bar-vertical>
         </mat-card-content>
     </mat-card>
@@ -33,7 +38,7 @@
             <ngx-charts-pie-chart
               [view]="[600, 200]"
               [scheme]="colorScheme"
-              [results]="data2"
+              [results]="circleData"
               [gradient]="gradient"
               [legend]="showLegend"
               [legendPosition]="legendPosition"
@@ -49,42 +54,69 @@
         Proyectos
     </mat-card-header>
     <mat-card-content>
-        <mat-form-field appearance="outline" class="search-field">
-          <input matInput (keyup)="applyFilter($event)" placeholder="Buscar" #input>
-        </mat-form-field>
-        <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        <div class="filter-container">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Tipo de filtro</mat-label>
+            <mat-select [formControl]="tipoFiltroControl" (selectionChange)="changeFilterType()">
+              <mat-option value="proyecto">Proyecto</mat-option>
+              <mat-option value="cliente">Cliente</mat-option>
+              <mat-option value="colaborador">Colaborador</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-          <!-- Position Column -->
-          <ng-container matColumnDef="position">
-            <th mat-header-cell *matHeaderCellDef> No. </th>
-            <td mat-cell *matCellDef="let element"> {{element.position}} </td>
-          </ng-container>
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Buscar</mat-label>
+            <input matInput [formControl]="filterControl" placeholder="Ingrese criterio de búsqueda">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+        <div class="table-container">
+          <div *ngIf="loading" class="loading">
+            <mat-spinner diameter="50"></mat-spinner>
+          </div>
 
-          <!-- Name Column -->
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef> Name </th>
-            <td mat-cell *matCellDef="let element"> {{element.name}} </td>
-          </ng-container>
+          <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+            <!-- Columna Proyecto -->
+            <ng-container matColumnDef="proyecto">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Proyecto</th>
+              <td mat-cell *matCellDef="let element">{{element.proyecto || '-'}}</td>
+            </ng-container>
 
-          <!-- Weight Column -->
-          <ng-container matColumnDef="weight">
-            <th mat-header-cell *matHeaderCellDef> Weight </th>
-            <td mat-cell *matCellDef="let element"> {{element.weight}} </td>
-          </ng-container>
+            <!-- Columna Cliente -->
+            <ng-container matColumnDef="cliente">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
+              <td mat-cell *matCellDef="let element">{{element.cliente || '-'}}</td>
+            </ng-container>
 
-          <!-- Symbol Column -->
-          <ng-container matColumnDef="symbol">
-            <th mat-header-cell *matHeaderCellDef> Symbol </th>
-            <td mat-cell *matCellDef="let element"> {{element.symbol}} </td>
-          </ng-container>
+            <!-- Columna Líder Técnico -->
+            <ng-container matColumnDef="lider_Tecnico">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Líder Técnico</th>
+              <td mat-cell *matCellDef="let element">{{element.lider_Tecnico || '-'}}</td>
+            </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            <!-- Columna Fecha Inicio -->
+            <ng-container matColumnDef="fecha_Inicio">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha Inicio</th>
+              <td mat-cell *matCellDef="let element">{{element.fecha_Inicio || '-'}}</td>
+            </ng-container>
 
-          <!-- Row shown when there is no matching data. -->
-          <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" colspan="4">No data matching the filter "{{input.value}}"</td>
-          </tr>
-        </table>
+            <!-- Columna Fecha Finalización -->
+            <ng-container matColumnDef="fecha_Finalizacion">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha Finalización</th>
+              <td mat-cell *matCellDef="let element">{{element.fecha_Finalizacion || '-'}}</td>
+            </ng-container>
+
+            <!-- Columna Colaboradores -->
+            <ng-container matColumnDef="colaboradores">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Colaboradores</th>
+              <td mat-cell *matCellDef="let element">{{element.colaboradores || '-'}}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+
+          <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" showFirstLastButtons></mat-paginator>
+        </div>
     </mat-card-content>
 </mat-card>
