@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { environment } from "../../../../environments/environment";
-import { catchError, map, Observable, tap, throwError } from "rxjs";
+import { catchError, forkJoin, map, Observable, tap, throwError } from "rxjs";
 import { SuccessResponse } from "../../../shared/interfaces/response.interface";
 import { ApiResponse, Client, ClientRequest, ClientWithPerson, ClientWithPersonID, Person } from "../interfaces/client.interface";
 
@@ -74,5 +74,35 @@ export class ClientService{
 
     activateClient(id: number, data: any): Observable<any> {
       return this.http.delete(`${this.urlBase}/api/Client/ActiveClientByID/${id}`);
+    }
+
+    getIdentificationTypes(): Observable<{ id: number, name: string }[]> {
+      return this.http.get<any[]>(`${this.urlBase}/api/Catalog/identification-types`).pipe(
+        map(items => items.map(item => ({ id: item.id, name: item.description })))
+      );
+    }
+
+    getGenders(): Observable<{ id: number, name: string }[]> {
+      return this.http.get<any[]>(`${this.urlBase}/api/Catalog/genders`).pipe(
+        map(items => items.map(item => ({ id: item.id, name: item.genderName })))
+      );
+    }
+
+    getNationalities(): Observable<{ id: number, name: string }[]> {
+      return this.http.get<any[]>(`${this.urlBase}/api/Catalog/nationalities`).pipe(
+        map(items => items.map(item => ({ id: item.id, name: item.description })))
+      );
+    }
+
+    getAllCatalogs(): Observable<{
+      identificationTypes: { id: number, name: string }[],
+      genders: { id: number, name: string }[],
+      nationalities: { id: number, name: string }[]
+    }> {
+      return forkJoin({
+        identificationTypes: this.getIdentificationTypes(),
+        genders: this.getGenders(),
+        nationalities: this.getNationalities()
+      });
     }
 }

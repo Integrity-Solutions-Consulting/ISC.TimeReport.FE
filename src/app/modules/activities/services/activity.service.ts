@@ -1,15 +1,19 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 import { Activity, ApiResponse } from '../interfaces/activity.interface';
+import { AuthService } from '../../auth/services/auth.service';
+import { ProjectService } from '../../projects/services/project.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ActivityService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
+  private projectService = inject(ProjectService);
   urlBase: string = environment.URL_BASE;
 
   getActivities(): Observable<ApiResponse> {
@@ -20,6 +24,15 @@ export class ActivityService {
         console.log(response);
       })
     );
+  }
+
+  getDatedActivities(employeeId: number, filters?: { clientId?: number; dateFrom?: string; dateTo?: string }) {
+    let params: any = { employeeId: employeeId.toString() };
+    if (filters?.clientId) params.clientId = filters.clientId.toString();
+    if (filters?.dateFrom) params.dateFrom = filters.dateFrom;
+    if (filters?.dateTo) params.dateTo = filters.dateTo;
+
+    return this.http.get(`${this.urlBase}/api/DailyActivity/GetAllActivities`, { params });
   }
 
   createActivity(activityData: any): Observable<any> {
@@ -46,5 +59,89 @@ export class ActivityService {
       });
 
     return this.http.put(`${this.urlBase}/api/DailyActivity/UpdateActivity/${id}`, activityData, { headers });
+  }
+
+  exportExcel(clientId?: number, year?: number, month?: number, fullMonth = false): void {
+    const employeeId = this.authService.getEmployeeId();
+
+    // Validar employeeId
+    if (!employeeId) {
+      console.error('No se pudo obtener el EmployeeID del token');
+      return;
+    }
+
+    // Si ya se proporcionó clientId, descargar directamente
+    if (clientId) {
+      this.downloadExcel(employeeId, clientId, year, month, fullMonth);
+      return;
+    }
+
+    // Obtener clientId desde los proyectos del empleado
+    this.projectService.getAllProjects().pipe(
+      // Filtrar proyectos asignados al empleado (implementa esta lógica)
+      map(projects => projects.filter(project =>
+        this.isProjectAssignedToEmployee(project, employeeId)
+      )),
+      // Tomar el primer cliente encontrado (o lógica alternativa)
+      map(filteredProjects => {
+        if (filteredProjects.length === 0) {
+          throw new Error('El empleado no tiene proyectos asignados');
+        }
+        return filteredProjects[0].clientID; // O usa reduce para consolidar
+      }),
+      // Descargar el Excel
+      switchMap(clientId =>
+        this.downloadExcel(employeeId, clientId, year, month, fullMonth)
+      ),
+      catchError(error => {
+        console.error('Error al obtener ClientID:', error);
+        // Opcional: Mostrar notificación al usuario
+        return of(null);
+      })
+    ).subscribe();
+  }
+
+  // Implementación de ejemplo para filtrar proyectos
+  private isProjectAssignedToEmployee(project: any, employeeId: number): boolean {
+    // Lógica personalizada según tu estructura de datos. Ejemplo:
+    // 1. Si usas un mapa estático (no recomendado para producción):
+    const employeeProjectsMap: { [key: number]: number[] } = {
+      9: [1, 2, 3], // Ejemplo: EmployeeID 9 está en ProjectIDs 1, 2, 3
+    };
+    return employeeProjectsMap[employeeId]?.includes(project.id);
+
+    // 2. Si los proyectos tienen un array assignedEmployees:
+    // return project.assignedEmployees?.includes(employeeId);
+  }
+
+  // Versión modificada de downloadExcel que retorna Observable
+  private downloadExcel(
+    employeeId: number,
+    clientId: number,
+    year?: number,
+    month?: number,
+    fullMonth = false
+  ): Observable<any> {
+    const params = {
+      employeeId: employeeId.toString(),
+      clientId: clientId.toString(),
+      year: year?.toString() || new Date().getFullYear().toString(),
+      month: month?.toString() || (new Date().getMonth() + 1).toString(),
+      fullMonth: fullMonth.toString()
+    };
+
+    return this.http.get(`${this.urlBase}/api/TimeReport/export-excel`, {
+      params,
+      responseType: 'blob'
+    }).pipe(
+      tap(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Reporte_${params.year}-${params.month}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      })
+    );
   }
 }

@@ -43,76 +43,18 @@ export class EmployeeDialogComponent implements OnInit {
   personsList: Person[] = [];
   originalStatus: boolean = true;
 
-  identificationTypes = [
-      { id: 1, name: 'Cédula' },
-      { id: 2, name: 'RUC' },
-      { id: 3, name: 'Pasaporte' }
-    ];
-
-  genders = [
-    { value: 1, viewValue: 'Masculino' },
-    { value: 2, viewValue: 'Femenino' }
+  personTypes = [
+    { id: 'NATURAL', name: 'Persona Natural' },
+    { id: 'JURIDICA', name: 'Persona Jurídica' }
   ];
 
-  personType = [
-    { value: 'natural', viewValue: 'Persona Natural' },
-    { value: 'juridica', viewValue: 'Persona Jurídica' }
-  ];
-
-  nationalities = [
-    { value: 1, viewValue: 'Argentina' },
-    { value: 2, viewValue: 'Bolivia' },
-    { value: 3, viewValue: 'Colombia' },
-    { value: 4, viewValue: 'Chile' },
-    { value: 5, viewValue: 'Ecuador' },
-    { value: 6, viewValue: 'Paraguay' },
-    { value: 7, viewValue: 'Perú' },
-    { value: 8, viewValue: 'Uruguay' },
-    { value: 9, viewValue: 'Venezuela' },
-  ]
-
-  positions = [
-    { value: 1, viewValue: 'Gerente General'},
-    { value: 2, viewValue: 'Asistente General'},
-    { value: 3, viewValue: 'Jefa Administrativa'},
-    { value: 4, viewValue: 'Asistente Administrativa'},
-    { value: 5, viewValue: 'Asistente Contable'},
-    { value: 6, viewValue: 'Pasante Contable'},
-    { value: 7, viewValue: 'Coordinadora de Talento Humano'},
-    { value: 8, viewValue: 'Asistente de Talento Humano'},
-    { value: 9, viewValue: 'Gerente de Proyecto y Producto'},
-    { value: 10, viewValue: 'Líder Software'},
-    { value: 11, viewValue: 'Tester QA'},
-    { value: 12, viewValue: 'Desarrollador Fullstack'},
-    { value: 13, viewValue: 'Desarrollador Fullstack/Senior'},
-    { value: 14, viewValue: 'Desarrollador Fullstack/Semi Senior'},
-    { value: 15, viewValue: 'Desarrollador Cobol'},
-    { value: 16, viewValue: 'Arquitectura'},
-    { value: 17, viewValue: 'Analista QA'},
-    { value: 18, viewValue: 'Ingeniero de Soluciones'},
-    { value: 19, viewValue: 'Ingeniero de Procesos'},
-    { value: 20, viewValue: 'Asistente Administrativo'},
-    { value: 21, viewValue: 'Ingeniero de Seguridad de la Información'},
-    { value: 22, viewValue: 'Ingeniero DBA'},
-    { value: 23, viewValue: 'Arquitecto de Cyber Seguridad'},
-    { value: 24, viewValue: 'Analista en Middleware'},
-    { value: 25, viewValue: 'Desarrollador PHP'},
-    { value: 26, viewValue: 'Pasante QA'},
-    { value: 27, viewValue: 'Pasante de DevOps'},
-    { value: 28, viewValue: 'Pasante de Desarrollo'},
-    { value: 29, viewValue: 'Pasante DBA'},
-    { value: 30, viewValue: 'Pasante Contable'},
-    { value: 31, viewValue: 'Líder de Seguridad e Informática'},
-    { value: 32, viewValue: 'Ingeniero en Soporte Técnico Semi Senior'},
-    { value: 33, viewValue: 'Analista de Auditoria y Seguridad e Informática/Junior'},
-    { value: 34, viewValue: 'Pasante de Soporte Técnico/Auditoria'},
-    { value: 35, viewValue: 'Ingeniero de Procesos Senior'},
-    { value: 36, viewValue: 'Ingeniero de Procesos Junior'},
-    { value: 37, viewValue: 'Gerente Comercial'},
-    { value: 38, viewValue: 'Asistente de Marketing'},
-    { value: 39, viewValue: 'Ejecutivo Comercial'},
-    { value: 40, viewValue: 'Asistente Comercial'},
-  ];
+  identificationTypes: { id: number, name: string }[] = [];
+  genders: { id: number, name: string }[] = [];
+  nationalities: { id: number, name: string }[] = [];
+  positions: { id: number, name: string }[] = [];
+  departments: { id: number, name: string }[] = [];
+  loading = true;
+  error: string | null = null;
 
   contractTypes = [
     { value: true, viewValue: 'Indefinido' },
@@ -137,6 +79,7 @@ export class EmployeeDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadCatalogs();
     this.loadPersons();
     if (this.isEditMode && this.employeeId) {
       this.loadEmployeeData(this.employeeId);
@@ -177,25 +120,22 @@ export class EmployeeDialogComponent implements OnInit {
         existingPerson: [null],
         positionID: [employeeData.positionID || '', Validators.required],
         employeeCode: [employeeData.employeeCode || ''],
-        hireDate: [hireDateValue],
-        terminationDate: [terminationDateValue],
-        contractType: [employeeData.contractType || ''],
-        department: [employeeData.department || ''],
+        departmentID: [employeeData.department || ''],
         corporateEmail: [employeeData.corporateEmail || '', [Validators.required, Validators.email]],
-        salary: [employeeData.salary || '', [Validators.required, Validators.pattern(/^[0-9]+$/)]],
+        salary: [employeeData.salary],
         // Grupo anidado para 'person'
         person: this.fb.group({
-          personType: [employeeData.person?.personType || 'Natural', Validators.required],
-          identificationTypeId: [employeeData.person?.identificationTypeId || 0, Validators.required],
+          personType: [employeeData.person?.personType || 'NATURAL', Validators.required],
+          identificationTypeId: [employeeData.person?.identificationTypeId || 1, Validators.required],
           identificationNumber: [employeeData.person?.identificationNumber || '', [Validators.required, this.identificationNumberValidator.bind(this)]],
           firstName: [employeeData.person?.firstName || '', Validators.required],
           lastName: [employeeData.person?.lastName || '', Validators.required],
           birthDate: [birthDateValue],
           email: [employeeData.person?.email || '', [Validators.required, Validators.email]],
-          phone: [employeeData.person?.phone || '', [Validators.required, Validators.pattern(/^\d{1,10}$/)]],
+          phone: [employeeData.person?.phone || '', [Validators.pattern(/^\d{1,10}$/)]],
           address: [employeeData.person?.address || ''],
-          genderId: [employeeData.person?.genderId || 0],
-          nationalityId: [employeeData.person?.nationalityId || 0]
+          genderID: [employeeData.person?.genderId || 1],
+          nationalityId: [employeeData.person?.nationalityId || 5]
         })
       });
 
@@ -215,6 +155,24 @@ export class EmployeeDialogComponent implements OnInit {
 
       const initialPersonType = this.employeeForm.get('person.personType')?.value;
       this.updateIdentificationValidators(initialPersonType);
+  }
+
+  loadCatalogs(): void {
+    this.employeeService.getAllCatalogs().subscribe({
+      next: (data) => {
+        this.identificationTypes = data.identificationTypes;
+        this.genders = data.genders;
+        this.nationalities = data.nationalities;
+        this.positions = data.positions;
+        this.departments = data.departments;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Error al cargar los catálogos';
+        this.loading = false;
+        console.error('Error loading catalogs:', err);
+      }
+    });
   }
 
   private identificationNumberValidator(control: FormControl): { [key: string]: any } | null {
@@ -255,7 +213,7 @@ export class EmployeeDialogComponent implements OnInit {
       // Persona jurídica solo puede tener RUC (id: 2)
       identificationTypeControl?.setValue(2);
       identificationTypeControl?.disable();
-      
+
       // Actualizar validación del número de identificación
       identificationNumberControl?.setValidators([
         Validators.required,
@@ -265,7 +223,7 @@ export class EmployeeDialogComponent implements OnInit {
     } else {
       // Persona natural puede tener cédula (1) o pasaporte (3)
       identificationTypeControl?.enable();
-      
+
       // Actualizar validación del número de identificación
       identificationNumberControl?.setValidators([
         Validators.required,
@@ -293,12 +251,10 @@ export class EmployeeDialogComponent implements OnInit {
     this.employeeForm.patchValue({
       positionID: employeeData.positionID,
       employeeCode: employeeData.employeeCode,
-      hireDate: hireDateValue,
-      terminationDate: terminationDateValue,
       contractType: employeeData.contractType,
-      department: employeeData.department,
+      departmentID: employeeData.department,
       corporateEmail: employeeData.corporateEmail,
-      salary: employeeData.salary,
+      salary: employeeData.salary || 0,
       person: {
         personType: employeeData.person?.personType,
         identificationTypeId: employeeData.person?.identificationTypeId,
@@ -309,7 +265,7 @@ export class EmployeeDialogComponent implements OnInit {
         email: employeeData.person?.email,
         phone: employeeData.person?.phone,
         address: employeeData.person?.address,
-        genderId: employeeData.person?.genderId,
+        genderId: employeeData.person?.genderId || 0,
         nationalityId: employeeData.person?.nationalityId
       }
     });
@@ -362,10 +318,8 @@ export class EmployeeDialogComponent implements OnInit {
       const employeeData = {
         positionID: formValue.positionID,
         employeeCode: formValue.employeeCode,
-        hireDate: formValue.hireDate,
-        terminationDate: formValue.terminationDate,
         contractType: formValue.contractType,
-        department: formValue.department,
+        departmentID: formValue.department,
         corporateEmail: formValue.corporateEmail,
         salary: formValue.salary,
         person: formValue.person,
@@ -385,10 +339,8 @@ export class EmployeeDialogComponent implements OnInit {
       const employeeData = {
         positionID: formValue.positionID,
         employeeCode: formValue.employeeCode,
-        hireDate: formValue.hireDate,
-        terminationDate: formValue.terminationDate,
         contractType: formValue.contractType,
-        department: formValue.department,
+        departmentID: formValue.department,
         corporateEmail: formValue.corporateEmail,
         salary: formValue.salary,
         person: formValue.person,
@@ -400,10 +352,8 @@ export class EmployeeDialogComponent implements OnInit {
       const employeeData = {
         positionID: formValue.positionID,
         employeeCode: formValue.employeeCode,
-        hireDate: formValue.hireDate,
-        terminationDate: formValue.terminationDate,
         contractType: formValue.contractType,
-        department: formValue.department,
+        departmentID: formValue.department,
         corporateEmail: formValue.corporateEmail,
         salary: formValue.salary,
         person: formValue.person,

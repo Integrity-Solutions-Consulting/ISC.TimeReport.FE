@@ -18,8 +18,6 @@ export interface Employee {
   person: Person;
   positionID?: number | null;
   employeeCode: string;
-  hireDate: Date;
-  terminationDate: Date;
   contractType: boolean;
   status: boolean;
   department?: string | null;
@@ -29,10 +27,8 @@ export interface Employee {
 export interface EmployeeWithPerson {
   positionID: number;
   employeeCode: string;
-  hireDate: Date;
-  terminationDate: Date;
   contractType: boolean;
-  department: string;
+  departmentID: number;
   corporateEmail: string;
   salary: number;
   status: boolean;
@@ -55,10 +51,8 @@ export interface EmployeeWithIDandPerson {
   id: number;
   positionID: number;
   employeeCode: string;
-  hireDate: Date;
-  terminationDate: Date;
   contractType: boolean;
-  department: string;
+  departmentID: number;
   corporateEmail: string;
   salary: number;
   status: boolean;
@@ -81,10 +75,8 @@ export interface EmployeeWithPersonID {
     personID: number;
     positionID: number;
     employeeCode: string;
-    hireDate: Date;
-    terminationDate: Date;
     contractType: boolean;
-    department: string;
+    departmentID: number;
     corporateEmail: string;
     salary: number;
 }

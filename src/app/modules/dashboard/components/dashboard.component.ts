@@ -99,7 +99,7 @@ export class DashboardComponent implements OnInit{
     name: 'customColors', // A unique name for your scheme
     selectable: true,     // Whether the colors are selectable (usually true)
     group: ScaleType.Ordinal, // Or ScaleType.Linear, depending on your chart type and data
-    domain: ['#5AA454', '#A10A28', '#C7B42C', '#AAAAAA', '#FF7F7F', '#007FFF', '#FFD700'] // Your array of hex color strings
+    domain: ['var(--itg-primary)', 'var(--itg-primary-dark)', 'var(--itg-primary-bg)', 'var(--itg-secondary)', 'var(--itg-secondary-dark)', 'var(--itg-secondary-bg)', 'var(--itg-text-muted)'] // Your array of hex color strings
   };
 
   gradient: boolean = true;
@@ -107,6 +107,53 @@ export class DashboardComponent implements OnInit{
   showLabels: boolean = true;
   isDoughnut: boolean = true;
   legendPosition: LegendPosition = LegendPosition.Right;
+
+  view: number[] = [700, 400];
+
+  data3 = [
+    {
+      "name": "Germany",
+      "value": 8940000
+    },
+    {
+      "name": "USA",
+      "value": 5000000
+    },
+    {
+      "name": "France",
+      "value": 7200000
+    },
+    {
+      "name": "UK",
+      "value": 5200000
+    },
+    {
+      "name": "Italy",
+      "value": 7700000
+    },
+    {
+      "name": "Spain",
+      "value": 4300000
+    },
+    {
+      "name": "Ecuador",
+      "value": 4300000
+    },
+    {
+      "name": "Brazil",
+      "value": 4300000
+    },
+    {
+      "name": "Japan",
+      "value": 4300000
+    },
+    {
+      "name": "Argentina",
+      "value": 4300000
+    }
+  ];
+
+  cardColor: string = "var(--itg-bg)";
 
   constructor() {}
 

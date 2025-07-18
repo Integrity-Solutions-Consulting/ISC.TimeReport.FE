@@ -5,6 +5,7 @@ import { Observable, catchError, map, of, switchMap, tap, throwError } from "rxj
 import { LoginRequest, AuthResponse, Role, Module } from "../interfaces/auth.interface";
 import { UserWithFullName } from "../../roles/interfaces/role.interface";
 import { EmployeeWithPerson } from "../../employees/interfaces/employee.interface";
+import { jwtDecode } from "jwt-decode";
 
 @Injectable({
   providedIn: 'root'
@@ -258,6 +259,26 @@ export class AuthService {
 
   getRolesOfUser(userId: number): Observable<any> {
     return this._httpClient.get(`${this.urlBase}/api/users/GetRolesOfUser/${userId}`);
+  }
+
+  getDecodedToken(): any {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token not found in localStorage'); // O maneja el caso como prefieras
+    }
+    return jwtDecode(token);
+  }
+
+  getEmployeeId(): number | null {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+
+    try {
+      const decoded = jwtDecode(token) as { EmployeeID?: number };
+      return decoded.EmployeeID || null;
+    } catch {
+      return null;
+    }
   }
 
 }

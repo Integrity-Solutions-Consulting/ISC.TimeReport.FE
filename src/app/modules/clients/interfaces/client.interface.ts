@@ -23,13 +23,13 @@ export interface Client {
   id: number;
   person: Person;
   tradeName: string;
-  legalName: string;
+  legalName?: string;
   status: boolean;
 }
 
 export interface ClientWithPerson {
     tradeName: string;
-    legalName: string;
+    legalName?: string;
     status: boolean;
     person: {
       genderId: number;
@@ -49,7 +49,7 @@ export interface ClientWithPerson {
 export interface ClientWithIDandPerson {
   id: number;
     tradeName: string;
-    legalName: string;
+    legalName?: string;
     status: boolean;
     person: {
       genderId: number;
@@ -69,7 +69,7 @@ export interface ClientWithIDandPerson {
 export interface ClientWithPersonID {
     personID: number;
     tradeName: string;
-    legalName: string;
+    legalName?: string;
 }
 
 export interface ApiResponse {
