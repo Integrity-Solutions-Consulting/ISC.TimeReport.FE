@@ -87,7 +87,7 @@ export class ClientListComponent implements OnInit{
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
 
-  displayedColumns: string[] = ['idtype', 'idnumber', 'commercialname', 'companyname', 'phone', 'email', 'status', 'options'];
+  displayedColumns: string[] = ['idtype', 'idnumber', 'commercialname', 'phone', 'email', 'status', 'options'];
 
   selection = new SelectionModel<any>(true, []);
 

@@ -53,38 +53,27 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
 
   isEditMode: boolean = false;
 
-  identificationTypes = [
-    { id: 1, name: 'Cédula' },
-    { id: 2, name: 'RUC' },
-    { id: 3, name: 'Pasaporte' }
-  ];
-
-  genders = [
-    { id: 1, name: 'Masculino' },
-    { id: 2, name: 'Femenino' }
-  ];
-
   personTypes = [
     { value: 'NATURAL', viewValue: 'Natural' },
     { value: 'JURIDICA', viewValue: 'Jurídica' }
   ];
+
+  identificationTypes: { id: number, name: string }[] = [];
+  genders: { id: number, name: string }[] = [];
+  nationalities: { id: number, name: string }[] = [];
+  positions: { id: number, name: string }[] = [];
+  departments: { id: number, name: string }[] = [];
 
   leaderTypes = [
     { id: true, name: 'Integrity' },
     { id: false, name: 'Externo' }
   ];
 
-  nationalities = [
-    { id: 1, name: 'Argentina' },
-    { id: 2, name: 'Bolivia' },
-    { id: 3, name: 'Colombia' },
-    { id: 4, name: 'Chile' },
-    { id: 5, name: 'Ecuador' },
-    { id: 6, name: 'Paraguay' },
-    { id: 7, name: 'Perú' },
-    { id: 8, name: 'Uruguay' },
-    { id: 9, name: 'Venezuela' },
-  ]
+  projectTypes: { id: number, name: string }[] = [];
+  projectStatus: { id: number, name: string }[] = [];
+
+  loading = true;
+  error: string | null = null;
 
   private leaderId: number;
 
@@ -106,6 +95,7 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
 
   ngOnInit(): void {
     this.loadPersons();
+    this.loadCatalogs();
     if (this.isEditMode && this.leaderId) {
       this.loadLeaderData(this.leaderId);
     }
@@ -135,14 +125,12 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
       existingPerson: [null],
       projectID: [leaderData.projectID || '', Validators.required], // Agregado Validators.required
       leadershipType: [leaderData.leadershipType || true, Validators.required], // Agregado Validators.required
-      startDate: [startDateValue || '', Validators.required], // Agregado Validators.required
-      endDate: [endDateValue || '', Validators.required], // Agregado Validators.required
       responsibilities: [leaderData.responsibilities || ''],
 
       // Grupo anidado para 'person'
       person: this.fb.group({
         personType: [leaderData.person?.personType || 'NATURAL', Validators.required],
-        identificationTypeId: [leaderData.person?.identificationTypeId || 0, Validators.required],
+        identificationTypeId: [leaderData.person?.identificationTypeId || 1, Validators.required],
         identificationNumber: [leaderData.person?.identificationNumber || '', [Validators.required, this.identificationNumberValidator.bind(this)]],
         firstName: [leaderData.person?.firstName || '', Validators.required],
         lastName: [leaderData.person?.lastName || '', Validators.required],
@@ -186,6 +174,24 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
 
     // Inicializa los campos de persona según el modo
     this.togglePersonFields();
+  }
+
+  loadCatalogs(): void {
+    this.leaderService.getAllCatalogs().subscribe({
+      next: (data) => {
+        this.identificationTypes = data.identificationTypes;
+        this.genders = data.genders;
+        this.nationalities = data.nationalities;
+        this.positions = data.positions;
+        this.departments = data.departments;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Error al cargar los catálogos';
+        this.loading = false;
+        console.error('Error loading catalogs:', err);
+      }
+    });
   }
 
   private identificationNumberValidator(control: FormControl): { [key: string]: any } | null {
@@ -284,10 +290,8 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
       personGroup.get('personType')?.setValidators(Validators.required);
       personGroup.get('identificationTypeId')?.setValidators(Validators.required);
       personGroup.get('identificationNumber')?.setValidators([Validators.required, this.identificationNumberValidator.bind(this)]);
-      personGroup.get('firstName')?.setValidators(Validators.required);
-      personGroup.get('lastName')?.setValidators(Validators.required);
       personGroup.get('email')?.setValidators([Validators.required, Validators.email]);
-      personGroup.get('phone')?.setValidators([Validators.required, Validators.pattern(/^[0-9]+$/)]);
+      personGroup.get('phone')?.setValidators(Validators.pattern(/^[0-9]+$/));
 
       Object.keys(personGroup.controls).forEach(key => {
         personGroup.get(key)?.updateValueAndValidity();

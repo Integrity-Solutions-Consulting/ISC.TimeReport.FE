@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ApiResponse, ApiResponseByID, Project } from '../interfaces/project.interface';
-import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, tap, throwError } from 'rxjs';
+import { catchError, expand, forkJoin, map, mergeMap, Observable, of, reduce, switchMap, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 import { ProjectDetail, AllProjectsResponse, SimpleProjectItem} from '../../assigments/interfaces/assignment.interface';
 
@@ -25,6 +25,75 @@ export class ProjectService {
           return of({ data: [] });
         })
       );
+    }
+
+    getAllProjects(): Observable<any[]> {
+      const pageSize = 100; // Máximo permitido por el backend
+      let pageNumber = 1;
+
+      return this.http
+        .get<any>(`${this.urlBase}/api/Project/GetAllProjects`, {
+          params: new HttpParams()
+            .set('PageNumber', pageNumber.toString())
+            .set('PageSize', pageSize.toString())
+        })
+        .pipe(
+          expand((res) => {
+            if (res.data.length === pageSize) {
+              pageNumber++;
+              return this.http.get<any>(`${this.urlBase}/api/Project/GetAllProjects`, {
+                params: new HttpParams()
+                  .set('PageNumber', pageNumber.toString())
+                  .set('PageSize', pageSize.toString())
+              });
+            }
+            return of(); // Detener la paginación
+          }),
+          map(res => res.data),
+          reduce((acc, data) => [...acc, ...data], [] as any[]) // Combinar todas las páginas
+        );
+    }
+
+    getProjectsByEmployeeId(employeeId: number): Observable<any[]> {
+      return this.getAllProjects().pipe(
+        switchMap(projects => {
+          // Filtrar proyectos asignados al empleado (aquí necesitas la lógica de filtrado)
+          const filteredProjects = projects.filter(project =>
+            this.isProjectAssignedToEmployee(project, employeeId) // Ver siguiente paso
+          );
+
+          if (filteredProjects.length === 0) {
+            return of([]);
+          }
+
+          // Obtener clientes para cada proyecto filtrado
+          const clientRequests = filteredProjects.map(project =>
+            this.http.get(`${this.urlBase}/api/Client/GetClientByID/${project.clientID}`).pipe(
+              map(clientRes => ({
+                ...project,
+                client: clientRes
+              })),
+              catchError(() => of({
+                ...project,
+                client: null
+              }))
+            )
+          );
+
+          return forkJoin(clientRequests);
+        })
+      );
+    }
+
+    private isProjectAssignedToEmployee(project: any, employeeId: number): boolean {
+      // Implementación depende de tu estructura de datos. Ejemplos:
+      // - Si projects tienen un array `assignedEmployees`:
+      //   return project.assignedEmployees?.includes(employeeId);
+      // - O si tienes una lista estática (mientras no haya endpoint directo):
+      const employeeProjectsMap: { [key: number]: number[] } = {
+        9: [1, 2, 3], // Ejemplo: EmployeeID 9 está en ProjectIDs 1, 2, 3
+      };
+      return employeeProjectsMap[employeeId]?.includes(project.id);
     }
 
     getProjectsForTables(pageNumber: number, pageSize: number, search: string = ''): Observable<ApiResponse> {
@@ -156,5 +225,12 @@ export class ProjectService {
 
     activateProject(id: number, data: any): Observable<any> {
       return this.http.delete(`${this.urlBase}/api/Project/ActiveProjectByID/${id}`);
+    }
+
+    downloadExcelReport(params: HttpParams): Observable<Blob> {
+      return this.http.get(`${this.urlBase}/api/TimeReport/export-excel`, {
+        params,
+        responseType: 'blob'
+      });
     }
 }

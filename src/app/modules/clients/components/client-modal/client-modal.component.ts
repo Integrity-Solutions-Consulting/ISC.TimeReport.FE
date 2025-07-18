@@ -61,33 +61,16 @@ export class ClientModalComponent implements OnInit {
   isLoadingPersons = false;
   originalStatus: boolean = true;
 
-  identificationTypes = [
-    { id: 1, name: 'Cédula' },
-    { id: 2, name: 'RUC' },
-    { id: 3, name: 'Pasaporte' }
-  ];
-
   personTypes = [
-    { id: 'Natural', name: 'Persona Natural' },
-    { id: 'Legal', name: 'Persona Jurídica' }
+    { id: 'NATURAL', name: 'Persona Natural' },
+    { id: 'JURIDICA', name: 'Persona Jurídica' }
   ];
 
-  genders = [
-    { id: 1, name: 'Masculino' },
-    { id: 2, name: 'Femenino' },
-  ];
-
-  nationalities = [
-    { id: 1, name: 'Argentina' },
-    { id: 2, name: 'Bolivia' },
-    { id: 3, name: 'Colombia' },
-    { id: 4, name: 'Chile' },
-    { id: 5, name: 'Ecuador' },
-    { id: 6, name: 'Paraguay' },
-    { id: 7, name: 'Perú' },
-    { id: 8, name: 'Uruguay' },
-    { id: 9, name: 'Venezuela' },
-  ]
+  identificationTypes: { id: number, name: string }[] = [];
+  genders: { id: number, name: string }[] = [];
+  nationalities: { id: number, name: string }[] = [];
+  loading = true;
+  error: string | null = null;
 
   private customerId: number;
 
@@ -107,9 +90,26 @@ export class ClientModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPersons();
+    this.loadCatalogs();
     if (this.isEditMode && this.customerId) {
       this.loadClientData(this.customerId);
     }
+  }
+
+  loadCatalogs(): void {
+    this.clientService.getAllCatalogs().subscribe({
+      next: (data) => {
+        this.identificationTypes = data.identificationTypes;
+        this.genders = data.genders;
+        this.nationalities = data.nationalities;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Error al cargar los catálogos';
+        this.loading = false;
+        console.error('Error loading catalogs:', err);
+      }
+    });
   }
 
   private initializeForm(customerData: any): void {
@@ -123,21 +123,20 @@ export class ClientModalComponent implements OnInit {
       personOption: ['new'],
       existingPerson: [null],
       tradeName: [customerData.tradeName || '', Validators.required],
-      legalName: [customerData.legalName || '', Validators.required],
-
+      legalName: [customerData?.legalName],
       // Grupo anidado para 'person'
       person: this.fb.group({
-        personType: [customerData.person?.personType || 'Natural', Validators.required],
-        identificationTypeId: [customerData.person?.identificationTypeId || 0, Validators.required],
-        identificationNumber: [customerData.person?.identificationNumber || '', [Validators.required, Validators.pattern(/^[0-9]+$/)]],
+        personType: [customerData.person?.personType || 'JURIDICA', Validators.required],
         firstName: [customerData.person?.firstName || '', Validators.required],
         lastName: [customerData.person?.lastName || '', Validators.required],
-        birthDate: [birthDateValue],
+        birthDate: [new Date()],
         email: [customerData.person?.email || '', [Validators.required, Validators.email]],
-        phone: [customerData.person?.phone || '', [Validators.required, Validators.pattern(/^[0-9]+$/)]],
         address: [customerData.person?.address || ''],
-        genderId: [customerData.person?.genderId || 0],
-        nationalityId: [customerData.person?.nationalityId || 0]
+        phone: [customerData.person?.phone || ''],
+        genderID: [customerData.person?.genderId || 0],
+        nationalityId: [customerData.person?.nationalityId || 0],
+        identificationTypeId: [customerData.person?.identificationTypeId || 0],
+        identificationNumber: [customerData.person?.identificationNumber || 0]
       })
     });
 

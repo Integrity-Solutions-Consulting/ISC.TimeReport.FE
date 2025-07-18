@@ -1,65 +1,9 @@
-<mat-grid-list cols="6" rowHeight="100px">
-    <mat-grid-tile colspan="1">
-        <mat-card style="width:100%; align-items: start;">
-            <mat-card-header>
-                Proyectos
-            </mat-card-header>
-            <mat-card-content>
-                <h4>26</h4>
-            </mat-card-content>
-        </mat-card>
-    </mat-grid-tile>
-    <mat-grid-tile colspan="1">
-        <mat-card style="width:100%; align-items: start;">
-            <mat-card-header>
-                Clientes
-            </mat-card-header>
-            <mat-card-content>
-                <h4>367</h4>
-            </mat-card-content>
-        </mat-card>
-    </mat-grid-tile>
-    <mat-grid-tile colspan="1">
-        <mat-card style="width:100%; align-items: start;">
-            <mat-card-header>
-                Empleados
-            </mat-card-header>
-            <mat-card-content>
-                <h4>156</h4>
-            </mat-card-content>
-        </mat-card>
-    </mat-grid-tile>
-    <mat-grid-tile colspan="1">
-        <mat-card style="width:100%; align-items: start;">
-            <mat-card-header>
-                Proyectos Aprobados
-            </mat-card-header>
-            <mat-card-content>
-                <h4>8</h4>
-            </mat-card-content>
-        </mat-card>
-    </mat-grid-tile>
-    <mat-grid-tile colspan="1">
-        <mat-card style="width:100%; align-items: start;">
-            <mat-card-header>
-                Proyectos En Progreso
-            </mat-card-header>
-            <mat-card-content>
-                <h4>1</h4>
-            </mat-card-content>
-        </mat-card>
-    </mat-grid-tile>
-    <mat-grid-tile colspan="1">
-        <mat-card style="width:100%; align-items: start;">
-            <mat-card-header>
-                Proyectos Completos
-            </mat-card-header>
-            <mat-card-content>
-                <h4>7</h4>
-            </mat-card-content>
-        </mat-card>
-    </mat-grid-tile>
-</mat-grid-list>
+<ngx-charts-number-card
+  [view]="[1200,400]"
+  [scheme]="colorScheme"
+  [results]="data3"
+  [cardColor]="cardColor">
+</ngx-charts-number-card>
 <div class="card-row-container">
     <mat-card class="card-40-width">
         <mat-card-header>

@@ -1,14 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { EmployeeService } from '../../../employees/services/employee.service';
 import { ClientService } from '../../../clients/services/client.service';
-import { debounceTime, distinctUntilChanged, Subject, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, switchMap, catchError, of, EMPTY } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ProjectService } from '../../../projects/services/project.service';
+import { HttpParams } from '@angular/common/http';
+import { ApiResponse } from '../../../projects/interfaces/project.interface';
 
 @Component({
   selector: 'app-report-dialog',
@@ -20,7 +25,8 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
     MatInputModule,
     MatSelectModule,
     MatSlideToggleModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './report-dialog.component.html',
   styleUrl: './report-dialog.component.scss'
@@ -45,13 +51,12 @@ export class ReportDialogComponent implements OnInit {
     { value: 12, name: 'Diciembre' }
   ];
 
-    // Para manejar búsqueda con debounce
   employeeSearch$ = new Subject<string>();
   clientSearch$ = new Subject<string>();
   loadingEmployees = false;
   loadingClients = false;
+  generatingReport = false;
 
-  // Paginación
   employeePage = 1;
   clientPage = 1;
   pageSize = 10;
@@ -62,12 +67,14 @@ export class ReportDialogComponent implements OnInit {
     private fb: FormBuilder,
     private employeeService: EmployeeService,
     private clientService: ClientService,
+    private projectService: ProjectService,
+    private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<ReportDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
-    // Inicializar años (ejemplo: desde 2020 hasta 2030)
+    // Inicializar años (desde 2020 hasta 2030)
     const currentYear = new Date().getFullYear();
-    for (let year = currentYear - 2; year <= currentYear + 3; year++) {
+    for (let year = currentYear - 3; year <= currentYear + 3; year++) {
       this.years.push(year);
     }
   }
@@ -90,11 +97,13 @@ export class ReportDialogComponent implements OnInit {
 
   initializeForm(): void {
     this.payloadForm = this.fb.group({
-      employeeID: [''],
+      employeeName: [''],
+      employeeID: ['', Validators.required],
+      clientName: [''],
       clientID: [''],
-      year: [new Date().getFullYear()],
-      month: [new Date().getMonth() + 1],
-      isFullMonth: [true]
+      year: [new Date().getFullYear(), Validators.required],
+      month: [new Date().getMonth() + 1, Validators.required],
+      isFullMonth: [false]
     });
   }
 
@@ -104,7 +113,12 @@ export class ReportDialogComponent implements OnInit {
       distinctUntilChanged(),
       switchMap(search => {
         this.loadingEmployees = true;
-        return this.employeeService.getEmployees(1, this.pageSize, search);
+        return this.employeeService.getEmployees(1, this.pageSize, search).pipe(
+          catchError(() => {
+            this.loadingEmployees = false;
+            return of({ items: [], totalItems: 0 });
+          })
+        );
       })
     ).subscribe(response => {
       this.employees = response.items;
@@ -119,7 +133,12 @@ export class ReportDialogComponent implements OnInit {
       distinctUntilChanged(),
       switchMap(search => {
         this.loadingClients = true;
-        return this.clientService.getClients(1, this.pageSize, search);
+        return this.clientService.getClients(1, this.pageSize, search).pipe(
+          catchError(() => {
+            this.loadingClients = false;
+            return of({ items: [], totalItems: 0 });
+          })
+        );
       })
     ).subscribe(response => {
       this.clients = response.items;
@@ -200,6 +219,16 @@ export class ReportDialogComponent implements OnInit {
     );
   }
 
+  handleEmployeeInput(event: Event) {
+    const inputElement = event.target as HTMLInputElement;
+    this.onEmployeeSearchChange(inputElement.value);
+  }
+
+  handleClientInput(event: Event) {
+    const inputElement = event.target as HTMLInputElement;
+    this.onClientSearchChange(inputElement.value);
+  }
+
   onEmployeeSearchChange(search: string): void {
     this.employeePage = 1;
     this.employeeSearch$.next(search);
@@ -210,34 +239,133 @@ export class ReportDialogComponent implements OnInit {
     this.clientSearch$.next(search);
   }
 
-  handleEmployeeInput(event: Event) {
-    const inputElement = event.target as HTMLInputElement;
-    this.onEmployeeSearchChange(inputElement.value);
-  }
-
-  handleClientInput(event: Event) {
-    const inputElement = event.target as HTMLInputElement;
-    this.onEmployeeSearchChange(inputElement.value);
-  }
-
   selectEmployee(employee: any): void {
     this.payloadForm.patchValue({
       employeeID: employee.id,
-      employeeName: employee.name // Asumiendo que el objeto employee tiene una propiedad name
+      employeeName: `${employee.firstName} ${employee.lastName}`
     });
+    this.clearClientSelection();
   }
 
   selectClient(client: any): void {
     this.payloadForm.patchValue({
       clientID: client.id,
-      clientName: client.name // Asumiendo que el objeto client tiene una propiedad name
+      clientName: client.tradeName || client.legalName
     });
   }
 
+  clearClientSelection(): void {
+    this.payloadForm.patchValue({
+      clientID: '',
+      clientName: ''
+    });
+    this.clients = [];
+  }
+
   onSubmit(): void {
-    if (this.payloadForm.valid) {
-      this.dialogRef.close(this.payloadForm.value);
+    if (this.payloadForm.invalid) {
+      this.snackBar.open('Por favor complete todos los campos requeridos', 'Cerrar', {
+        duration: 3000
+      });
+      return;
     }
+
+    this.generatingReport = true;
+    const formValue = this.payloadForm.value;
+    const employeeId = formValue.employeeID;
+    const clientId = formValue.clientID;
+    const year = formValue.year;
+    const month = formValue.month;
+    const fullMonth = formValue.isFullMonth;
+
+    if (clientId) {
+      this.generateExcelReport(employeeId, clientId, year, month, fullMonth);
+    } else {
+      this.findClientAndGenerateReport(employeeId, year, month, fullMonth);
+    }
+  }
+
+  private findClientAndGenerateReport(employeeId: number, year: number, month: number, fullMonth: boolean): void {
+    this.projectService.getProjectsForTables(1, 100).pipe(
+      switchMap((response: ApiResponse) => {
+        const employeeProjects = response.items.filter(project =>
+          project.assignedEmployees?.includes(employeeId)
+        );
+
+        if (employeeProjects.length === 0) {
+          this.generatingReport = false;
+          this.snackBar.open('El empleado no tiene proyectos asignados', 'Cerrar', {
+            duration: 5000
+          });
+          return EMPTY; // Usamos EMPTY en lugar of(null) para completar el observable sin emitir valores
+        }
+
+        const clientId = employeeProjects[0].clientID;
+        const params = new HttpParams()
+          .set('employeeId', employeeId.toString())
+          .set('clientId', clientId.toString())
+          .set('year', year.toString())
+          .set('month', month.toString())
+          .set('fullMonth', fullMonth.toString());
+
+        return this.projectService.downloadExcelReport(params);
+      }),
+      catchError(error => {
+        this.generatingReport = false;
+        this.snackBar.open(error.message || 'Error al generar el reporte', 'Cerrar', {
+          duration: 5000
+        });
+        return EMPTY;
+      })
+    ).subscribe({
+      next: (blob: Blob) => {
+        this.downloadFile(blob, `Reporte_${year}-${month}.xlsx`);
+        this.generatingReport = false;
+      },
+      error: () => {
+        this.generatingReport = false;
+      }
+    });
+  }
+
+  private generateExcelReport(
+    employeeId: number,
+    clientId: number,
+    year: number,
+    month: number,
+    fullMonth: boolean
+  ): void {
+    const params = new HttpParams()
+      .set('employeeId', employeeId.toString())
+      .set('clientId', clientId.toString())
+      .set('year', year.toString())
+      .set('month', month.toString())
+      .set('fullMonth', fullMonth.toString());
+
+    this.projectService.downloadExcelReport(params).subscribe({
+      next: (blob) => {
+        this.generatingReport = false;
+        this.downloadFile(blob, `Reporte_${year}-${month}.xlsx`);
+        this.dialogRef.close();
+      },
+      error: (error) => {
+        this.generatingReport = false;
+        this.snackBar.open('Error al generar el reporte', 'Cerrar', {
+          duration: 5000
+        });
+      }
+    });
+  }
+
+  private downloadFile(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   }
 
   onCancel(): void {

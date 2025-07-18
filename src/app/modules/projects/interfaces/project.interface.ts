@@ -11,6 +11,7 @@ export interface Project {
   actualEndDate?: Date,
   budget: number,
   status: boolean
+  assignedEmployees?: number[];
 }
 
 export interface ProjectWithID {
