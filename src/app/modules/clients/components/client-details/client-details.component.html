@@ -66,7 +66,7 @@
           <div class="info-item">
             <mat-icon class="info-icon">flag</mat-icon>
             <div class="info-content">
-              <span class="info-label">Nacionalidad</span>
+              <span class="info-label">País</span>
               <span class="info-value">{{getNationality(client.person?.nationalityId)}}</span>
             </div>
           </div>
@@ -116,10 +116,6 @@
       <button mat-stroked-button color="primary" (click)="goBack()">
         <mat-icon>arrow_back</mat-icon>
         VOLVER
-      </button>
-      <button mat-raised-button color="primary" (click)="editClient()">
-        <mat-icon>edit</mat-icon>
-        EDITAR
       </button>
     </mat-card-actions>
   </mat-card>

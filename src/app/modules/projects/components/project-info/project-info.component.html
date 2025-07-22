@@ -45,14 +45,14 @@
         <h3 class="section-title">CLIENTE</h3>
         <div class="client-info">
           <mat-icon class="client-icon">business</mat-icon>
-          <span class="client-id">ID: {{project.clientID}}</span>
+          <span class="client-name">{{client?.tradeName}}</span>
         </div>
       </div>
     </mat-card-content>
 
     <!-- Acciones -->
     <mat-card-actions class="project-actions">
-      <button mat-stroked-button color="primary" (click)="goBack()">
+      <button mat-stroked-button style="background-color: var(--itg-secondary); color: var(--itg-bg)" (click)="goBack()">
         <mat-icon>arrow_back</mat-icon>
         VOLVER
       </button>

@@ -19,3 +19,36 @@ export interface ApiResponse {
   message: string;
 }
 
+export interface ProjectDetail {
+  name: string;
+  clientID: number;
+  employeesPersonInfo: {
+    firstName: string;
+    lastName: string;
+    identificationNumber: string;
+  }[];
+}
+
+export interface ClientDetail {
+  tradeName: string;
+  legalName: string;
+}
+
+export interface LeaderDetail {
+  person: {
+    firstName: string;
+    lastName: string;
+  };
+}
+
+export interface Collaborator {
+  employeeID: number;
+  nombre: string;
+  cedula: string;
+  proyecto: string;
+  cliente: string;
+  lider: string;
+  horas: number;
+  estado: string;
+}
+

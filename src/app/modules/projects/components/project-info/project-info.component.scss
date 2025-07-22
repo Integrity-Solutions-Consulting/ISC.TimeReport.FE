@@ -40,7 +40,6 @@
   font-weight: 600;
   font-size: 12px;
   padding: 4px 12px;
-  border-radius: 16px;
 
   &.active {
     background-color: #2ecc71;
@@ -55,8 +54,8 @@
 
 .budget-badge {
   text-align: center;
-  background: #3498db;
-  color: white;
+  background: var(--itg-secondary);
+  color: var(--itg-bg);
   padding: 12px 16px;
   border-radius: 8px;
   min-width: 120px;
@@ -117,7 +116,7 @@
     gap: 8px;
 
     .client-icon {
-      color: #3498db;
+      color: var(--itg-secondary);
     }
 
     .client-id {

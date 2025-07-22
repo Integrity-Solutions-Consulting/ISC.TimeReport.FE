@@ -1,9 +1,10 @@
+import { ProjectDetail } from './../../assigments/interfaces/assignment.interface';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
-import { Activity, ApiResponse } from '../interfaces/activity.interface';
+import { Activity, ApiResponse,} from '../interfaces/activity.interface';
 import { AuthService } from '../../auth/services/auth.service';
 import { ProjectService } from '../../projects/services/project.service';
 
@@ -144,4 +145,5 @@ export class ActivityService {
       })
     );
   }
+
 }

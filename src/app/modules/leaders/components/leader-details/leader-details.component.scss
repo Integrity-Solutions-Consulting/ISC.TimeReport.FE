@@ -22,7 +22,7 @@
   width: 80px;
   height: 80px;
   border-radius: 8px;
-  background-color: #fff8e1;
+  background-color: var(--itg-primary-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,7 +31,7 @@
     font-size: 60px;
     width: 60px;
     height: 60px;
-    color: #ffa000;
+    color:  var(--itg-primary);
   }
 }
 
@@ -101,7 +101,7 @@
   margin-bottom: 16px;
 
   .info-icon {
-    color: #ffa000;
+    color:  var(--itg-primary);
     flex-shrink: 0;
     margin-top: 2px;
   }
