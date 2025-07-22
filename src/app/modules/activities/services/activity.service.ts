@@ -1,6 +1,6 @@
 import { ProjectDetail } from './../../assigments/interfaces/assignment.interface';
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { catchError, forkJoin, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
@@ -62,44 +62,11 @@ export class ActivityService {
     return this.http.put(`${this.urlBase}/api/DailyActivity/UpdateActivity/${id}`, activityData, { headers });
   }
 
-  exportExcel(clientId?: number, year?: number, month?: number, fullMonth = false): void {
-    const employeeId = this.authService.getEmployeeId();
-
-    // Validar employeeId
-    if (!employeeId) {
-      console.error('No se pudo obtener el EmployeeID del token');
-      return;
-    }
-
-    // Si ya se proporcionó clientId, descargar directamente
-    if (clientId) {
-      this.downloadExcel(employeeId, clientId, year, month, fullMonth);
-      return;
-    }
-
-    // Obtener clientId desde los proyectos del empleado
-    this.projectService.getAllProjects().pipe(
-      // Filtrar proyectos asignados al empleado (implementa esta lógica)
-      map(projects => projects.filter(project =>
-        this.isProjectAssignedToEmployee(project, employeeId)
-      )),
-      // Tomar el primer cliente encontrado (o lógica alternativa)
-      map(filteredProjects => {
-        if (filteredProjects.length === 0) {
-          throw new Error('El empleado no tiene proyectos asignados');
-        }
-        return filteredProjects[0].clientID; // O usa reduce para consolidar
-      }),
-      // Descargar el Excel
-      switchMap(clientId =>
-        this.downloadExcel(employeeId, clientId, year, month, fullMonth)
-      ),
-      catchError(error => {
-        console.error('Error al obtener ClientID:', error);
-        // Opcional: Mostrar notificación al usuario
-        return of(null);
-      })
-    ).subscribe();
+  exportExcel(params: HttpParams): Observable<Blob> {
+    return this.http.get(`${this.urlBase}/api/TimeReport/export-excel`, {
+      params,
+      responseType: 'blob' // Importante para manejar archivos binarios
+    });
   }
 
   // Implementación de ejemplo para filtrar proyectos

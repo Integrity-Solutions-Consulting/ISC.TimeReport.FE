@@ -3,16 +3,14 @@
 <mat-dialog-content>
   <form [formGroup]="roleForm" *ngIf="!isLoading">
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Nombre del Rol</mat-label>
-      <input matInput formControlName="roleName" required>
+      <input matInput formControlName="roleName" placeholder="Nombre de Rol" required>
       <mat-error *ngIf="roleForm.get('roleName')?.hasError('required')">
         El nombre del rol es requerido
       </mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Descripción</mat-label>
-      <input matInput formControlName="description" rows="3">
+      <input matInput formControlName="description" placeholder="Descripción" rows="3">
     </mat-form-field>
 
     <h3>Módulos Accesibles</h3>

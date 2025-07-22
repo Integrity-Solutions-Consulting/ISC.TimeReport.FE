@@ -150,7 +150,6 @@ export class CollaboratorsListComponent implements OnInit{
 
       forkJoin(requests).subscribe({
         next: (results) => {
-          console.log('Todos los resultados:', results); // Depuración
 
           const collaborators: Collaborator[] = results.map(result => {
             const emp = result.employee;
@@ -159,10 +158,6 @@ export class CollaboratorsListComponent implements OnInit{
             const projectData = result.project?.data || result.project;
             const clientData = result.client?.data || result.client;
             const leaderData = result.leader?.data || result.leader;
-
-            console.log('ProjectData:', projectData); // Depuración
-            console.log('ClientData:', clientData);   // Depuración
-            console.log('LeaderData:', leaderData);   // Depuración
 
             return {
               employeeID: emp.employeeID,

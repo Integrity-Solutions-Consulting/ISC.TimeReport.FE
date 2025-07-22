@@ -55,7 +55,7 @@ export const menuRoutes: Routes = [
             loadChildren: () => import('../assigments/assigment.routes').then((m) => m.assignmentsRoutes),
           },
           {
-            path: 'roles',
+            path: 'settings',
             loadChildren: () => import('../roles/roles.routes').then((m) => m.rolesRoutes),
           }
         ]
