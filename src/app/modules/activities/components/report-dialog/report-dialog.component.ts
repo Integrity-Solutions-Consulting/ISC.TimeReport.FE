@@ -6,14 +6,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { EmployeeService } from '../../../employees/services/employee.service';
 import { ClientService } from '../../../clients/services/client.service';
-import { debounceTime, distinctUntilChanged, Subject, switchMap, catchError, of, EMPTY } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, switchMap, catchError, of, EMPTY, forkJoin, finalize } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProjectService } from '../../../projects/services/project.service';
 import { HttpParams } from '@angular/common/http';
-import { ApiResponse } from '../../../projects/interfaces/project.interface';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { ActivityService } from '../../services/activity.service';
 
 @Component({
   selector: 'app-report-dialog',
@@ -26,15 +27,19 @@ import { ApiResponse } from '../../../projects/interfaces/project.interface';
     MatSelectModule,
     MatSlideToggleModule,
     ReactiveFormsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatAutocompleteModule
   ],
   templateUrl: './report-dialog.component.html',
-  styleUrl: './report-dialog.component.scss'
+  styleUrls: ['./report-dialog.component.scss']
 })
 export class ReportDialogComponent implements OnInit {
   payloadForm!: FormGroup;
   employees: any[] = [];
   clients: any[] = [];
+  filteredClients: any[] = [];
+  filteredEmployees: any[] = [];
+
   years: number[] = [];
   months = [
     { value: 1, name: 'Enero' },
@@ -68,6 +73,7 @@ export class ReportDialogComponent implements OnInit {
     private employeeService: EmployeeService,
     private clientService: ClientService,
     private projectService: ProjectService,
+    private dailyActivityService: ActivityService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<ReportDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
@@ -81,10 +87,7 @@ export class ReportDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
-    this.setupEmployeeSearch();
-    this.setupClientSearch();
-    this.loadInitialEmployees();
-    this.loadInitialClients();
+    this.loadEmployees();
 
     if (this.data.start) {
       const selectedDate = new Date(this.data.start);
@@ -105,6 +108,38 @@ export class ReportDialogComponent implements OnInit {
       month: [new Date().getMonth() + 1, Validators.required],
       isFullMonth: [false]
     });
+
+    // Cuando cambia el empleado, cargar sus clientes asociados
+    this.payloadForm.get('employeeID')?.valueChanges.subscribe(employeeId => {
+      if (employeeId) {
+        this.loadClientsForEmployee(employeeId);
+      } else {
+        this.clearClientSelection();
+      }
+    });
+  }
+
+  loadEmployees(): void {
+    this.loadingEmployees = true;
+    this.employeeService.getEmployees(1, 100).pipe(
+      finalize(() => this.loadingEmployees = false)
+    ).subscribe({
+      next: (response) => {
+        // La API devuelve los items directamente, no dentro de data
+        this.employees = response.items || [];
+        console.log('Empleados cargados:', this.employees);
+      },
+      error: (error) => {
+        console.error('Error al cargar empleados:', error);
+        this.snackBar.open('Error al cargar empleados', 'Cerrar', {
+          duration: 3000
+        });
+      }
+    });
+  }
+
+  onEmployeeSelected(employeeId: number): void {
+    this.loadClientsForEmployee(employeeId);
   }
 
   setupEmployeeSearch(): void {
@@ -116,12 +151,13 @@ export class ReportDialogComponent implements OnInit {
         return this.employeeService.getEmployees(1, this.pageSize, search).pipe(
           catchError(() => {
             this.loadingEmployees = false;
-            return of({ items: [], totalItems: 0 });
+            return of({ items: [], totalItems: 0  });
           })
         );
       })
     ).subscribe(response => {
       this.employees = response.items;
+      this.filteredEmployees = this.employees;
       this.hasMoreEmployees = response.totalItems > this.pageSize;
       this.loadingEmployees = false;
     });
@@ -136,12 +172,13 @@ export class ReportDialogComponent implements OnInit {
         return this.clientService.getClients(1, this.pageSize, search).pipe(
           catchError(() => {
             this.loadingClients = false;
-            return of({ items: [], totalItems: 0 });
+            return of({ items: [], totalItems: 0 } );
           })
         );
       })
     ).subscribe(response => {
       this.clients = response.items;
+      this.filteredClients = this.clients;
       this.hasMoreClients = response.totalItems > this.pageSize;
       this.loadingClients = false;
     });
@@ -152,6 +189,7 @@ export class ReportDialogComponent implements OnInit {
     this.employeeService.getEmployees(this.employeePage, this.pageSize).subscribe(
       response => {
         this.employees = response.items;
+        this.filteredEmployees = this.employees;
         this.hasMoreEmployees = response.totalItems > this.employees.length;
         this.loadingEmployees = false;
       },
@@ -162,71 +200,93 @@ export class ReportDialogComponent implements OnInit {
     );
   }
 
-  loadInitialClients(): void {
+  loadClientsForEmployee(employeeId: number): void {
     this.loadingClients = true;
-    this.clientService.getClients(this.clientPage, this.pageSize).subscribe(
-      response => {
-        this.clients = response.items;
-        this.hasMoreClients = response.totalItems > this.clients.length;
+    this.clients = [];
+    this.payloadForm.get('clientID')?.reset();
+
+    this.dailyActivityService.getActivities().pipe(
+      switchMap((activitiesResponse: any) => {
+        // La API devuelve los datos directamente en data (sin items)
+        const activities = activitiesResponse.data || [];
+        const employeeActivities = activities.filter(
+          (activity: any) => activity.employeeID === employeeId
+        );
+
+        if (employeeActivities.length === 0) {
+          return of([]);
+        }
+
+        const projectIds = [...new Set(employeeActivities.map((a: any) => a.projectID))];
+        return this.projectService.getProjects().pipe(
+          switchMap((projectsResponse: any) => {
+            // Ajuste para la estructura de proyectos
+            const projects = projectsResponse.items || [];
+            const filteredProjects = projects.filter(
+              (p: any) => projectIds.includes(p.id)
+            );
+            const clientIds = [...new Set(filteredProjects.map((p: any) => p.clientID))];
+
+            if (clientIds.length === 0) {
+              return of([]);
+            }
+
+            return this.clientService.getClients(1, 100).pipe(
+              switchMap((clientsResponse: any) => {
+                // Ajuste para la estructura de clientes
+                const clients = clientsResponse.items || [];
+                return of(clients.filter(
+                  (c: any) => clientIds.includes(c.id))
+                );
+              })
+            );
+          })
+        );
+      }),
+      catchError(error => {
+        console.error('Error loading client data:', error);
+        return of([]);
+      })
+    ).subscribe({
+      next: (clients: any[]) => {
+        this.clients = clients;
         this.loadingClients = false;
+
+        if (clients.length === 0) {
+          this.snackBar.open('El empleado no tiene clientes asociados', 'Cerrar', {
+            duration: 3000
+          });
+        }
       },
-      error => {
-        console.error('Error loading clients', error);
+      error: () => {
         this.loadingClients = false;
       }
-    );
-  }
-
-  loadMoreEmployees(): void {
-    if (!this.hasMoreEmployees || this.loadingEmployees) return;
-
-    this.employeePage++;
-    this.loadingEmployees = true;
-
-    const search = this.payloadForm.get('employeeName')?.value || '';
-
-    this.employeeService.getEmployees(this.employeePage, this.pageSize, search).subscribe(
-      response => {
-        this.employees = [...this.employees, ...response.items];
-        this.hasMoreEmployees = response.totalItems > this.employees.length;
-        this.loadingEmployees = false;
-      },
-      error => {
-        console.error('Error loading more employees', error);
-        this.loadingEmployees = false;
-      }
-    );
-  }
-
-  loadMoreClients(): void {
-    if (!this.hasMoreClients || this.loadingClients) return;
-
-    this.clientPage++;
-    this.loadingClients = true;
-
-    const search = this.payloadForm.get('clientName')?.value || '';
-
-    this.clientService.getClients(this.clientPage, this.pageSize, search).subscribe(
-      response => {
-        this.clients = [...this.clients, ...response.items];
-        this.hasMoreClients = response.totalItems > this.clients.length;
-        this.loadingClients = false;
-      },
-      error => {
-        console.error('Error loading more clients', error);
-        this.loadingClients = false;
-      }
-    );
+    });
   }
 
   handleEmployeeInput(event: Event) {
     const inputElement = event.target as HTMLInputElement;
-    this.onEmployeeSearchChange(inputElement.value);
+    const searchValue = inputElement.value.toLowerCase();
+    this.filteredEmployees = this.employees.filter(employee =>
+      `${employee.person.firstName} ${employee.person.lastName}`.toLowerCase().includes(searchValue) ||
+      employee.employeeCode.toLowerCase().includes(searchValue)
+    );
+
+    if (searchValue) {
+      this.onEmployeeSearchChange(searchValue);
+    }
   }
 
   handleClientInput(event: Event) {
     const inputElement = event.target as HTMLInputElement;
-    this.onClientSearchChange(inputElement.value);
+    const searchValue = inputElement.value.toLowerCase();
+    this.filteredClients = this.clients.filter(client =>
+      (client.tradeName || client.legalName).toLowerCase().includes(searchValue)
+    );
+
+    if (searchValue) {
+      this.onClientSearchChange(searchValue);
+    }
   }
 
   onEmployeeSearchChange(search: string): void {
@@ -242,9 +302,8 @@ export class ReportDialogComponent implements OnInit {
   selectEmployee(employee: any): void {
     this.payloadForm.patchValue({
       employeeID: employee.id,
-      employeeName: `${employee.firstName} ${employee.lastName}`
+      employeeName: `${employee.person.firstName} ${employee.person.lastName}`
     });
-    this.clearClientSelection();
   }
 
   selectClient(client: any): void {
@@ -260,6 +319,7 @@ export class ReportDialogComponent implements OnInit {
       clientName: ''
     });
     this.clients = [];
+    this.filteredClients = [];
   }
 
   onSubmit(): void {
@@ -278,94 +338,68 @@ export class ReportDialogComponent implements OnInit {
     const month = formValue.month;
     const fullMonth = formValue.isFullMonth;
 
-    if (clientId) {
-      this.generateExcelReport(employeeId, clientId, year, month, fullMonth);
-    } else {
-      this.findClientAndGenerateReport(employeeId, year, month, fullMonth);
-    }
+    // Construir el payload para el reporte
+    const payload = {
+      employeeId,
+      clientId,
+      year,
+      month,
+      isFullMonth: fullMonth
+    };
+
+    // Aquí llamarías al servicio que genera el reporte
+    this.generateReport(payload);
   }
 
-  private findClientAndGenerateReport(employeeId: number, year: number, month: number, fullMonth: boolean): void {
-    this.projectService.getProjectsForTables(1, 100).pipe(
-      switchMap((response: ApiResponse) => {
-        const employeeProjects = response.items.filter(project =>
-          project.assignedEmployees?.includes(employeeId)
-        );
-
-        if (employeeProjects.length === 0) {
-          this.generatingReport = false;
-          this.snackBar.open('El empleado no tiene proyectos asignados', 'Cerrar', {
-            duration: 5000
-          });
-          return EMPTY; // Usamos EMPTY en lugar of(null) para completar el observable sin emitir valores
-        }
-
-        const clientId = employeeProjects[0].clientID;
-        const params = new HttpParams()
-          .set('employeeId', employeeId.toString())
-          .set('clientId', clientId.toString())
-          .set('year', year.toString())
-          .set('month', month.toString())
-          .set('fullMonth', fullMonth.toString());
-
-        return this.projectService.downloadExcelReport(params);
-      }),
-      catchError(error => {
-        this.generatingReport = false;
-        this.snackBar.open(error.message || 'Error al generar el reporte', 'Cerrar', {
-          duration: 5000
-        });
-        return EMPTY;
-      })
-    ).subscribe({
-      next: (blob: Blob) => {
-        this.downloadFile(blob, `Reporte_${year}-${month}.xlsx`);
-        this.generatingReport = false;
-      },
-      error: () => {
-        this.generatingReport = false;
-      }
-    });
-  }
-
-  private generateExcelReport(
+  private generateReport(payload: {
     employeeId: number,
     clientId: number,
     year: number,
     month: number,
-    fullMonth: boolean
-  ): void {
-    const params = new HttpParams()
-      .set('employeeId', employeeId.toString())
-      .set('clientId', clientId.toString())
-      .set('year', year.toString())
-      .set('month', month.toString())
-      .set('fullMonth', fullMonth.toString());
+    isFullMonth: boolean
+  }): void {
+    this.generatingReport = true;
 
-    this.projectService.downloadExcelReport(params).subscribe({
-      next: (blob) => {
+    // Configura los parámetros para la API
+    const params = new HttpParams()
+      .set('employeeId', payload.employeeId.toString())
+      .set('clientId', payload.clientId?.toString() || '') // clientId es opcional
+      .set('year', payload.year.toString())
+      .set('month', payload.month.toString())
+      .set('fullMonth', payload.isFullMonth.toString());
+
+    // Llama al servicio de reportes
+    this.dailyActivityService.exportExcel(params).subscribe({
+      next: (blob: Blob) => {
+        this.downloadExcelFile(blob, payload);
         this.generatingReport = false;
-        this.downloadFile(blob, `Reporte_${year}-${month}.xlsx`);
         this.dialogRef.close();
       },
       error: (error) => {
+        console.error('Error al generar reporte:', error);
         this.generatingReport = false;
-        this.snackBar.open('Error al generar el reporte', 'Cerrar', {
+        this.snackBar.open('Error al generar el reporte Excel', 'Cerrar', {
           duration: 5000
         });
       }
     });
   }
 
-  private downloadFile(blob: Blob, filename: string): void {
+  private downloadExcelFile(blob: Blob, payload: any): void {
+    // Crea un nombre de archivo descriptivo
+    const fileName = `Reporte_${payload.employeeId}_${payload.year}_${payload.month}.xlsm`;
+
+    // Crea un enlace temporal y simula el click
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = filename;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
+
+    // Limpieza
     window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   }
 
   onCancel(): void {

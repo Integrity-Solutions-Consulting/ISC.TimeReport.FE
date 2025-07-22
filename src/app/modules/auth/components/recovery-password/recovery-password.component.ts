@@ -9,6 +9,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-recovery-password',
@@ -19,6 +21,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatCardModule,
     MatFormFieldModule,
     MatDialogModule,
+    MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
     MessageDialogComponent,
@@ -36,7 +39,8 @@ export class RecoveryPasswordComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -76,5 +80,9 @@ export class RecoveryPasswordComponent implements OnInit {
         message: 'Si tu correo está registrado, recibirás un enlace de recuperación en breve.'
       }
     });
+  }
+
+  goToLogin() {
+    this.router.navigate(['/auth/login']);
   }
 }

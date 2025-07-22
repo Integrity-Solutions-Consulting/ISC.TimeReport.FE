@@ -18,7 +18,8 @@ export class EmployeeService {
   getEmployees(pageNumber: number, pageSize: number, search: string = ''): Observable<ApiResponse> {
     let params = new HttpParams()
       .set('PageNumber', pageNumber.toString())
-      .set('PageSize', pageSize.toString());
+      .set('PageSize', pageSize.toString())
+      .set('search', search || '');
 
     if (search) {
       params = params.set('search', search);

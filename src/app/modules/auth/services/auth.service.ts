@@ -69,6 +69,7 @@ export class AuthService {
   getMenus(): string[] {
     const menus = localStorage.getItem('menus');
     return menus ? JSON.parse(menus) : [];
+    console.log(menus);
   }
 
   /*getRoles(): Role[] {
@@ -126,6 +127,7 @@ export class AuthService {
       tap(menus => {
         this._userMenus.set(menus);
         localStorage.setItem('menus', JSON.stringify(menus));
+        console.log('menus', menus)
       }),
       catchError(error => {
         console.error('Error loading user menus:', error);

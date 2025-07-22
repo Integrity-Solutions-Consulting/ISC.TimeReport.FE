@@ -140,7 +140,6 @@ export class DailyActivitiesComponent implements AfterViewInit {
   private async loadActivities(retryCount = 0): Promise<void> {
     try {
       const response: ApiResponse | undefined = await this.activityService.getActivities().toPromise();
-      console.log('Datos recibidos del backend:', response);
 
       if (response?.data) {
         // Asegúrate de que calendarComponent y su API estén disponibles
@@ -191,8 +190,6 @@ export class DailyActivitiesComponent implements AfterViewInit {
         const project = this.projectList.find(p => p.id === activity.projectID);
         const activityType = this.activityColors.find(t => t.id === activity.activityTypeID);
         const color = activityType?.value || '#9E9E9E'; // Color por defecto si no se encuentra
-
-        console.log(`Actividad ID: ${activity.id}, activityTypeID: ${activity.activityTypeID}, activityType encontrado:`, activityType);
 
         const eventData = {
           id: activity.id.toString(),
@@ -302,16 +299,12 @@ export class DailyActivitiesComponent implements AfterViewInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log('Payload generado:', result);
-        // Aquí puedes hacer lo que necesites con el payload
       }
     });
   }
 
 
   private createActivity(eventData: any): void {
-
-    console.log('Datos recibidos del diálogo:', eventData);
 
     if (!eventData.hoursQuantity && !eventData.activityDate) {
       console.error('Datos incompletos:', eventData);
@@ -331,8 +324,6 @@ export class DailyActivitiesComponent implements AfterViewInit {
       isBillable: eventData.isBillable || false,
       status: eventData.status !== undefined ? eventData.status : true
     };
-
-     console.log('Payload antes de enviar:', activityPayload);
 
     this.activityService.createActivity(activityPayload).subscribe({
       next: (response) => {

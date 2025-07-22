@@ -1,63 +1,45 @@
 <h2 mat-dialog-title>Generar Payload</h2>
 <mat-dialog-content>
   <form [formGroup]="payloadForm" (ngSubmit)="onSubmit()">
-    <!-- Campo de empleado con autocompletado -->
+    <!-- Campo de empleado con select -->
     <div class="form-field">
       <mat-form-field appearance="outline">
-        <input matInput formControlName="employeeName"
-               (input)="handleEmployeeInput($event)"
-               placeholder="Empleado">
-        <mat-hint *ngIf="loadingEmployees">Buscando empleados...</mat-hint>
+        <mat-select formControlName="employeeID" required placeholder="Empleado" (selectionChange)="onEmployeeSelected($event.value)">
+          <mat-option *ngFor="let employee of employees" [value]="employee.id">
+            {{ employee.person.firstName }} {{ employee.person.lastName }} ({{ employee.employeeCode }})
+          </mat-option>
+          <mat-option *ngIf="loadingEmployees">
+            <mat-spinner diameter="20"></mat-spinner>
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="payloadForm.get('employeeID')?.hasError('required')">
+          Seleccione un empleado
+        </mat-error>
       </mat-form-field>
-
-      <div class="options-container" *ngIf="payloadForm.get('employeeName')?.value">
-        <div class="option-item" *ngFor="let employee of employees"
-             (click)="selectEmployee(employee)">
-          {{ employee.name }}
-        </div>
-        <div class="load-more" *ngIf="hasMoreEmployees && !loadingEmployees"
-             (click)="loadMoreEmployees()">
-          Cargar más...
-        </div>
-        <div *ngIf="loadingEmployees">Cargando...</div>
-        <div *ngIf="employees.length === 0 && !loadingEmployees">
-          No se encontraron empleados
-        </div>
-      </div>
-
-      <input type="hidden" formControlName="employeeID">
     </div>
 
-    <!-- Campo de cliente con autocompletado -->
-    <div class="form-field">
+    <!-- Campo de cliente con select (solo visible cuando hay un empleado seleccionado) -->
+    <div class="form-field" *ngIf="payloadForm.get('employeeID')?.value">
       <mat-form-field appearance="outline">
-        <input matInput formControlName="clientName"
-               (input)="handleClientInput($event)"
-               placeholder="Cliente">
-        <mat-hint *ngIf="loadingClients">Buscando clientes...</mat-hint>
+        <mat-label>Cliente</mat-label>
+        <mat-select formControlName="clientID">
+          <mat-option *ngFor="let client of clients" [value]="client.id">
+            {{ client.tradeName || client.legalName }}
+          </mat-option>
+          <mat-option *ngIf="loadingClients">
+            <mat-spinner diameter="20"></mat-spinner>
+          </mat-option>
+          <mat-option *ngIf="!loadingClients && clients.length === 0" disabled>
+            No hay clientes asociados
+          </mat-option>
+        </mat-select>
       </mat-form-field>
-
-      <div class="options-container" *ngIf="payloadForm.get('clientName')?.value">
-        <div class="option-item" *ngFor="let client of clients"
-             (click)="selectClient(client)">
-          {{ client.name }}
-        </div>
-        <div class="load-more" *ngIf="hasMoreClients && !loadingClients"
-             (click)="loadMoreClients()">
-          Cargar más...
-        </div>
-        <div *ngIf="loadingClients">Cargando...</div>
-        <div *ngIf="clients.length === 0 && !loadingClients">
-          No se encontraron clientes
-        </div>
-      </div>
-
-      <input type="hidden" formControlName="clientID">
     </div>
 
-    <!-- Resto de campos (año, mes, toggle) -->
+    <!-- Campos de fecha -->
     <div class="form-field">
       <mat-form-field appearance="outline">
+        <mat-label>Año</mat-label>
         <mat-select formControlName="year" required>
           <mat-option *ngFor="let year of years" [value]="year">
             {{ year }}
@@ -68,6 +50,7 @@
 
     <div class="form-field">
       <mat-form-field appearance="outline">
+        <mat-label>Mes</mat-label>
         <mat-select formControlName="month" required>
           <mat-option *ngFor="let month of months" [value]="month.value">
             {{ month.name }}
@@ -85,5 +68,8 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-raised-button style="background-color: var(--itg-primary); color: var(--itg-bg)" (click)="onSubmit()">Generar</button>
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="payloadForm.invalid || generatingReport">
+    <span *ngIf="!generatingReport">Generar</span>
+    <mat-spinner *ngIf="generatingReport" diameter="20"></mat-spinner>
+  </button>
 </mat-dialog-actions>
