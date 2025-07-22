@@ -10,6 +10,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatError } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { ClientService } from '../../../clients/services/client.service';
+import { Client } from '../../../clients/interfaces/client.interface';
+import { Project } from '../../interfaces/project.interface';
+import { switchMap } from 'rxjs';
 
 @Component({
   selector: 'project-info',
@@ -30,7 +34,8 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class ProjectInfoComponent implements OnInit{
 
-  project: any;
+  project: Project | null = null; // Usando la interfaz Project
+  client: Client | null = null;   // Usando la interfaz Client
   isLoading = true;
   error: string | null = null;
 
@@ -38,6 +43,7 @@ export class ProjectInfoComponent implements OnInit{
     private router: Router,
     private route: ActivatedRoute,
     private projectService: ProjectService,
+    private clientService: ClientService,
     private datePipe: DatePipe
   ) { }
 
@@ -49,13 +55,18 @@ export class ProjectInfoComponent implements OnInit{
   }
 
   loadProjectDetails(id: number): void {
-    this.projectService.getProjectById(id).subscribe({
-      next: (projectData) => {
+    this.projectService.getProjectById(id).pipe(
+      switchMap(projectData => {
         this.project = projectData;
+        return this.clientService.getClientByID(projectData.clientID);
+      })
+    ).subscribe({
+      next: (clientData) => {
+        this.client = clientData; // Almacenamos todo el objeto cliente
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Error loading project', err);
+        console.error('Error loading data', err);
         this.isLoading = false;
       }
     });

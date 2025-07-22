@@ -46,7 +46,7 @@
             <div class="info-content">
               <span class="info-label">Identificación</span>
               <span class="info-value">
-                {{employee.person.identificationNumber}} ({{employee.person.identificationTypeId}})
+                {{employee.person.identificationNumber}}
               </span>
             </div>
           </div>
@@ -63,15 +63,15 @@
             <mat-icon class="info-icon">wc</mat-icon>
             <div class="info-content">
               <span class="info-label">Género</span>
-              <span class="info-value">{{employee.person.genderId}}</span>
+              <span class="info-value">{{getGenderName(employee.person.genderId)}}</span>
             </div>
           </div>
 
           <div class="info-item">
             <mat-icon class="info-icon">flag</mat-icon>
             <div class="info-content">
-              <span class="info-label">Nacionalidad</span>
-              <span class="info-value">{{employee.person.nationalityId}}</span>
+              <span class="info-label">País</span>
+              <span class="info-value">{{getNationalityName(employee.person.nationalityId)}}</span>
             </div>
           </div>
         </div>
@@ -84,15 +84,15 @@
             <mat-icon class="info-icon">business</mat-icon>
             <div class="info-content">
               <span class="info-label">Departamento</span>
-              <span class="info-value">{{employee.department}}</span>
+              <span class="info-value">{{getDepartmentName(employee.departmentID)}}</span>
             </div>
           </div>
 
           <div class="info-item">
             <mat-icon class="info-icon">work</mat-icon>
             <div class="info-content">
-              <span class="info-label">Posición</span>
-              <span class="info-value">{{employee.positionID}}</span>
+              <span class="info-label">Cargo</span>
+              <span class="info-value">{{getPositionName(employee.positionID)}}</span>
             </div>
           </div>
 

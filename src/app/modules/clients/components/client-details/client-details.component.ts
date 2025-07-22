@@ -109,11 +109,15 @@ export class ClientDetailsComponent implements OnInit {
 
   getNationality(id: number): string {
     const nationalities: {[key: number]: string} = {
-      1: 'Ecuatoriana',
-      2: 'Colombiana',
-      3: 'Peruana',
-      4: 'Chilena',
-      5: 'Venezolana'
+      1: 'Argentina',
+      2: 'Bolivia',
+      3: 'Chile',
+      4: 'Colombia',
+      5: 'Ecuador',
+      6: 'Paraguay',
+      7: 'Perú',
+      8: 'Uruguay',
+      9: 'Venezuela',
     };
     return nationalities[id] || `Nacionalidad ${id}`;
   }
