@@ -4,8 +4,7 @@
   <div class="form-container">
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Tipo Actividad</mat-label>
-      <mat-select [(ngModel)]="event.activityTypeID" required name="activityType">
+      <mat-select [(ngModel)]="event.activityTypeID" required placeholder="Tipo de Actividad" name="activityType">
         @for (type of activityTypes; track type.id) {
           <mat-option [value]="type.id">{{type.value}}</mat-option>
         }
@@ -13,22 +12,27 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Proyecto</mat-label>
-      <mat-select [(ngModel)]="event.projectId" required name="project">
-        <mat-option *ngFor="let project of projects" [value]="project.id">
-          {{project.name}}
-        </mat-option>
+      <mat-select [(ngModel)]="event.projectId" required placeholder="Proyecto" name="project">
+        @if (projects.length > 0) {
+          @for (project of projects; track project.id) {
+            <mat-option [value]="project.id">{{project.name}}</mat-option>
+          }
+        } @else {
+          <mat-option disabled>No tienes proyectos asignados</mat-option>
+        }
       </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Descripción</mat-label>
-      <textarea matInput [(ngModel)]="event.activityDescription" rows="3" required name="description"></textarea>
+      <input matInput [(ngModel)]="event.requirementCode" placeholder="Código de Requerimiento" required name="requirementCode">
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Detalle de la actividad</mat-label>
-      <textarea matInput [(ngModel)]="event.details" rows="3" name="details"></textarea>
+      <textarea matInput [(ngModel)]="event.activityDescription" rows="3" placeholder="Descripción" required name="description"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <textarea matInput [(ngModel)]="event.details" rows="3" placeholder="Detalle de la Actividad" name="details"></textarea>
     </mat-form-field>
 
     <div class="duration-container">

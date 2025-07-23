@@ -10,6 +10,7 @@ export interface Activity {
   isBillable: boolean;
   approvedByID: number | null;
   approvalDate: Date | null; // O Date si lo conviertes
+  requirementCode: string;
   status: boolean;
 }
 

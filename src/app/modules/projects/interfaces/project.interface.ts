@@ -41,3 +41,37 @@ export interface ApiResponseByID {
   traceId: string;
   data: []
 }
+
+export interface ProjectDetails {
+  id: number;
+  clientID: number;
+  projectStatusID: number;
+  projectTypeID: number;
+  code: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  actualStartDate: string;
+  actualEndDate: string;
+  budget: number;
+  employeeProjects: {
+    id: number;
+    employeeID: number;
+    supplierID: number;
+    assignedRole: string;
+    costPerHour: number;
+    allocatedHours: number;
+    projectID: number;
+    status: boolean;
+  }[];
+  employeesPersonInfo: {
+    id: number;
+    personID: number;
+    employeeCode: string;
+    identificationNumber: string;
+    firstName: string;
+    lastName: string;
+    status: boolean;
+  }[];
+}

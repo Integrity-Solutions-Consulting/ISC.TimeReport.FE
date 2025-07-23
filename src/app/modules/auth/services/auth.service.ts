@@ -18,9 +18,11 @@ export class AuthService {
   private _userRoles = signal<Role[]>([]);
   private usernameSubject = new BehaviorSubject<string>(this.getUsernameFromStorage());
   username$ = this.usernameSubject.asObservable();
+  private currentEmployeeId = new BehaviorSubject<number | null>(null);
 
   constructor() {
     this.initializeAuthState();
+    this.loadInitialData();
   }
 
   // Inicializa el estado de autenticación al cargar el servicio
@@ -272,6 +274,13 @@ export class AuthService {
     );
   }
 
+  private loadInitialData(): void {
+    const employeeId = localStorage.getItem('employeeID');
+    if (employeeId) {
+      this.currentEmployeeId.next(parseInt(employeeId, 10));
+    }
+  }
+
   getRolesOfUser(userId: number): Observable<any> {
     return this._httpClient.get(`${this.urlBase}/api/users/GetRolesOfUser/${userId}`);
   }
@@ -306,6 +315,10 @@ export class AuthService {
 
   updateUsername(): void {
     this.usernameSubject.next(this.getUsernameFromStorage());
+  }
+
+  public getCurrentEmployeeId(): number | null {
+    return this.currentEmployeeId.value;
   }
 
 }
