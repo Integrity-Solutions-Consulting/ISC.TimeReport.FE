@@ -5,9 +5,8 @@ export interface LoginRequest {
 
 export interface AuthResponseData {
   token: string;
-  email: string;
-  names: string;
-  surnames: string;
+  userID: number;
+  employeeID: number;
   roles: Role[];
   modules: Module[];
 }

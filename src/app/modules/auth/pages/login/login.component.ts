@@ -135,15 +135,17 @@ export class LoginPage implements OnInit {
 
     this.authService.login(credentials).subscribe({
       next: (response) => {
-        const { token, roles, modules } = response.data
+        const { token, roles, modules, employeeID } = response.data
 
         localStorage.setItem("token", token)
         localStorage.setItem("roles", JSON.stringify(roles))
         localStorage.setItem("modules", JSON.stringify(modules))
+        localStorage.setItem("employeeID", employeeID.toString());
 
         this.loginForm.reset()
         this.isLoading = false
         this.router.navigate(["/menu"])
+        this.authService.updateUsername();
       },
       error: (err) => {
         this.isLoading = false

@@ -6,7 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { EmployeeService } from '../../../employees/services/employee.service';
 import { ClientService } from '../../../clients/services/client.service';
-import { debounceTime, distinctUntilChanged, Subject, switchMap, catchError, of, EMPTY, forkJoin, finalize } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, switchMap, catchError, of, EMPTY, forkJoin, finalize, tap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -15,6 +15,7 @@ import { ProjectService } from '../../../projects/services/project.service';
 import { HttpParams } from '@angular/common/http';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ActivityService } from '../../services/activity.service';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-report-dialog',
@@ -67,6 +68,7 @@ export class ReportDialogComponent implements OnInit {
   pageSize = 10;
   hasMoreEmployees = true;
   hasMoreClients = true;
+  currentEmployeeName: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -74,6 +76,7 @@ export class ReportDialogComponent implements OnInit {
     private clientService: ClientService,
     private projectService: ProjectService,
     private dailyActivityService: ActivityService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<ReportDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
@@ -86,8 +89,9 @@ export class ReportDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.currentEmployeeName = this.authService.getUsernameFromStorage();
     this.initializeForm();
-    this.loadEmployees();
+    this.loadClientsForCurrentEmployee();
 
     if (this.data.start) {
       const selectedDate = new Date(this.data.start);
@@ -100,40 +104,98 @@ export class ReportDialogComponent implements OnInit {
 
   initializeForm(): void {
     this.payloadForm = this.fb.group({
-      employeeName: [''],
-      employeeID: ['', Validators.required],
-      clientName: [''],
       clientID: [''],
       year: [new Date().getFullYear(), Validators.required],
       month: [new Date().getMonth() + 1, Validators.required],
       isFullMonth: [false]
     });
 
-    // Cuando cambia el empleado, cargar sus clientes asociados
-    this.payloadForm.get('employeeID')?.valueChanges.subscribe(employeeId => {
-      if (employeeId) {
-        this.loadClientsForEmployee(employeeId);
-      } else {
-        this.clearClientSelection();
-      }
-    });
+    if (this.data.start) {
+      const selectedDate = new Date(this.data.start);
+      this.payloadForm.patchValue({
+        year: selectedDate.getFullYear(),
+        month: selectedDate.getMonth() + 1
+      });
+    }
   }
 
-  loadEmployees(): void {
-    this.loadingEmployees = true;
-    this.employeeService.getEmployees(1, 100).pipe(
-      finalize(() => this.loadingEmployees = false)
+  loadClientsForCurrentEmployee(): void {
+    const employeeId = Number(this.authService.getEmployeeId()); // Convertir a número
+    console.log('Employee ID (number):', employeeId, typeof employeeId);
+
+    this.loadingClients = true;
+    this.clients = [];
+
+    this.dailyActivityService.getActivities().pipe(
+      switchMap((activitiesResponse: any) => {
+        const activities = activitiesResponse.data || [];
+
+        // Comparar con Number() para asegurar tipo numérico
+        const employeeActivities = activities.filter(
+          (activity: any) => Number(activity.employeeID) === employeeId
+        );
+        console.log('Actividades filtradas por empleado:', employeeActivities);
+
+        if (employeeActivities.length === 0) {
+          this.snackBar.open('No hay actividades registradas para este empleado', 'Cerrar', { duration: 3000 });
+          return of([]);
+        }
+
+        const projectIds = [...new Set(employeeActivities.map((a: any) => a.projectID))];
+        console.log('IDs de proyectos encontrados:', projectIds);
+
+        return this.projectService.getProjects().pipe(
+          switchMap((projectsResponse: any) => {
+            const projects = projectsResponse.items || [];
+            console.log('Todos los proyectos:', projects);
+
+            const filteredProjects = projects.filter(
+              (p: any) => projectIds.includes(p.id)
+            );
+            console.log('Proyectos asociados:', filteredProjects);
+
+            if (filteredProjects.length === 0) {
+              this.snackBar.open('No se encontraron proyectos asociados', 'Cerrar', { duration: 3000 });
+              return of([]);
+            }
+
+            const clientIds = [...new Set(filteredProjects.map((p: any) => p.clientID))];
+            console.log('IDs de clientes encontrados:', clientIds);
+
+            return this.clientService.getClients(1, 100).pipe(
+              switchMap((clientsResponse: any) => {
+                const clients = clientsResponse.items || [];
+                console.log('Todos los clientes:', clients);
+
+                const filteredClients = clients.filter(
+                  (c: any) => clientIds.includes(c.id)
+                );
+                console.log('Clientes finales filtrados:', filteredClients);
+
+                if (filteredClients.length === 0) {
+                  this.snackBar.open('No se encontraron clientes asociados', 'Cerrar', { duration: 3000 });
+                }
+
+                return of(filteredClients);
+              })
+            );
+          })
+        );
+      }),
+      catchError(error => {
+        console.error('Error:', error);
+        this.snackBar.open('Error al cargar datos', 'Cerrar', { duration: 3000 });
+        return of([]);
+      })
     ).subscribe({
-      next: (response) => {
-        // La API devuelve los items directamente, no dentro de data
-        this.employees = response.items || [];
-        console.log('Empleados cargados:', this.employees);
+      next: (clients: any[]) => {
+        console.log('Clientes a mostrar:', clients);
+        this.clients = clients;
+        this.loadingClients = false;
       },
       error: (error) => {
-        console.error('Error al cargar empleados:', error);
-        this.snackBar.open('Error al cargar empleados', 'Cerrar', {
-          duration: 3000
-        });
+        console.error('Error final:', error);
+        this.loadingClients = false;
       }
     });
   }
@@ -210,7 +272,7 @@ export class ReportDialogComponent implements OnInit {
         // La API devuelve los datos directamente en data (sin items)
         const activities = activitiesResponse.data || [];
         const employeeActivities = activities.filter(
-          (activity: any) => activity.employeeID === employeeId
+          (activity: any) => activity.employeeID === Number(employeeId)
         );
 
         if (employeeActivities.length === 0) {
@@ -324,51 +386,39 @@ export class ReportDialogComponent implements OnInit {
 
   onSubmit(): void {
     if (this.payloadForm.invalid) {
-      this.snackBar.open('Por favor complete todos los campos requeridos', 'Cerrar', {
-        duration: 3000
-      });
+      this.snackBar.open('Por favor complete todos los campos requeridos', 'Cerrar', { duration: 3000 });
       return;
     }
 
     this.generatingReport = true;
     const formValue = this.payloadForm.value;
-    const employeeId = formValue.employeeID;
-    const clientId = formValue.clientID;
-    const year = formValue.year;
-    const month = formValue.month;
-    const fullMonth = formValue.isFullMonth;
+    const employeeId = this.authService.getEmployeeId();
 
-    // Construir el payload para el reporte
+    if (!employeeId) {
+      this.snackBar.open('No se pudo identificar al empleado', 'Cerrar', { duration: 3000 });
+      this.generatingReport = false;
+      return;
+    }
+
     const payload = {
       employeeId,
-      clientId,
-      year,
-      month,
-      isFullMonth: fullMonth
+      clientId: formValue.clientID,
+      year: formValue.year,
+      month: formValue.month,
+      isFullMonth: formValue.isFullMonth
     };
 
-    // Aquí llamarías al servicio que genera el reporte
     this.generateReport(payload);
   }
 
-  private generateReport(payload: {
-    employeeId: number,
-    clientId: number,
-    year: number,
-    month: number,
-    isFullMonth: boolean
-  }): void {
-    this.generatingReport = true;
-
-    // Configura los parámetros para la API
+  private generateReport(payload: any): void {
     const params = new HttpParams()
       .set('employeeId', payload.employeeId.toString())
-      .set('clientId', payload.clientId?.toString() || '') // clientId es opcional
+      .set('clientId', payload.clientId?.toString() || '')
       .set('year', payload.year.toString())
       .set('month', payload.month.toString())
       .set('fullMonth', payload.isFullMonth.toString());
 
-    // Llama al servicio de reportes
     this.dailyActivityService.exportExcel(params).subscribe({
       next: (blob: Blob) => {
         this.downloadExcelFile(blob, payload);
@@ -378,26 +428,19 @@ export class ReportDialogComponent implements OnInit {
       error: (error) => {
         console.error('Error al generar reporte:', error);
         this.generatingReport = false;
-        this.snackBar.open('Error al generar el reporte Excel', 'Cerrar', {
-          duration: 5000
-        });
+        this.snackBar.open('Error al generar el reporte', 'Cerrar', { duration: 5000 });
       }
     });
   }
 
   private downloadExcelFile(blob: Blob, payload: any): void {
-    // Crea un nombre de archivo descriptivo
-    const fileName = `Reporte_${payload.employeeId}_${payload.year}_${payload.month}.xlsm`;
-
-    // Crea un enlace temporal y simula el click
+    const fileName = `Reporte_${payload.year}_${payload.month}.xlsm`;
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = fileName;
     document.body.appendChild(a);
     a.click();
-
-    // Limpieza
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
   }
