@@ -18,6 +18,7 @@ import { Activity } from '../../interfaces/activity.interface';
 import { Observable, take, map, catchError, throwError } from 'rxjs';
 import { ApiResponse } from '../../interfaces/activity.interface';
 import { ReportDialogComponent } from '../report-dialog/report-dialog.component';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'daily-activities',
@@ -37,6 +38,7 @@ import { ReportDialogComponent } from '../report-dialog/report-dialog.component'
   styleUrl: './daily-activities.component.scss'
 })
 export class DailyActivitiesComponent implements AfterViewInit {
+  currentEmployeeId: number | null = null;
   projectList: Project[] = [];
   activityColors = [
     { id: 1, value: '#2E8B57'},
@@ -108,13 +110,52 @@ export class DailyActivitiesComponent implements AfterViewInit {
     private snackBar: MatSnackBar,
     private router: Router,
     private activityService: ActivityService,
-    private projectService: ProjectService
-  ) {}
+    private projectService: ProjectService,
+    private authService: AuthService,
+  ) {
+    const userData = this.getUserData();
+    this.currentEmployeeId = this.getEmployeeId();
+    console.log('EmployeeID en constructor:', this.currentEmployeeId);
+  }
 
   ngAfterViewInit(): void {
+    console.log('EmployeeID logueado:', this.currentEmployeeId); // Agrega esto para verificar
     this.loadProjects().pipe(take(1)).subscribe(() => {
       this.loadInitialData();
     });
+  }
+
+  private getUserData(): any {
+    // Intenta obtener de localStorage
+    const storedData = localStorage.getItem('userData');
+    if (storedData) {
+      try {
+        return JSON.parse(storedData).data;
+      } catch (e) {
+        console.error('Error parsing userData', e);
+      }
+    }
+    return null;
+  }
+
+  private getEmployeeId(): number | null {
+    // Opción 1: Desde localStorage directamente
+    const employeeId = localStorage.getItem('employeeID');
+    if (employeeId) return parseInt(employeeId, 10);
+
+    // Opción 2: Desde el objeto user en localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        return user.employeeID || null;
+      } catch (e) {
+        console.error('Error parsing user data', e);
+      }
+    }
+
+    // Opción 3: Desde el AuthService (si tiene un método)
+    return this.authService.getCurrentEmployeeId();
   }
 
   private async loadInitialData(): Promise<void> {
@@ -141,12 +182,27 @@ export class DailyActivitiesComponent implements AfterViewInit {
     try {
       const response: ApiResponse | undefined = await this.activityService.getActivities().toPromise();
 
+      console.log('Respuesta completa del servidor:', response); // Debug
+
       if (response?.data) {
-        // Asegúrate de que calendarComponent y su API estén disponibles
+        console.log('Current EmployeeID:', this.currentEmployeeId);
+        console.log('Activities received:', response.data);
+
+        // Filtrar actividades solo para el empleado logueado
+        const filteredActivities = response.data.filter((activity: Activity) => {
+          if (this.currentEmployeeId === null) {
+            console.warn('EmployeeID es null - mostrando todas las actividades');
+            return true; // Mostrar todas si no hay employeeID
+          }
+          return activity.employeeID === this.currentEmployeeId;
+        });
+
+        console.log('Actividades filtradas:', filteredActivities); // Debug
+
         if (this.calendarComponent && this.calendarComponent.getApi()) {
-          this.mapActivitiesToEvents(response.data);
-        } else if (retryCount < 5) { // Aumentar reintentos si es necesario
-          setTimeout(() => this.loadActivities(retryCount + 1), 500); // Esperar un poco más
+          this.mapActivitiesToEvents(filteredActivities);
+        } else if (retryCount < 5) {
+          setTimeout(() => this.loadActivities(retryCount + 1), 500);
         } else {
           console.error('CalendarComponent no disponible después de múltiples intentos');
           this.snackBar.open('No se pudo cargar el calendario. Intente recargar la página.', 'Cerrar');
@@ -164,69 +220,85 @@ export class DailyActivitiesComponent implements AfterViewInit {
   }
 
   private mapActivitiesToEvents(activities: Activity[]): void {
+    console.log('Mapeando actividades a eventos:', activities); // Debug
     const calendarApi = this.calendarComponent.getApi();
-    calendarApi.removeAllEvents(); // Limpiar eventos existentes
+    calendarApi.removeAllEvents();
 
     activities.forEach(activity => {
       try {
         const startDate = this.parseActivityDate(activity.activityDate);
         const hoursQuantity = activity.hoursQuantity;
-
-        // Si hoursQuantity es 8, allDay es true y el evento dura todo el día.
-        // Si no, es un evento de medio día.
         const allDayEvent = hoursQuantity === 8;
         let endDate: Date | undefined = undefined;
 
         if (!allDayEvent) {
-          // Si no es un evento de día completo, calculamos la hora de finalización
-          // Asumimos que si no es día completo, se está registrando por horas
-          // Puedes ajustar la hora de inicio por defecto si es necesario, por ejemplo, 9 AM
           const startDateTime = new Date(startDate);
-          // Puedes decidir si la hora de inicio por defecto para "medio día" es relevante
-          // Por ahora, simplemente agregamos las horas a la fecha de inicio.
           endDate = new Date(startDateTime.getTime() + hoursQuantity * 60 * 60 * 1000);
         }
 
         const project = this.projectList.find(p => p.id === activity.projectID);
         const activityType = this.activityColors.find(t => t.id === activity.activityTypeID);
-        const color = activityType?.value || '#9E9E9E'; // Color por defecto si no se encuentra
+        const color = activityType?.value || '#9E9E9E';
+
+        console.log('Creando evento para actividad:', { // Debug
+          id: activity.id,
+          startDate,
+          endDate,
+          project: project?.name,
+          activityType: activityType?.id
+        });
 
         const eventData = {
           id: activity.id.toString(),
-          title: `${activity.activityDescription} - ${project?.name || 'Sin proyecto'}`,
+          title: `${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`,
           start: startDate,
-          end: endDate, // Solo se establece 'end' si no es un evento de día completo
+          end: endDate,
           allDay: allDayEvent,
-          backgroundColor: color, // FullCalendar lo usará como color base
-          borderColor: color,     // FullCalendar lo usará como color base
-          textColor: this.getTextColor(color), // Asegura el color del texto contrastante
+          backgroundColor: color,
+          borderColor: color,
+          textColor: this.getTextColor(color),
           extendedProps: {
             activityTypeID: activity.activityTypeID,
             projectID: activity.projectID,
             activityDescription: activity.activityDescription,
             notes: activity.notes,
             hoursQuantity: activity.hoursQuantity,
-            isBillable: activity.isBillable,
-            status: activity.status
+            requirementCode: activity.requirementCode,
+            employeeID: activity.employeeID // Añadir esto para debug
           }
         };
-        calendarApi.addEvent(eventData);
+
+        const addedEvent = calendarApi.addEvent(eventData);
+        console.log('Evento añadido al calendario:', addedEvent); // Debug
       } catch (error) {
         console.error(`Error procesando actividad ${activity.id}:`, activity, error);
       }
     });
-    calendarApi.render(); // Asegura el renderizado
+    calendarApi.render();
   }
 
   private parseActivityDate(dateInput: string | Date): Date {
+    console.log('Parseando fecha:', dateInput); // Debug
     if (dateInput instanceof Date) {
       return dateInput;
     }
-    // Asumiendo que dateInput es siempre 'YYYY-MM-DD' del backend
-    const parts = dateInput.split('-').map(Number);
-    // El constructor de Date usa el mes indexado desde 0 (enero es 0, junio es 5)
-    // Esto crea una fecha en la zona horaria local a medianoche.
-    return new Date(parts[0], parts[1] - 1, parts[2]);
+
+    // Asegúrate de que el formato sea correcto
+    if (typeof dateInput === 'string') {
+      // Intenta con formato ISO (YYYY-MM-DD)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+        const parts = dateInput.split('-').map(Number);
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+      // Intenta parsear como fecha ISO completa
+      const parsedDate = new Date(dateInput);
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate;
+      }
+    }
+
+    console.warn('Formato de fecha no reconocido, usando fecha actual', dateInput);
+    return new Date();
   }
 
   private getActivityColor(activity: any): string {
@@ -247,7 +319,8 @@ export class DailyActivitiesComponent implements AfterViewInit {
           activityTypeID: 1, // Puedes elegir un valor por defecto o dejarlo nulo para que el usuario elija
           projectId: null,
           activityDescription: '',
-          details: ''
+          details: '',
+          requirementCode: ''
         },
         isEdit: false,
         projects: this.projectList, // Pasamos la lista de proyectos
@@ -274,7 +347,8 @@ export class DailyActivitiesComponent implements AfterViewInit {
           activityTypeID: 1,
           projectId: null,
           activityDescription: '',
-          details: ''
+          details: '',
+          requirementCode: ''
         },
         isEdit: false,
         projects: this.projectList,
@@ -305,7 +379,6 @@ export class DailyActivitiesComponent implements AfterViewInit {
 
 
   private createActivity(eventData: any): void {
-
     if (!eventData.hoursQuantity && !eventData.activityDate) {
       console.error('Datos incompletos:', eventData);
       this.snackBar.open('Datos incompletos en la actividad', 'Cerrar');
@@ -315,20 +388,20 @@ export class DailyActivitiesComponent implements AfterViewInit {
     const activityDate = this.ensureDateObject(eventData.activityDate);
 
     const activityPayload = {
-      projectID: eventData.projectId, // Mapea projectId → projectID
+      projectID: eventData.projectId,
       activityTypeID: eventData.activityTypeID,
-      hoursQuantity: eventData.hoursQuantity, // Asegúrate que esto viene con valor
+      hoursQuantity: eventData.hoursQuantity,
       activityDate: eventData.activityDate,
       activityDescription: eventData.activityDescription,
-      notes: eventData.notes || '', // Valor por defecto si es undefined
-      isBillable: eventData.isBillable || false,
-      status: eventData.status !== undefined ? eventData.status : true
+      requirementCode: eventData.requirementCode,
+      notes: eventData.notes || '',
+      employeeID: this.currentEmployeeId // Asegúrate de incluir el employeeID
     };
 
     this.activityService.createActivity(activityPayload).subscribe({
       next: (response) => {
         this.snackBar.open('Actividad creada correctamente', 'Cerrar', { duration: 3000 });
-        this.loadActivities(); // Recargar el calendario
+        this.loadActivities();
       },
       error: (error) => {
         if (error.status === 401) {
@@ -366,7 +439,8 @@ export class DailyActivitiesComponent implements AfterViewInit {
       hoursQuantity: eventData.fullDay === 'full' ? 8 : eventData.hours, // Asume 8 horas para día completo
       activityDate: activityDate.toISOString().split('T')[0], // Formato YYYY-MM-DD
       activityDescription: eventData.activityDescription,
-      notes: eventData.details
+      notes: eventData.details,
+      requirementCode: eventData.requirementCode
     };
 
     // Llama al servicio para guardar en el backend
@@ -476,8 +550,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
           // Aseguramos que fullDay se mapee correctamente
           fullDay: extendedProps['hoursQuantity'] === 8,
           hours: extendedProps['hoursQuantity'],
-          isBillable: extendedProps['isBillable'],
-          status: extendedProps['status']
+          requirementCode: extendedProps['requirementCode']
         },
         isEdit: true,
         projects: this.projectList,
@@ -494,8 +567,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
           activityDate: this.formatDate(result.activityDate),
           activityDescription: result.activityDescription,
           notes: result.details,
-          isBillable: result.isBillable, // Asegúrate de pasar estos valores si se editan
-          status: result.status
+          requirementCode: result.requirementCode
         };
 
         this.activityService.updateActivity(Number(result.id), updateData).subscribe({
@@ -518,13 +590,6 @@ export class DailyActivitiesComponent implements AfterViewInit {
   }
 
   handleEventChange(changeInfo: any): void {
-    // Aquí puedes implementar la lógica para actualizar la fecha/hora en el backend
-    // cuando un evento es arrastrado o redimensionado.
-    // changeInfo.event contiene el evento actualizado
-    // changeInfo.oldEvent contiene el evento antes del cambio
-    // changeInfo.revert() se puede usar para revertir el cambio si el backend falla.
-    console.log('Event changed:', changeInfo.event);
-
     const event = changeInfo.event;
     const extendedProps = event.extendedProps;
 
@@ -535,18 +600,18 @@ export class DailyActivitiesComponent implements AfterViewInit {
       activityDate: this.formatDate(event.start),
       activityDescription: extendedProps['activityDescription'],
       notes: extendedProps['notes'],
-      isBillable: extendedProps['isBillable'],
-      status: extendedProps['status']
+      requirementCode: extendedProps['requirementCode'],
+      employeeID: this.currentEmployeeId // Asegúrate de incluir el employeeID
     };
 
     this.activityService.updateActivity(Number(event.id), updatedData).subscribe({
       next: () => {
         this.snackBar.open('Actividad actualizada correctamente (arrastre/redimensionado)', 'Cerrar', { duration: 2000 });
-        this.loadActivities(); // Recargar para asegurar consistencia
+        this.loadActivities();
       },
       error: (error) => {
         console.error('Error al actualizar actividad por arrastre/redimensionado', error);
-        changeInfo.revert(); // Revertir el cambio en el calendario
+        changeInfo.revert();
         this.snackBar.open('Error al actualizar actividad por arrastre/redimensionado', 'Cerrar', { duration: 3000 });
       }
     });

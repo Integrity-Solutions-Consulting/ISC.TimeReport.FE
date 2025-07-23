@@ -74,6 +74,8 @@ export class EventDialogComponent implements OnInit{
     { name: 'Naranja', value: '#FF9800' }
   ];
 
+  currentEmployeeId: number | null = null;
+
   constructor(
     private projectService: ProjectService,
     private activityService: ActivityService,
@@ -91,6 +93,10 @@ export class EventDialogComponent implements OnInit{
     if (data.activityTypes) {
       this.activityTypes = data.activityTypes.map((type: any) => ({ id: type.id, value: this.getActivityTypeName(type.id) }));
     }
+
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    this.currentEmployeeId = userData.data?.employeeID || null;
+
   }
 
   ngOnInit(): void {
@@ -151,6 +157,7 @@ export class EventDialogComponent implements OnInit{
       hoursQuantity: this.isFullDay ? 8 : Number(this.event.hours || 4),
       activityDate: this.formatDate(this.event.activityDate),
       activityDescription: this.event.activityDescription,
+      requirementCode: this.event.requirementCode,
       notes: this.event.details || '',
       fullDay: this.isFullDay // Esto se usa solo internamente en el diálogo
     };
