@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable, signal } from "@angular/core";
 import { environment } from "../../../../environments/environment";
-import { Observable, catchError, map, of, switchMap, tap, throwError } from "rxjs";
+import { BehaviorSubject, Observable, catchError, map, of, switchMap, tap, throwError } from "rxjs";
 import { LoginRequest, AuthResponse, Role, Module } from "../interfaces/auth.interface";
 import { UserWithFullName } from "../../roles/interfaces/role.interface";
 import { EmployeeWithPerson } from "../../employees/interfaces/employee.interface";
@@ -16,6 +16,8 @@ export class AuthService {
   private _isAuthenticated = signal<boolean>(false);
   private _userMenus = signal<string[]>([]);
   private _userRoles = signal<Role[]>([]);
+  private usernameSubject = new BehaviorSubject<string>(this.getUsernameFromStorage());
+  username$ = this.usernameSubject.asObservable();
 
   constructor() {
     this.initializeAuthState();
@@ -143,12 +145,21 @@ export class AuthService {
 
     // Guardar token
     localStorage.setItem('token', authResult.data.token);
+    localStorage.setItem('employeeID', authResult.data.employeeID.toString());
 
-    // Guardar información del usuario si es necesario
+    // Obtener información del empleado usando el employeeID
+    this.getEmployeeInfo(authResult.data.employeeID).subscribe(employee => {
+      if (employee) {
+        const fullName = `${employee.person.firstName} ${employee.person.lastName}`;
+        localStorage.setItem('userFullName', fullName);
+        this.usernameSubject.next(fullName);
+      }
+    });
+
+    // Guardar información del usuario
     localStorage.setItem('user', JSON.stringify({
-      email: authResult.data.email,
-      names: authResult.data.names,
-      surnames: authResult.data.surnames
+      userID: authResult.data.userID,
+      employeeID: authResult.data.employeeID
     }));
 
     // Convertir módulos a rutas de menú
@@ -158,12 +169,14 @@ export class AuthService {
 
     localStorage.setItem('roles', JSON.stringify(authResult.data.roles));
     this._userRoles.set(authResult.data.roles);
+  }
 
-    console.log('Session set:', {
-      token: authResult.data.token,
-      menus: menuPaths,
-      roles: authResult.data.roles // Para debug
-    });
+  private getEmployeeInfo(employeeID: number): Observable<any> {
+    return this._httpClient.get<EmployeeWithPerson>(
+      `${this.urlBase}/api/Employee/GetEmployeeByID/${employeeID}`
+    ).pipe(
+      catchError(() => of(null))
+    );
   }
 
   private clearSession(): void {
@@ -281,6 +294,18 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  getUsernameFromStorage(): string {
+    return localStorage.getItem('userFullName') || 'Usuario';
+  }
+
+  getUsername(): string {
+    return this.getUsernameFromStorage();
+  }
+
+  updateUsername(): void {
+    this.usernameSubject.next(this.getUsernameFromStorage());
   }
 
 }

@@ -19,11 +19,14 @@ export class ActivityService {
 
   getActivities(): Observable<ApiResponse> {
     return this.http.get<ApiResponse>(`${this.urlBase}/api/DailyActivity/GetAllActivities`).pipe(
-      map(response => {
+      tap(response => {
         // Puedes hacer transformaciones adicionales aquí si es necesario
-        return response;
-        console.log(response);
-      })
+        console.log('Respuesta de actividades:', response);
+      }),
+    catchError(error => {
+      console.error('Error obteniendo actividades:', error);
+      return throwError(() => error);
+    })
     );
   }
 
