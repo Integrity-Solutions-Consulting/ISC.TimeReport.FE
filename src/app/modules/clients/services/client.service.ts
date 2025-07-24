@@ -105,4 +105,13 @@ export class ClientService{
         nationalities: this.getNationalities()
       });
     }
+
+    getMyClients(page: number, pageSize: number, search: string = ''): Observable<any> {
+      const params = new HttpParams()
+          .set('PageNumber', page.toString())
+          .set('PageSize', pageSize.toString())
+          .set('search', search);
+
+      return this.http.get<any>(`${this.urlBase}/api/Client/GetMyClients`, { params });
+  }
 }

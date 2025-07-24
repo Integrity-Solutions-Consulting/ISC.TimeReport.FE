@@ -293,6 +293,23 @@ export class AuthService {
     return jwtDecode(token);
   }
 
+  getUserId(): number | null {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+
+    try {
+      const decoded = jwtDecode(token) as {
+        UserID?: string;  // ¡Atención al casing! (UserID vs userID)
+        userID?: string;
+      };
+      return decoded.UserID ? Number(decoded.UserID) :
+            decoded.userID ? Number(decoded.userID) : null;
+    } catch (error) {
+      console.error('Error decodificando token:', error);
+      return null;
+    }
+  }
+
   getEmployeeId(): number | null {
     const token = localStorage.getItem('token');
     if (!token) return null;

@@ -120,84 +120,32 @@ export class ReportDialogComponent implements OnInit {
   }
 
   loadClientsForCurrentEmployee(): void {
-    const employeeId = Number(this.authService.getEmployeeId()); // Convertir a número
-    console.log('Employee ID (number):', employeeId, typeof employeeId);
+      this.loadingClients = true;
+      this.clients = [];
 
-    this.loadingClients = true;
-    this.clients = [];
+      const userId = this.authService.getUserId();
 
-    this.dailyActivityService.getActivities().pipe(
-      switchMap((activitiesResponse: any) => {
-        const activities = activitiesResponse.data || [];
-
-        // Comparar con Number() para asegurar tipo numérico
-        const employeeActivities = activities.filter(
-          (activity: any) => Number(activity.employeeID) === employeeId
-        );
-        console.log('Actividades filtradas por empleado:', employeeActivities);
-
-        if (employeeActivities.length === 0) {
-          this.snackBar.open('No hay actividades registradas para este empleado', 'Cerrar', { duration: 3000 });
-          return of([]);
-        }
-
-        const projectIds = [...new Set(employeeActivities.map((a: any) => a.projectID))];
-        console.log('IDs de proyectos encontrados:', projectIds);
-
-        return this.projectService.getProjects().pipe(
-          switchMap((projectsResponse: any) => {
-            const projects = projectsResponse.items || [];
-            console.log('Todos los proyectos:', projects);
-
-            const filteredProjects = projects.filter(
-              (p: any) => projectIds.includes(p.id)
-            );
-            console.log('Proyectos asociados:', filteredProjects);
-
-            if (filteredProjects.length === 0) {
-              this.snackBar.open('No se encontraron proyectos asociados', 'Cerrar', { duration: 3000 });
-              return of([]);
-            }
-
-            const clientIds = [...new Set(filteredProjects.map((p: any) => p.clientID))];
-            console.log('IDs de clientes encontrados:', clientIds);
-
-            return this.clientService.getClients(1, 100).pipe(
-              switchMap((clientsResponse: any) => {
-                const clients = clientsResponse.items || [];
-                console.log('Todos los clientes:', clients);
-
-                const filteredClients = clients.filter(
-                  (c: any) => clientIds.includes(c.id)
-                );
-                console.log('Clientes finales filtrados:', filteredClients);
-
-                if (filteredClients.length === 0) {
-                  this.snackBar.open('No se encontraron clientes asociados', 'Cerrar', { duration: 3000 });
-                }
-
-                return of(filteredClients);
-              })
-            );
-          })
-        );
-      }),
-      catchError(error => {
-        console.error('Error:', error);
-        this.snackBar.open('Error al cargar datos', 'Cerrar', { duration: 3000 });
-        return of([]);
-      })
-    ).subscribe({
-      next: (clients: any[]) => {
-        console.log('Clientes a mostrar:', clients);
-        this.clients = clients;
-        this.loadingClients = false;
-      },
-      error: (error) => {
-        console.error('Error final:', error);
-        this.loadingClients = false;
+      if (!userId) {
+          this.snackBar.open('No se pudo identificar al usuario', 'Cerrar', { duration: 3000 });
+          this.loadingClients = false;
+          return;
       }
-    });
+
+      this.clientService.getMyClients(1, 100).pipe(
+          finalize(() => this.loadingClients = false)
+      ).subscribe({
+          next: (response: any) => {
+              this.clients = response.items || [];
+
+              if (this.clients.length === 0) {
+                  this.snackBar.open('No hay clientes asociados a este usuario', 'Cerrar', { duration: 3000 });
+              }
+          },
+          error: (error) => {
+              console.error('Error al cargar clientes:', error);
+              this.snackBar.open('Error al cargar clientes', 'Cerrar', { duration: 3000 });
+          }
+      });
   }
 
   onEmployeeSelected(employeeId: number): void {
