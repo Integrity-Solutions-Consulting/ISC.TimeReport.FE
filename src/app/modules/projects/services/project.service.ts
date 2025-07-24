@@ -233,4 +233,13 @@ export class ProjectService {
         responseType: 'blob'
       });
     }
+
+    getProjectsByEmployee(employeeId: number, params: { PageNumber: number, PageSize: number, search?: string }): Observable<any> {
+        const httpParams = new HttpParams()
+            .set('PageNumber', params.PageNumber.toString())
+            .set('PageSize', params.PageSize.toString())
+            .set('search', params.search || '');
+
+        return this.http.get<any>(`${this.urlBase}/api/Project/GetAllProjectsWhereEmployee`, { params: httpParams });
+    }
 }

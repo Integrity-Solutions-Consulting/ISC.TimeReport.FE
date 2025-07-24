@@ -14,6 +14,7 @@ import { Project } from '../../../projects/interfaces/project.interface';
 import { ProjectService } from '../../../projects/services/project.service';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivityService } from '../../services/activity.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-event-dialog',
@@ -79,6 +80,7 @@ export class EventDialogComponent implements OnInit{
   constructor(
     private projectService: ProjectService,
     private activityService: ActivityService,
+    private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<EventDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
@@ -100,11 +102,9 @@ export class EventDialogComponent implements OnInit{
   }
 
   ngOnInit(): void {
-    // Cargar proyectos si no se pasaron al diálogo (aunque ya se pasan desde el padre)
+
     if (!this.projects.length) {
-      // Esto solo se ejecutaría si no se pasan desde el componente padre
-      // Para este caso, ya los estamos pasando, así que esta carga extra no es necesaria
-      // this.loadProjects();
+        this.loadProjects(); // Ahora cargará los proyectos del empleado
     }
 
     if (this.data.isEdit) {
@@ -136,9 +136,26 @@ export class EventDialogComponent implements OnInit{
   }
 
   loadProjects(): void {
-    this.projectService.getProjects().subscribe(projects => {
-      this.projects = projects.items;
-    });
+    if (!this.currentEmployeeId) {
+        this.snackBar.open('No se pudo identificar al empleado', 'Cerrar', { duration: 3000 });
+        return;
+    }
+
+    const params = { PageNumber: 1, PageSize: 100 };
+
+    this.projectService.getProjectsByEmployee(this.currentEmployeeId, params)
+        .subscribe({
+            next: (response) => {
+                this.projects = response.items || [];
+                if (this.projects.length === 0) {
+                    this.snackBar.open('No tienes proyectos asignados', 'Cerrar', { duration: 3000 });
+                }
+            },
+            error: (err) => {
+                this.snackBar.open('Error al cargar proyectos', 'Cerrar', { duration: 3000 });
+                console.error('Error:', err);
+            }
+        });
   }
 
   preparePayload(): any {

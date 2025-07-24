@@ -12,15 +12,15 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-select [(ngModel)]="event.projectId" required placeholder="Proyecto" name="project">
-        @if (projects.length > 0) {
-          @for (project of projects; track project.id) {
-            <mat-option [value]="project.id">{{project.name}}</mat-option>
-          }
-        } @else {
-          <mat-option disabled>No tienes proyectos asignados</mat-option>
-        }
-      </mat-select>
+        <mat-select [(ngModel)]="event.projectId" required placeholder="Proyecto" name="project">
+            @if (projects.length > 0) {
+                @for (project of projects; track project.id) {
+                    <mat-option [value]="project.id">{{project.name}}</mat-option>
+                }
+            } @else {
+                <mat-option disabled>No tienes proyectos asignados</mat-option>
+            }
+        </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
