@@ -24,7 +24,7 @@
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field-half">
         <mat-label style="font-family: 'Poppins'; ">Departamento</mat-label>
-        <mat-select formControlName="department">
+        <mat-select formControlName="departmentID">
           @for (dept of departments; track dept) {
             <mat-option [value]="dept.id">{{dept.name}}</mat-option>
           }
@@ -134,7 +134,7 @@
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
           <mat-label style="font-family: 'Poppins'; ">Género</mat-label>
-          <mat-select formControlName="genderId">
+          <mat-select formControlName="genderID">
             @for (gender of genders; track gender) {
               <mat-option [value]="gender.id">{{gender.name}}</mat-option>
             }
