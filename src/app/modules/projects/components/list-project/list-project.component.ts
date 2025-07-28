@@ -287,10 +287,21 @@ export class ListProjectComponent implements OnInit{
       this.router.navigate([projectId], { relativeTo: this.route });
     }
 
-    openAssignDialog() {
-      const dialogRef = this.dialog.open(AssignmentDialogComponent, {restoreFocus: false});
+    openAssignDialog(project: ProjectWithID) {
+      if (!project.id) {
+        this.snackBar.open("No se puede asignar recursos: ID de proyecto no válido", "Cerrar", {duration: 5000});
+        return;
+      }
 
-      // Manually restore focus to the menu trigger since the element that
-      // opens the dialog won't be in the DOM any more when the dialog closes.
+      const dialogRef = this.dialog.open(AssignmentDialogComponent, {
+        width: '800px',
+        data: { projectId: project.id }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.snackBar.open("Recursos asignados con éxito", "Cerrar", {duration: 5000});
+        }
+      });
     }
 }

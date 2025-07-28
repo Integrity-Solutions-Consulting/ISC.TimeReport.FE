@@ -242,4 +242,22 @@ export class ProjectService {
 
         return this.http.get<any>(`${this.urlBase}/api/Project/GetAllProjectsWhereEmployee`, { params: httpParams });
     }
+
+    assignResourcesToProject(request: any): Observable<any> {
+      return this.http.post(`${this.urlBase}/api/Project/AssignEmployeesToProject`, request);
+    }
+
+    getAllEmployees(pageSize: number, pageNumber: number, search: string): Observable<any> {
+      return this.http.get(`${this.urlBase}/api/Employee/GetAllEmployees`, {
+        params: { pageSize, pageNumber, search }
+      });
+    }
+
+    getInventoryProviders(): Observable<any> {
+      return this.http.get(`${this.urlBase}/api/InventoryApi/GetInventoryProviders`);
+    }
+
+    getPositions(): Observable<any> {
+      return this.http.get(`${this.urlBase}/api/Catalog/positions`);
+    }
 }
