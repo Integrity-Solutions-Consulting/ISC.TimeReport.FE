@@ -75,3 +75,31 @@ export interface ProjectDetails {
     status: boolean;
   }[];
 }
+
+export interface ResourceType {
+  id: number;
+  name: string;
+}
+
+export interface Provider {
+  id: number;
+  businessName: string;
+  supplierType: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface EmployeeForProject {
+  id: number;
+  person: {
+    firstName: string;
+    lastName: string;
+  };
+  positionID: number;
+}
+
+export interface Position {
+  id: number;
+  positionName: string;
+}

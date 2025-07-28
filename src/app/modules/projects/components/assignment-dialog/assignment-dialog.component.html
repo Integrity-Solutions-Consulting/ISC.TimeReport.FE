@@ -1,64 +1,102 @@
+<!-- assignment-dialog.component.html -->
 <h2 mat-dialog-title>Asignación de Recursos</h2>
 <mat-dialog-content>
-
-  <div class="resource-type-section">
-    <div class="type-selector">
-      <span>Tipo de Recurso</span>
-      <mat-form-field appearance="outline">
-        <mat-select placeholder="Seleccione Tipo">
-          @for (type of types; track type) {
-            <mat-option [value]="type.id">{{type.name}}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+  <form [formGroup]="assignmentForm">
+    <div class="resource-type-section">
+      <div class="type-selector">
+        <span>Tipo de Recurso</span>
+        <mat-form-field appearance="outline">
+          <mat-select formControlName="resourceType" (selectionChange)="onResourceTypeChange()" placeholder="Seleccione Tipo">
+            @for (type of resourceTypes; track type) {
+              <mat-option [value]="type.id">{{type.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
     </div>
 
-    <button mat-raised-button style="background-color: var(--itg-primary-bg); color: var(--itg-primary)">
-      Agregar
-      <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="add"></mat-icon>
-    </button>
+    <div class="resource-details">
+      <div class="field-group">
+        <span>Recurso</span>
+        <mat-form-field appearance="outline">
+          <mat-select formControlName="resource">
+            @if (selectedResourceType === 1) {
+              @for (emp of employees; track emp) {
+                <mat-option [value]="emp.id">{{emp.person.firstName}} {{emp.person.lastName}}</mat-option>
+              }
+            } @else {
+              @for (prov of providers; track prov) {
+                <mat-option [value]="prov.id">{{prov.businessName}} ({{prov.supplierType.name}})</mat-option>
+              }
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="field-group">
+        <span>Perfil</span>
+        <mat-form-field appearance="outline">
+          <mat-select formControlName="profile">
+            @if (selectedResourceType === 1) {
+              @for (profile of getProfileOptions(); track profile) {
+                <mat-option [value]="profile.positionName">{{profile.positionName}}</mat-option>
+              }
+            } @else {
+              <mat-option [value]="'Proveedor'">Proveedor</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="field-group">
+        <span>Costo/Hora</span>
+        <mat-form-field appearance="outline">
+          <input matInput type="number" formControlName="costPerHour" placeholder="Ej. 10">
+        </mat-form-field>
+      </div>
+
+      <div class="field-group">
+        <span>Total Horas</span>
+        <mat-form-field appearance="outline">
+          <input matInput type="number" formControlName="totalHours" placeholder="Ej. 40">
+        </mat-form-field>
+      </div>
+
+      <button mat-raised-button
+              style="background-color: var(--itg-primary-bg); color: var(--itg-primary)"
+              (click)="addResource()"
+              [disabled]="!assignmentForm.valid">
+        Agregar
+        <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="add"></mat-icon>
+      </button>
+    </div>
+  </form>
+
+  <div class="selected-resources" *ngIf="selectedResources.length > 0">
+    <h3>Recursos a asignar</h3>
+    <mat-list>
+      @for (resource of selectedResources; track $index) {
+        <mat-list-item>
+          <span matListItemTitle>
+            {{resource.employeeId ? 'Empleado' : 'Proveedor'}} ID: {{resource.employeeId || resource.supplierID}} -
+            Perfil: {{resource.assignedRole}} -
+            Costo/Hora: {{resource.costPerHour | currency:'USD':'symbol':'1.2-2'}} -
+            Horas: {{resource.allocatedHours}}
+          </span>
+          <button mat-icon-button (click)="removeResource($index)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-list-item>
+      }
+    </mat-list>
   </div>
-
-  <div class="resource-details">
-    <div class="field-group">
-      <span>Recurso</span>
-      <mat-form-field appearance="outline">
-        <mat-select>
-          @for (type of types; track type) {
-            <mat-option [value]="type.id">{{type.name}}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
-
-    <div class="field-group">
-      <span>Perfil</span>
-      <mat-form-field appearance="outline">
-        <mat-select>
-          @for (type of types; track type) {
-            <mat-option [value]="type.id">{{type.name}}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
-
-    <div class="field-group">
-      <span>Costo/Hora</span>
-      <mat-form-field appearance="outline">
-        <input matInput type="number" placeholder="Ej. 10">
-      </mat-form-field>
-    </div>
-
-    <div class="field-group">
-      <span>Total Horas</span>
-      <mat-form-field appearance="outline">
-        <input matInput type="number" placeholder="Ej. 40">
-      </mat-form-field>
-    </div>
-  </div>
-
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button style="color: var(--itg-primary)" mat-raised-button mat-dialog-close>Cancelar</button>
-  <button style="background-color: var(--itg-primary); color: var(--itg-bg)" mat-raised-button mat-dialog-close>Asignar</button>
+  <button style="color: var(--itg-primary)" mat-raised-button (click)="cancel()">Cancelar</button>
+  <button style="background-color: var(--itg-primary); color: var(--itg-bg)"
+          mat-raised-button
+          (click)="assignResources()"
+          [disabled]="selectedResources.length === 0">
+    Asignar
+  </button>
 </mat-dialog-actions>

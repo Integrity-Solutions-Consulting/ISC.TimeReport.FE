@@ -15,7 +15,7 @@ import { Router, RouterModule } from '@angular/router';
 import { Project } from '../../../projects/interfaces/project.interface';
 import { ProjectService } from '../../../projects/services/project.service';
 import { Activity } from '../../interfaces/activity.interface';
-import { Observable, take, map, tap, catchError, throwError, of } from 'rxjs';
+import { Observable, take, map, catchError, throwError } from 'rxjs';
 import { ApiResponse } from '../../interfaces/activity.interface';
 import { ReportDialogComponent } from '../report-dialog/report-dialog.component';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -119,11 +119,10 @@ export class DailyActivitiesComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-      console.log('EmployeeID logueado:', this.currentEmployeeId);
-      this.loadProjects().pipe(take(1)).subscribe({
-          next: () => this.loadInitialData(),
-          error: (err) => console.error('Error loading projects:', err)
-      });
+    console.log('EmployeeID logueado:', this.currentEmployeeId); // Agrega esto para verificar
+    this.loadProjects().pipe(take(1)).subscribe(() => {
+      this.loadInitialData();
+    });
   }
 
   private getUserData(): any {
@@ -163,28 +162,20 @@ export class DailyActivitiesComponent implements AfterViewInit {
     await this.loadActivities();
   }
 
-  loadProjects(): Observable<any> {
-      if (!this.currentEmployeeId) {
-          this.snackBar.open('No se pudo identificar al empleado', 'Cerrar', { duration: 3000 });
-          return of(null); // Retorna un Observable vacío
-      }
-
-      const params = { PageNumber: 1, PageSize: 100 };
-
-      return this.projectService.getProjectsByEmployee(this.currentEmployeeId, params).pipe(
-          tap({
-              next: (response) => {
-                  this.projectList = response.items || [];
-                  if (this.projectList.length === 0) {
-                      this.snackBar.open('No tienes proyectos asignados', 'Cerrar', { duration: 3000 });
-                  }
-              },
-              error: (err) => {
-                  this.snackBar.open('Error al cargar proyectos', 'Cerrar', { duration: 3000 });
-                  console.error('Error:', err);
-              }
-          })
-      );
+  loadProjects(): Observable<Project[]> {
+    this.isLoadingProjects = true;
+    return this.projectService.getProjects().pipe(
+      map(projects => {
+        this.projectList = projects.items;
+        this.isLoadingProjects = false;
+        return projects.items;
+      }),
+      catchError(error => {
+        console.error('Error loading projects', error);
+        this.isLoadingProjects = false;
+        return throwError(() => new Error('Error al cargar proyectos'));
+      })
+    );
   }
 
   private async loadActivities(retryCount = 0): Promise<void> {
@@ -328,7 +319,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
           activityTypeID: 1, // Puedes elegir un valor por defecto o dejarlo nulo para que el usuario elija
           projectId: null,
           activityDescription: '',
-          details: '',
+          details: null,
           requirementCode: ''
         },
         isEdit: false,
@@ -448,7 +439,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
       hoursQuantity: eventData.fullDay === 'full' ? 8 : eventData.hours, // Asume 8 horas para día completo
       activityDate: activityDate.toISOString().split('T')[0], // Formato YYYY-MM-DD
       activityDescription: eventData.activityDescription,
-      notes: eventData.details,
+      notes: eventData.details || '',
       requirementCode: eventData.requirementCode
     };
 
