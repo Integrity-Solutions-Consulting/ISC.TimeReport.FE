@@ -1,0 +1,43 @@
+<!-- role-dialog.component.html -->
+<h2 mat-dialog-title>{{isEditMode ? 'Editar Rol' : 'Crear Nuevo Rol'}}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="roleForm">
+    <div *ngIf="isLoading" class="loading-overlay">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <div [style.opacity]="isLoading ? 0.5 : 1">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre del Rol</mat-label>
+        <input matInput formControlName="roleName" required>
+        <mat-error *ngIf="roleForm.get('roleName')?.hasError('required')">
+          El nombre del rol es requerido
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="description" rows="3"></textarea>
+      </mat-form-field>
+
+      <h3>Módulos Accesibles</h3>
+      <mat-selection-list formControlName="moduleIds">
+        <mat-list-option *ngFor="let module of allModules"
+                        [value]="module.id"
+                        checkboxPosition="before">
+          <div matLine>{{module.moduleName}}</div>
+        </mat-list-option>
+      </mat-selection-list>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="isLoading">Cancelar</button>
+  <button mat-raised-button color="primary"
+          (click)="onSave()"
+          [disabled]="roleForm.invalid || isLoading">
+    {{isEditMode ? 'Actualizar' : 'Crear'}}
+  </button>
+</mat-dialog-actions>

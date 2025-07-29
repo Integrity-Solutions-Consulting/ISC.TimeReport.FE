@@ -1,15 +1,14 @@
-import { GetAllUsersResponse, UserWithFullName } from './../interfaces/role.interface';
+import { GetAllUsersResponse, User, UserWithFullName } from '../interfaces/user.interface';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { EmployeeWithPerson } from '../../employees/interfaces/employee.interface';
-import { Role } from '../../auth/interfaces/auth.interface';
 
 @Injectable({
   providedIn: 'root'
 })
-export class RoleService {
+export class UserService {
 
   urlBase: string = environment.URL_BASE;
 
@@ -37,17 +36,22 @@ export class RoleService {
       );
   }
 
-  getRoles(): Observable<Role[]> {
-    return this.http.get<{data: Role[]}>(`${this.urlBase}/api/auth/GetRoles`).pipe(
-      map(response => response.data)
+  createUser(userData: User): Observable<User> {
+      return this.http.post<User>(`${this.urlBase}/api/auth/register`, userData);
+    }
+
+  assignRolesToUser(userId: number, roleIds: number[]): Observable<any> {
+    const url = `${this.urlBase}/api/users/AssignRolesToUser`;
+    const body = {
+      userID: userId,
+      rolesIDs: roleIds
+    };
+
+    return this.http.post(url, body).pipe(
+      catchError(error => {
+        console.error('Error assigning roles:', error);
+        return throwError(() => error);
+      })
     );
-  }
-
-  createRole(role: {roleName: string, description: string, moduleIds: number[]}): Observable<any> {
-    return this.http.post(`${this.urlBase}/api/auth/roles`, role);
-  }
-
-  updateRole(id: number, role: {roleName: string, description: string, moduleIds: number[]}): Observable<any> {
-    return this.http.put(`${this.urlBase}/api/auth/UpdateRole/${id}`, role);
   }
 }

@@ -12,8 +12,9 @@ import { RoleService } from '../../services/role.service';
 import { CommonModule } from '@angular/common';
 import { UserRolesDialogComponent } from '../user-roles-dialog/user-roles-dialog.component';
 import { RoleEditDialogComponent } from '../role-edit-dialog/role-edit-dialog.component';
+import { RoleDialogComponent } from '../role-dialog/role-dialog.component';
 import { AuthService } from '../../../auth/services/auth.service';
-import { Role } from '../../../auth/interfaces/auth.interface';
+import { Role, Module } from '../../../auth/interfaces/auth.interface';
 
 @Component({
   selector: 'roles-list',
@@ -36,16 +37,15 @@ export class RolesListComponent implements OnInit, AfterViewInit {
   private authService = inject(AuthService);
   private dialog = inject(MatDialog);
 
-  dataSource: MatTableDataSource<User> = new MatTableDataSource<User>([]);
+  displayedColumns: string[] = ['roleName', 'description', 'modules', 'actions'];
+  dataSource: MatTableDataSource<any> = new MatTableDataSource();
+  allModules: Module[] = [];
   allRoles: Role[] = [];
 
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  displayedColumns: string[] = ['names', 'username', 'status', 'roles', 'options'];
-
   ngOnInit(): void {
-    this.loadUsers();
     this.loadRoles();
   }
 
@@ -54,24 +54,15 @@ export class RolesListComponent implements OnInit, AfterViewInit {
     this.dataSource.paginator = this.paginator;
   }
 
-  loadUsers(): void {
-    this.roleService.getAllUsers().subscribe({
-      next: (usersWithFullName: UserWithFullName[]) => {  // Recibe directamente el array
-        this.dataSource.data = usersWithFullName;
-      },
-      error: (err) => {
-        console.error('Error fetching users:', err);
-      }
-    });
-  }
-
   loadRoles(): void {
-    this.authService.getRoles().subscribe(roles => {
-      this.allRoles = roles;
+    this.roleService.getRoles().subscribe(roles => {
+      this.dataSource.data = roles;
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
     });
   }
 
-  applyFilter(event: Event) {
+  applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
 
@@ -80,22 +71,21 @@ export class RolesListComponent implements OnInit, AfterViewInit {
     }
   }
 
-  openRolesDialog(user: UserWithFullName): void {
-    const dialogRef = this.dialog.open(UserRolesDialogComponent, {
-      data: { user }
+  formatModules(modules: any[]): string {
+    return modules.map(m => m.moduleName).join(', ');
+  }
+
+  openEditRoleDialog(role: any): void {
+    const dialogRef = this.dialog.open(RoleDialogComponent, {
+      width: '600px',
+      data: { role, modules: this.allModules }
     });
 
-    dialogRef.afterClosed().subscribe((updatedUser?: UserWithFullName) => {
-      if (updatedUser) {
-        // Actualizar manualmente la lista
-        const index = this.dataSource.data.findIndex(u => u.id === updatedUser.id);
-        if (index !== -1) {
-          this.dataSource.data[index] = updatedUser;
-          this.dataSource._updateChangeSubscription();
-        }
-
-        // Forzar recarga después de 1 segundo (simula persistencia)
-        setTimeout(() => this.loadUsers(), 1000);
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.roleService.updateRole(role.id, result).subscribe(() => {
+          this.loadRoles();
+        });
       }
     });
   }

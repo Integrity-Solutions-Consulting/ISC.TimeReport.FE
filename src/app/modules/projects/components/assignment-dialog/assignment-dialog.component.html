@@ -1,5 +1,10 @@
 <!-- assignment-dialog.component.html -->
-<h2 mat-dialog-title>Asignación de Recursos</h2>
+<h2 mat-dialog-title>
+  Asignación de Recursos - {{data.projectName}}
+  <button mat-icon-button class="close-button" (click)="cancel()">
+    <mat-icon>close</mat-icon>
+  </button>
+</h2>
 <mat-dialog-content>
   <form [formGroup]="assignmentForm">
     <div class="resource-type-section">
@@ -38,8 +43,8 @@
         <mat-form-field appearance="outline">
           <mat-select formControlName="profile">
             @if (selectedResourceType === 1) {
-              @for (profile of getProfileOptions(); track profile) {
-                <mat-option [value]="profile.positionName">{{profile.positionName}}</mat-option>
+              @for (position of positions; track position) {
+                <mat-option [value]="position.positionName">{{position.positionName}}</mat-option>
               }
             } @else {
               <mat-option [value]="'Proveedor'">Proveedor</mat-option>
@@ -73,22 +78,64 @@
   </form>
 
   <div class="selected-resources" *ngIf="selectedResources.length > 0">
-    <h3>Recursos a asignar</h3>
-    <mat-list>
-      @for (resource of selectedResources; track $index) {
-        <mat-list-item>
-          <span matListItemTitle>
-            {{resource.employeeId ? 'Empleado' : 'Proveedor'}} ID: {{resource.employeeId || resource.supplierID}} -
-            Perfil: {{resource.assignedRole}} -
-            Costo/Hora: {{resource.costPerHour | currency:'USD':'symbol':'1.2-2'}} -
-            Horas: {{resource.allocatedHours}}
-          </span>
-          <button mat-icon-button (click)="removeResource($index)">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </mat-list-item>
-      }
-    </mat-list>
+    <h4>Recursos a asignar ({{selectedResources.length}})</h4>
+
+    <div class="table-container">
+      <table mat-table [dataSource]="selectedResources">
+        <!-- Columna Tipo -->
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef> Tipo </th>
+          <td mat-cell *matCellDef="let element">
+            {{element.employeeId ? 'Empleado' : 'Proveedor'}}
+          </td>
+        </ng-container>
+
+        <!-- Columna Nombre -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef> Nombre </th>
+          <td mat-cell *matCellDef="let element">
+            {{getResourceName(element)}}
+          </td>
+        </ng-container>
+
+        <!-- Columna Perfil -->
+        <ng-container matColumnDef="profile">
+          <th mat-header-cell *matHeaderCellDef> Perfil </th>
+          <td mat-cell *matCellDef="let element">
+            {{element.assignedRole}}
+          </td>
+        </ng-container>
+
+        <!-- Columna Costo/Hora -->
+        <ng-container matColumnDef="cost">
+          <th mat-header-cell *matHeaderCellDef> Costo/Hora </th>
+          <td mat-cell *matCellDef="let element">
+            {{element.costPerHour | currency:'USD':'symbol':'1.2-2'}}
+          </td>
+        </ng-container>
+
+        <!-- Columna Horas -->
+        <ng-container matColumnDef="hours">
+          <th mat-header-cell *matHeaderCellDef> Horas </th>
+          <td mat-cell *matCellDef="let element">
+            {{element.allocatedHours}}
+          </td>
+        </ng-container>
+
+        <!-- Columna Acciones -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef> Acciones </th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <button mat-icon-button (click)="removeResource(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
   </div>
 </mat-dialog-content>
 <mat-dialog-actions>

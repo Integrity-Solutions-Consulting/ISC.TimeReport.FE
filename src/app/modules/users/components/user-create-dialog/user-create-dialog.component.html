@@ -1,0 +1,60 @@
+<!-- user-create-dialog.component.html -->
+<h2 mat-dialog-title>Nuevo Usuario</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="userForm" class="user-form">
+
+    <mat-form-field appearance="outline" class="full-width">
+      <input matInput
+             (input)="onSearchChange($event)"
+             placeholder="Empleado">
+
+      <mat-select formControlName="employeeID" required>
+        <mat-option
+          *ngFor="let employee of employees"
+          [value]="employee.id">
+          {{employee.person.firstName}} {{employee.person.lastName}} - {{employee.person.identificationNumber}}
+        </mat-option>
+      </mat-select>
+
+      <mat-error *ngIf="userForm.get('employeeID')?.hasError('required')">
+        El empleado es obligatorio
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Campo de Correo Corporativo (solo lectura) -->
+    <mat-form-field appearance="outline" class="full-width">
+      <input matInput
+             formControlName="corporateEmail"
+             readonly
+             placeholder="Correo Corporativo">
+      <mat-icon matSuffix>email</mat-icon>
+    </mat-form-field>
+
+    <!-- Nombre de usuario (sin autocompletado) -->
+    <mat-form-field appearance="outline" class="full-width">
+      <input matInput formControlName="username" placeholder="Nombre de Usuario" required>
+      <mat-error *ngIf="userForm.get('username')?.hasError('required')">
+        El nombre de usuario es obligatorio
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Roles -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-select formControlName="rolesID" multiple placeholder="Roles" required>
+        <mat-option *ngFor="let role of roles" [value]="role.id">
+          {{role.roleName}}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="userForm.get('rolesID')?.hasError('required')">
+        Debe seleccionar al menos un rol
+      </mat-error>
+    </mat-form-field>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="!userForm.valid">Crear</button>
+</mat-dialog-actions>

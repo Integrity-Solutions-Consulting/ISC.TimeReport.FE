@@ -3,6 +3,38 @@
   width: 100%;
 }
 
+.dialog-content {
+  max-height: 70vh;  // 70% del viewport height
+  overflow-y: auto;  // Scroll vertical cuando sea necesario
+  padding: 16px;
+}
+
+.table-container {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+
+  table {
+    width: 100%;
+
+    // Estilo para filas alternadas
+    tr:nth-child(even) {
+      background-color: #f5f5f5;
+    }
+
+    // Estilo para hover
+    tr:hover {
+      background-color: #e0e0e0;
+    }
+  }
+}
+
+.selected-resources h4 {
+  margin: 16px 0 8px 0;
+  color: var(--itg-primary);
+  font-size: 1.1em;
+}
+
 .mat-dialog-container {
   padding: 24px;
   border-radius: 8px;
@@ -55,6 +87,50 @@
   button {
     margin-bottom: 5px;
   }
+}
+
+.selected-resources {
+  margin-top: 20px;
+}
+
+.selected-resources h3 {
+  margin-bottom: 10px;
+  color: var(--itg-primary);
+}
+
+table {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.mat-header-cell {
+  background-color: var(--itg-primary);
+  color: white;
+  font-weight: bold;
+}
+
+.mat-cell, .mat-header-cell {
+  padding: 8px 16px;
+}
+
+.mat-dialog-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  margin: 0;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: var(--itg-primary);
+  color: white;
+
+  .close-button {
+    color: white;
+  }
+}
+
+.mat-dialog-content {
+  padding: 24px;
 }
 
 .resource-details {

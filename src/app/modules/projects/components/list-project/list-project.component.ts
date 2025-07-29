@@ -290,12 +290,16 @@ export class ListProjectComponent implements OnInit{
     openAssignDialog(project: ProjectWithID) {
       if (!project.id) {
         this.snackBar.open("No se puede asignar recursos: ID de proyecto no válido", "Cerrar", {duration: 5000});
+        console.log('Proyecto recibido:', project);
         return;
       }
 
       const dialogRef = this.dialog.open(AssignmentDialogComponent, {
         width: '800px',
-        data: { projectId: project.id }
+        data: {
+          projectId: project.id,
+          projectName: project.name // Pasamos el nombre del proyecto
+        }
       });
 
       dialogRef.afterClosed().subscribe(result => {
