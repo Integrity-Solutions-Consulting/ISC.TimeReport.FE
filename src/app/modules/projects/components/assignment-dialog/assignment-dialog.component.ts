@@ -12,6 +12,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 
+interface DialogData {
+  projectId: number;
+  projectName: string;
+  employeesPersonInfo?: any[]; // Añade esta propiedad
+}
+
 @Component({
   standalone: true,
   selector: 'app-assignment-dialog',
@@ -44,6 +50,7 @@ export class AssignmentDialogComponent {
   selectedResourceType: number = 1;
   selectedResources: any[] = [];
   projectName: string = '';
+  existingAssignments: any[] = [];
 
   displayedColumns: string[] = ['type', 'name', 'profile', 'cost', 'hours', 'actions'];
 
@@ -52,7 +59,7 @@ export class AssignmentDialogComponent {
     private projectService: ProjectService,
     public dialogRef: MatDialogRef<AssignmentDialogComponent>,
     private currencyPipe: CurrencyPipe,
-    @Inject(MAT_DIALOG_DATA) public data: { projectId: number, projectName: string }
+    @Inject(MAT_DIALOG_DATA) public data: DialogData
   ) {
     this.assignmentForm = this.fb.group({
       resourceType: [1, Validators.required],
@@ -63,6 +70,7 @@ export class AssignmentDialogComponent {
     });
 
     this.loadInitialData();
+    this.loadProjectDetails();
   }
 
   async loadInitialData() {
@@ -84,6 +92,25 @@ export class AssignmentDialogComponent {
       console.log('Positions:', this.positions);
     } catch (error) {
       console.error('Error loading initial data:', error);
+    }
+  }
+
+  async loadProjectDetails() {
+    try {
+      const projectDetails = await this.projectService.getProjectDetailByID(this.data.projectId).toPromise();
+      this.existingAssignments = projectDetails?.employeeProjects || [];
+
+      // Transformar los datos para que coincidan con la estructura de selectedResources
+      this.existingAssignments = this.existingAssignments.map(assignment => ({
+        employeeId: assignment.employeeID || null,
+        supplierID: assignment.supplierID || null,
+        assignedRole: assignment.assignedRole,
+        costPerHour: assignment.costPerHour,
+        allocatedHours: assignment.allocatedHours,
+        isExisting: true // Marcar como asignación existente
+      }));
+    } catch (error) {
+      console.error('Error loading project details:', error);
     }
   }
 
@@ -148,9 +175,16 @@ export class AssignmentDialogComponent {
 
   getResourceName(resource: any): string {
     if (resource.employeeId) {
-      const employee = this.employees.find(e => e.id === resource.employeeId);
-      return employee ? `${employee.person.firstName} ${employee.person.lastName}` : 'Empleado no encontrado';
+      // Buscar en employeesPersonInfo para asignaciones existentes
+      if (this.data.employeesPersonInfo) {
+        const employee = this.data.employeesPersonInfo.find(e => e.id === resource.employeeId);
+        if (employee) return `${employee.firstName} ${employee.lastName}`;
+      }
+      // Buscar en la lista de empleados cargada para nuevos
+      const newEmployee = this.employees.find(e => e.id === resource.employeeId);
+      return newEmployee ? `${newEmployee.person.firstName} ${newEmployee.person.lastName}` : 'Empleado no encontrado';
     } else {
+      // Proveedor - buscar en la lista cargada
       const provider = this.providers.find(p => p.id === resource.supplierID);
       return provider ? provider.businessName : 'Proveedor no encontrado';
     }
@@ -158,10 +192,25 @@ export class AssignmentDialogComponent {
 
   assignResources() {
     if (this.selectedResources.length > 0) {
-      const projectId = this.data.projectId; // Asumimos que pasamos el projectId al diálogo
+      const projectId = this.data.projectId;
+
+      // Combinar asignaciones existentes (si es necesario) con las nuevas
+      const allAssignments = [
+        ...this.existingAssignments.filter(a => !a.isExisting), // si hay alguna lógica de filtrado
+        ...this.selectedResources
+      ];
+
       const request = {
         projectID: projectId,
-        employeeProjectMiddle: this.selectedResources
+        employeeProjectMiddle: allAssignments.map(resource => ({
+          employeeID: resource.employeeId || null,
+          supplierID: resource.supplierID || null,
+          assignedRole: resource.assignedRole,
+          costPerHour: resource.costPerHour,
+          allocatedHours: resource.allocatedHours,
+          projectID: projectId,
+          status: true
+        }))
       };
 
       this.projectService.assignResourcesToProject(request).subscribe({
