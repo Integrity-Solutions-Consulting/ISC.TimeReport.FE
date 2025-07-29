@@ -20,6 +20,7 @@ export interface Employee {
   employeeCode: string;
   contractType: boolean;
   status: boolean;
+  corporateEmail: string;
   department?: string | null;
   salary?: number | null;
 }

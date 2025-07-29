@@ -1,0 +1,38 @@
+<!-- user-roles-dialog.component.html -->
+<h4 mat-dialog-title>Gestionar Roles de Usuario</h4>
+
+<mat-dialog-content>
+  <div class="user-info">
+    <h3>{{data.user.fullName}}</h3>
+    <p>{{data.user.username}}</p>
+  </div>
+
+  <form [formGroup]="rolesForm" *ngIf="!isLoading">
+    <h3>Roles Disponibles</h3>
+    <p>Seleccione los roles que desea asignar al usuario</p>
+
+    <mat-selection-list formControlName="roleIds">
+      <mat-list-option *ngFor="let role of allRoles" [value]="role.id" checkboxPosition="before">
+        <div matLine>{{role.roleName}}</div>
+        <div matLine class="role-description">{{role.description}}</div>
+      </mat-list-option>
+    </mat-selection-list>
+
+    <mat-error *ngIf="rolesForm.get('roleIds')?.hasError('required')">
+      Debe seleccionar al menos un rol
+    </mat-error>
+  </form>
+
+  <div class="loading-spinner" *ngIf="isLoading || isSaving">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span *ngIf="isSaving">Guardando cambios...</span>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="isSaving">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="rolesForm.invalid || isSaving">
+    <span *ngIf="!isSaving">Guardar Cambios</span>
+    <span *ngIf="isSaving">Guardando...</span>
+  </button>
+</mat-dialog-actions>

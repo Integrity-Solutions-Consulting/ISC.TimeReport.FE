@@ -10,6 +10,7 @@ import { MatListModule } from '@angular/material/list';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
 
 @Component({
   standalone: true,
@@ -26,6 +27,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatInputModule,
     MatListModule,
     MatSelectModule,
+    MatTableModule,
     ReactiveFormsModule
   ]
 })
@@ -41,13 +43,16 @@ export class AssignmentDialogComponent {
   positions: any[] = [];
   selectedResourceType: number = 1;
   selectedResources: any[] = [];
+  projectName: string = '';
+
+  displayedColumns: string[] = ['type', 'name', 'profile', 'cost', 'hours', 'actions'];
 
   constructor(
     private fb: FormBuilder,
     private projectService: ProjectService,
     public dialogRef: MatDialogRef<AssignmentDialogComponent>,
     private currencyPipe: CurrencyPipe,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: { projectId: number, projectName: string }
   ) {
     this.assignmentForm = this.fb.group({
       resourceType: [1, Validators.required],
@@ -94,41 +99,61 @@ export class AssignmentDialogComponent {
 
   getProfileOptions() {
     if (this.selectedResourceType === 1) {
-      const selectedEmployeeId = this.assignmentForm.get('resource')?.value;
-      const employee = this.employees.find(e => e.id === selectedEmployeeId);
-
-      if (employee) {
-        // Buscar la posición en el catálogo
-        const position = this.positions.find(p => p.id === employee.positionID);
-        return position ? [position] : [];
-      }
+      // Mostrar todas las posiciones para empleados
+      return this.positions;
     }
-    return [];
+    // Para proveedores mostrar solo la opción "Proveedor"
+    return [{ positionName: 'Proveedor' }];
   }
 
   addResource() {
     if (this.assignmentForm.valid) {
       const formValue = this.assignmentForm.value;
-      const resource = {
+
+      // Crear nuevo recurso
+      const newResource = {
         employeeId: this.selectedResourceType === 1 ? formValue.resource : null,
         supplierID: this.selectedResourceType === 2 ? formValue.resource : null,
         assignedRole: formValue.profile,
         costPerHour: formValue.costPerHour,
-        allocatedHours: formValue.totalHours
+        allocatedHours: formValue.totalHours,
+        // Agregar timestamp para key único
+        timestamp: new Date().getTime()
       };
-      this.selectedResources.push(resource);
-      this.assignmentForm.reset({
-        resourceType: this.selectedResourceType,
+
+      // Agregar a la lista
+      this.selectedResources = [...this.selectedResources, newResource];
+
+      // Resetear el formulario manteniendo el tipo de recurso
+      this.assignmentForm.patchValue({
         resource: null,
         profile: null,
         costPerHour: 0,
         totalHours: 0
+      });
+
+      // Enfocar el primer campo para nueva entrada
+      setTimeout(() => {
+        const firstField = document.querySelector('mat-select[formControlName="resource"]');
+        if (firstField) {
+          (firstField as HTMLElement).focus();
+        }
       });
     }
   }
 
   removeResource(index: number) {
     this.selectedResources.splice(index, 1);
+  }
+
+  getResourceName(resource: any): string {
+    if (resource.employeeId) {
+      const employee = this.employees.find(e => e.id === resource.employeeId);
+      return employee ? `${employee.person.firstName} ${employee.person.lastName}` : 'Empleado no encontrado';
+    } else {
+      const provider = this.providers.find(p => p.id === resource.supplierID);
+      return provider ? provider.businessName : 'Proveedor no encontrado';
+    }
   }
 
   assignResources() {

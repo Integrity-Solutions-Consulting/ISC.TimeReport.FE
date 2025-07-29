@@ -13,7 +13,6 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { BrowserModule } from '@angular/platform-browser';
 import { MatSelectModule } from '@angular/material/select';
-import { Project } from '../interfaces/dashboard.interface';
 import { CommonModule } from '@angular/common';
 import { Color, ScaleType, NgxChartsModule, LegendPosition } from '@swimlane/ngx-charts';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -33,6 +32,19 @@ interface RecursoResponse {
   clientName: string;
   totalRecursos: number;
   porcentaje: number
+}
+
+interface ResumenGeneralResponse {
+  totalProyectosActivos: number;
+  totalClientes: number;
+  totalEmpleados: number;
+  proyectosPlanificacion: number;
+  proyectosAprobados: number;
+  proyectosEnProgreso: number;
+  proyectosEnEspera: number;
+  proyectosCancelados: number;
+  proyectosCompletos: number;
+  proyectosAplazados: number;
 }
 
 interface Proyecto {
@@ -134,48 +146,7 @@ export class DashboardComponent implements OnInit{
 
   view: number[] = [700, 400];
 
-  data3 = [
-    {
-      "name": "Germany",
-      "value": 8940000
-    },
-    {
-      "name": "USA",
-      "value": 5000000
-    },
-    {
-      "name": "France",
-      "value": 7200000
-    },
-    {
-      "name": "UK",
-      "value": 5200000
-    },
-    {
-      "name": "Italy",
-      "value": 7700000
-    },
-    {
-      "name": "Spain",
-      "value": 4300000
-    },
-    {
-      "name": "Ecuador",
-      "value": 4300000
-    },
-    {
-      "name": "Brazil",
-      "value": 4300000
-    },
-    {
-      "name": "Japan",
-      "value": 4300000
-    },
-    {
-      "name": "Argentina",
-      "value": 4300000
-    }
-  ];
+  data3: any[] = [];
 
   cardColor: string = "var(--itg-bg)";
 
@@ -185,6 +156,7 @@ export class DashboardComponent implements OnInit{
     this.loadDataForDate(new Date());
     this.loadResourcesData();
     this.loadDataForTable();
+    this.loadGeneralSummary();
     this.dateControl.valueChanges.subscribe((date: Date | null) => {
       if (date) {
         this.loadDataForDate(date);
@@ -246,6 +218,35 @@ export class DashboardComponent implements OnInit{
     // Opcional: Mostrar mensaje de error al usuario
   }
 
+  loadGeneralSummary(): void {
+    this.http.get<ResumenGeneralResponse>(`${this.urlBase}/api/Dashboard/resumen-general`)
+      .subscribe({
+        next: (response) => {
+          this.data3 = [
+            { name: 'Proyectos Activos', value: response.totalProyectosActivos },
+            { name: 'Clientes', value: response.totalClientes },
+            { name: 'Empleados', value: response.totalEmpleados },
+            { name: 'En Planificación', value: response.proyectosPlanificacion },
+            { name: 'Aprobados', value: response.proyectosAprobados },
+            { name: 'En Progreso', value: response.proyectosEnProgreso },
+            { name: 'En Espera', value: response.proyectosEnEspera },
+            { name: 'Cancelados', value: response.proyectosCancelados },
+            { name: 'Completados', value: response.proyectosCompletos },
+            { name: 'Aplazados', value: response.proyectosAplazados }
+          ];
+        },
+        error: (err) => {
+          console.error('Error al cargar el resumen general:', err);
+          // Opcional: Puedes inicializar data3 con valores por defecto en caso de error
+          this.data3 = [
+            { name: 'Proyectos Activos', value: 0 },
+            { name: 'Clientes', value: 0 },
+            // ... otros valores por defecto
+          ];
+        }
+      });
+  }
+
   loadResourcesData(): void {
     this.http.get<RecursoResponse[]>(`${this.urlBase}/api/Dashboard/recursos-por-cliente`)
       .subscribe({
@@ -260,6 +261,10 @@ export class DashboardComponent implements OnInit{
           console.error('Error al cargar recursos por cliente:', err);
         }
       });
+  }
+
+  loadDataForCards(): void {
+    this.http.get
   }
 
   loadDataForTable(): void {

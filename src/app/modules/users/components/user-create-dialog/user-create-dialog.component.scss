@@ -1,0 +1,19 @@
+/* user-create-dialog.component.scss */
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.mat-select-panel {
+  max-height: 300px !important;
+}
+
+.mat-form-field-disabled .mat-form-field-outline {
+  background-color: #f5f5f5;
+  opacity: 1;
+}

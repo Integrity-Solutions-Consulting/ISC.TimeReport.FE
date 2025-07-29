@@ -15,18 +15,17 @@ export const menuRoutes: Routes = [
           {
             path: 'dashboard',
             loadChildren: () => import('../dashboard/dashboard.routes').then((m) => m.dashboardRoutes),
+
           },
           {
             path: 'clients',
             loadChildren: () => import('../clients/clients.routes').then((m) => m.clientsRoutes),
-            /*canActivate: [RoleGuard],
-            data: { roles: ['Administrador'] }*/
+
           },
           {
             path: 'leaders',
             loadChildren: () => import('../leaders/leaders.routes').then((m) => m.LeaderRoutes),
-            /*canActivate: [RoleGuard],
-            data: { roles: ['Administrador', 'Gerente'] }*/
+
           },
           {
             path: 'persons',
@@ -57,6 +56,10 @@ export const menuRoutes: Routes = [
           {
             path: 'settings',
             loadChildren: () => import('../roles/roles.routes').then((m) => m.rolesRoutes),
+          },
+          {
+            path: 'users',
+            loadChildren: () => import('../users/users.routes').then((m) => m.usersRoutes),
           }
         ]
     },
