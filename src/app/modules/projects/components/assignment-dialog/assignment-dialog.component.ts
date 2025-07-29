@@ -51,6 +51,7 @@ export class AssignmentDialogComponent {
   selectedResources: any[] = [];
   projectName: string = '';
   existingAssignments: any[] = [];
+  assignmentsToDelete: number[] = [];
 
   displayedColumns: string[] = ['type', 'name', 'profile', 'cost', 'hours', 'actions'];
 
@@ -102,6 +103,7 @@ export class AssignmentDialogComponent {
 
       // Transformar los datos para que coincidan con la estructura de selectedResources
       this.existingAssignments = this.existingAssignments.map(assignment => ({
+        id: assignment.id || null,
         employeeId: assignment.employeeID || null,
         supplierID: assignment.supplierID || null,
         assignedRole: assignment.assignedRole,
@@ -169,8 +171,24 @@ export class AssignmentDialogComponent {
     }
   }
 
-  removeResource(index: number) {
-    this.selectedResources.splice(index, 1);
+  removeResource(index: number, isExisting: boolean = false) {
+    if (isExisting) {
+      // Guardamos el ID para no incluirlo en el envío final
+      if (this.existingAssignments[index].id) {
+        this.assignmentsToDelete.push(this.existingAssignments[index].id);
+      }
+      // Eliminamos visualmente
+      this.existingAssignments.splice(index, 1);
+      this.existingAssignments = [...this.existingAssignments]; // Trigger change detection
+    } else {
+      // Eliminamos nuevas asignaciones
+      this.selectedResources.splice(index, 1);
+      this.selectedResources = [...this.selectedResources]; // Trigger change detection
+    }
+  }
+
+  get visibleExistingAssignments() {
+    return this.existingAssignments.filter(a => !a.isMarkedForDeletion);
   }
 
   getResourceName(resource: any): string {
@@ -191,37 +209,42 @@ export class AssignmentDialogComponent {
   }
 
   assignResources() {
-    if (this.selectedResources.length > 0) {
-      const projectId = this.data.projectId;
+    // Filtramos asignaciones existentes que no estén marcadas para eliminar
+    const remainingExisting = this.existingAssignments.filter(assignment =>
+      !this.assignmentsToDelete.includes(assignment.id)
+    );
 
-      // Combinar asignaciones existentes (si es necesario) con las nuevas
-      const allAssignments = [
-        ...this.existingAssignments.filter(a => !a.isExisting), // si hay alguna lógica de filtrado
-        ...this.selectedResources
-      ];
+    // Combinamos asignaciones existentes (no eliminadas) con nuevas
+    const allAssignments = [
+      ...remainingExisting,
+      ...this.selectedResources
+    ];
 
-      const request = {
-        projectID: projectId,
-        employeeProjectMiddle: allAssignments.map(resource => ({
-          employeeID: resource.employeeId || null,
-          supplierID: resource.supplierID || null,
-          assignedRole: resource.assignedRole,
-          costPerHour: resource.costPerHour,
-          allocatedHours: resource.allocatedHours,
-          projectID: projectId,
-          status: true
-        }))
-      };
+    // Preparamos payload para el endpoint existente
+    const payload = {
+      projectID: this.data.projectId,
+      employeeProjectMiddle: allAssignments.map(resource => ({
+        employeeID: resource.employeeId || null,
+        supplierID: resource.supplierID || null,
+        assignedRole: resource.assignedRole,
+        costPerHour: resource.costPerHour,
+        allocatedHours: resource.allocatedHours,
+        projectID: this.data.projectId,
+        status: true
+      }))
+    };
 
-      this.projectService.assignResourcesToProject(request).subscribe({
-        next: () => {
-          this.dialogRef.close(true);
-        },
-        error: (err) => {
-          console.error('Error assigning resources:', err);
-        }
-      });
-    }
+    // Llamamos al servicio existente
+    this.projectService.assignResourcesToProject(payload).subscribe({
+      next: () => {
+        this.dialogRef.close(true);
+        // Puedes mostrar un mensaje de éxito aquí
+      },
+      error: (err) => {
+        console.error('Error assigning resources:', err);
+        // Puedes mostrar un mensaje de error aquí
+      }
+    });
   }
 
   cancel() {

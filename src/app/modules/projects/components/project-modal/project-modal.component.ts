@@ -116,8 +116,13 @@ export class ProjectModalComponent implements OnInit {
     // Puedes ajustar los parámetros según necesites
     this.clientService.getClients(1, 1000, '').subscribe({
       next: (response) => {
-        // Asume que response es un array de clientes o tiene una propiedad data que lo contiene
-        this.clients = Array.isArray(response) ? response : response.items;
+        // Asume que response es un array de clientes o tiene una propiedad items que lo contiene
+        const clients = Array.isArray(response) ? response : response.items;
+
+        // Filtramos los clientes que tienen el status en true
+        this.clients = clients.filter(client => client.status === true);
+
+        // Marcamos el estado de carga como falso después de la operación
         this.isLoadingClients = false;
       },
       error: (err) => {

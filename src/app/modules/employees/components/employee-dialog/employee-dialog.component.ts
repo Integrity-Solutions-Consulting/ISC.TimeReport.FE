@@ -118,22 +118,22 @@ export class EmployeeDialogComponent implements OnInit {
         // Controles principales
         personOption: ['new'],
         existingPerson: [null],
-        positionID: [employeeData.positionID || '', Validators.required],
+        positionID: [employeeData.positionID || null, Validators.required],
         employeeCode: [employeeData.employeeCode || ''],
-        departmentID: [employeeData.departmentID || ''],
-        corporateEmail: [employeeData.corporateEmail || '', [Validators.required, Validators.email]],
+        departmentID: [employeeData.departmentID || null],
+        corporateEmail: [employeeData.corporateEmail || null, [Validators.required, Validators.email]],
         salary: [employeeData.salary],
         // Grupo anidado para 'person'
         person: this.fb.group({
           personType: [employeeData.person?.personType || 'NATURAL', Validators.required],
           identificationTypeId: [employeeData.person?.identificationTypeId || 1, Validators.required],
           identificationNumber: [employeeData.person?.identificationNumber || '', [Validators.required, this.identificationNumberValidator.bind(this)]],
-          firstName: [employeeData.person?.firstName || '', Validators.required],
-          lastName: [employeeData.person?.lastName || '', Validators.required],
+          firstName: [employeeData.person?.firstName || null, Validators.required],
+          lastName: [employeeData.person?.lastName || null, Validators.required],
           birthDate: [birthDateValue],
-          email: [employeeData.person?.email || '', [Validators.required, Validators.email]],
-          phone: [employeeData.person?.phone || '', [Validators.pattern(/^\d{1,10}$/)]],
-          address: [employeeData.person?.address || ''],
+          email: [employeeData.person?.email || null, [Validators.required, Validators.email]],
+          phone: [employeeData.person?.phone || null, [Validators.pattern(/^\d{1,10}$/)]],
+          address: [employeeData.person?.address || null],
           genderID: [employeeData.person?.genderId || 1],
           nationalityId: [employeeData.person?.nationalityId || 5]
         })
