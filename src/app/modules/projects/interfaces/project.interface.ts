@@ -55,7 +55,7 @@ export interface ProjectDetails {
   actualStartDate: string;
   actualEndDate: string;
   budget: number;
-  employeeProjects: {
+  employeeProjects?: {
     id: number;
     employeeID: number;
     supplierID: number;
@@ -65,7 +65,7 @@ export interface ProjectDetails {
     projectID: number;
     status: boolean;
   }[];
-  employeesPersonInfo: {
+  employeesPersonInfo?: {
     id: number;
     personID: number;
     employeeCode: string;

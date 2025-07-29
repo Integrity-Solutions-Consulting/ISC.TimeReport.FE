@@ -126,7 +126,7 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef> Acciones </th>
             <td mat-cell *matCellDef="let element; let i = index">
-              <button mat-icon-button (click)="removeResource(i)">
+              <button mat-icon-button (click)="removeResource(i, true)" color="warn">
                 <mat-icon>delete</mat-icon>
               </button>
             </td>
