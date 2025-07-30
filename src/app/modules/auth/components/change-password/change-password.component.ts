@@ -28,7 +28,7 @@ import { CommonModule } from '@angular/common';
 export class ChangePasswordComponent implements OnInit{
 
   passwordChangeForm!: FormGroup;
-  private urlBase: string = environment.URL_TEST;
+  private urlBase: string = environment.URL_BASE;
 
   constructor(
     private fb: FormBuilder,
