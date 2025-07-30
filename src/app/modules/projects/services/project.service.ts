@@ -4,7 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { ApiResponse, ApiResponseByID, Project, ProjectDetails } from '../interfaces/project.interface';
 import { catchError, expand, forkJoin, map, mergeMap, Observable, of, reduce, switchMap, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
-import { ProjectDetail, AllProjectsResponse, SimpleProjectItem} from '../../assigments/interfaces/assignment.interface';
+import { ProjectDetail, AllProjectsResponse, SimpleProjectItem} from '../interfaces/project.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -201,9 +201,9 @@ export class ProjectService {
       });
     }
 
-    getProjectDetailsById(id: number): Observable<ProjectDetails> {
+    getProjectDetailsById(id: number): Observable<ProjectDetail> {
       console.log('ProjectService: Attempting to call GET:', `${this.urlBase}/api/Project/GetProjectDetailByID/${id}`);
-      return this.http.get<ProjectDetails>(`${this.urlBase}/api/Project/GetProjectDetailByID/${id}`);
+      return this.http.get<ProjectDetail>(`${this.urlBase}/api/Project/GetProjectDetailByID/${id}`);
     }
 
     createProject(createProjectRequest: Project): Observable<SuccessResponse<Project>> {

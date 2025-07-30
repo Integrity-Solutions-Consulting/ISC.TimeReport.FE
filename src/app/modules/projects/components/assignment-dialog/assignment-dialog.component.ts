@@ -11,12 +11,13 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
-//import { ProjectDetails, ProjectDetail, EmployeeProjectAssignment } from '../../interfaces/project.interface'; // Import ProjectDetail
+import { ProjectDetail, EmployeeProject } from '../../interfaces/project.interface'; // Import ProjectDetail
+
 
 interface DialogData {
   projectId: number;
   projectName: string;
-  employeesPersonInfo?: any[]; // Añade esta propiedad
+  employeesPersonInfo?: any[];
 }
 
 @Component({
@@ -52,7 +53,7 @@ export class AssignmentDialogComponent {
   selectedResources: any[] = [];
   projectName: string = '';
   existingAssignments: any[] = [];
-  assignmentsToDelete: any[] = []; // Changed to any[] to hold full objects
+  assignmentsToDelete: any[] = [];
 
   displayedColumns: string[] = ['type', 'name', 'profile', 'cost', 'hours', 'actions'];
 
@@ -72,7 +73,7 @@ export class AssignmentDialogComponent {
     });
 
     this.loadInitialData();
-    //this.loadProjectDetails();
+    this.loadProjectDetails();
   }
 
   async loadInitialData() {
@@ -93,29 +94,31 @@ export class AssignmentDialogComponent {
     }
   }
 
-  /*async loadProjectDetails() {
+  async loadProjectDetails() {
     try {
-      const projectDetails: ProjectDetail | undefined = await this.projectService.getProjectDetailByID(this.data.projectId).toPromise();
+      const projectDetails = await this.projectService.getProjectDetailByID(this.data.projectId).toPromise();
 
-      // Safe access using nullish coalescing operator '?'
-      this.existingAssignments = (projectDetails?.employeeProjects || [])
-        .filter(assignment => assignment.status === true)
-        .map(assignment => ({
-          id: assignment.id || null,
-          employeeId: assignment.employeeID || null,
-          supplierID: assignment.supplierID || null,
-          assignedRole: assignment.assignedRole,
-          costPerHour: assignment.costPerHour,
-          allocatedHours: assignment.allocatedHours,
-          isExisting: true,
-          status: assignment.status
-        }));
+      if (projectDetails?.employeeProjects) {
+        this.existingAssignments = projectDetails.employeeProjects
+          .filter(assignment => assignment.status === true)
+          .map(assignment => ({
+            id: assignment.id,
+            employeeId: assignment.employeeID ?? null,  // Use null coalescing
+            supplierID: assignment.supplierID ?? null,  // Use null coalescing
+            assignedRole: assignment.assignedRole,
+            costPerHour: assignment.costPerHour,
+            allocatedHours: assignment.allocatedHours,
+            isExisting: true,
+            status: assignment.status
+          }));
+      } else {
+        this.existingAssignments = [];
+      }
     } catch (error) {
       console.error('Error loading project details:', error);
-      // Ensure existingAssignments is an empty array on error
       this.existingAssignments = [];
     }
-  }*/
+  }
 
   onResourceTypeChange() {
     this.selectedResourceType = this.assignmentForm.get('resourceType')?.value;
@@ -168,17 +171,13 @@ export class AssignmentDialogComponent {
 
   removeResource(index: number, isExisting: boolean = false) {
     if (isExisting) {
-      // Create a copy of the existing assignment and set its status to false
       const assignmentToMarkInactive = { ...this.existingAssignments[index], status: false };
-      // Add it to the list of assignments to be sent for inactivation
       this.assignmentsToDelete.push(assignmentToMarkInactive);
-      // Remove it visually from the existing assignments table
       this.existingAssignments.splice(index, 1);
-      this.existingAssignments = [...this.existingAssignments]; // Trigger change detection
+      this.existingAssignments = [...this.existingAssignments];
     } else {
-      // Remove new assignments from the local list
       this.selectedResources.splice(index, 1);
-      this.selectedResources = [...this.selectedResources]; // Trigger change detection
+      this.selectedResources = [...this.selectedResources];
     }
   }
 
