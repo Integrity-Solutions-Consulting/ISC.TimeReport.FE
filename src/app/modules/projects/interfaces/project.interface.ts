@@ -143,3 +143,16 @@ export interface SimpleProjectItem {
   name: string;
   // ... any other properties for simple project items
 }
+
+export interface Role {
+  id: number;
+  roleName: string;
+}
+
+export interface ApiResponseData {
+  items: Project[];
+  totalItems: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}

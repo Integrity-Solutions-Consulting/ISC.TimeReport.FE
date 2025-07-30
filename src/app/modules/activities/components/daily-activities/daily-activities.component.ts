@@ -15,7 +15,7 @@ import { Router, RouterModule } from '@angular/router';
 import { Project } from '../../../projects/interfaces/project.interface';
 import { ProjectService } from '../../../projects/services/project.service';
 import { Activity } from '../../interfaces/activity.interface';
-import { Observable, take, map, catchError, throwError } from 'rxjs';
+import { Observable, take, map, catchError, throwError, of } from 'rxjs';
 import { ApiResponse } from '../../interfaces/activity.interface';
 import { ReportDialogComponent } from '../report-dialog/report-dialog.component';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -165,19 +165,19 @@ export class DailyActivitiesComponent implements AfterViewInit {
   loadProjects(): Observable<Project[]> {
     this.isLoadingProjects = true;
 
-    // Obtener información del usuario del localStorage
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const roles = userData.data?.roles || [];
-    const isAdmin = this.authService.isAdmin();
+    if (!this.currentEmployeeId) {
+      console.warn('No hay employeeID disponible');
+      return of([]);
+    }
 
-    return this.projectService.getProjectsFilteredByRole(this.currentEmployeeId, isAdmin).pipe(
+    return this.projectService.getFilteredProjects(this.currentEmployeeId).pipe(
       map(response => {
         this.projectList = response.items || [];
         this.isLoadingProjects = false;
         return this.projectList;
       }),
       catchError(error => {
-        console.error('Error loading projects', error);
+        console.error('Error loading projects:', error);
         this.isLoadingProjects = false;
         return throwError(() => new Error('Error al cargar proyectos'));
       })
@@ -314,10 +314,12 @@ export class DailyActivitiesComponent implements AfterViewInit {
   }
 
   handleDateSelect(selectInfo: DateSelectArg) {
-    const isAdmin = this.isAdminUser();
 
-    // Cargar proyectos según el rol
-    this.projectService.getProjectsFilteredByRole(this.currentEmployeeId, isAdmin).subscribe({
+    if (!this.currentEmployeeId) {
+      this.snackBar.open('No se pudo identificar al empleado', 'Cerrar');
+      return;
+    }
+    this.projectService.getProjectsByUserRole(this.currentEmployeeId ?? undefined).subscribe({
       next: (projectsResponse) => {
         const dialogRef = this.dialog.open(EventDialogComponent, {
           width: '500px',
@@ -333,7 +335,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
               requirementCode: ''
             },
             isEdit: false,
-            projects: projectsResponse.items, // Proyectos ya filtrados
+            projects: projectsResponse.items,
             activityTypes: this.activityColors
           }
         });
@@ -353,9 +355,13 @@ export class DailyActivitiesComponent implements AfterViewInit {
   }
 
   handleAddActivity() {
-    const isAdmin = this.isAdminUser();
 
-    this.projectService.getProjectsFilteredByRole(this.currentEmployeeId, isAdmin).subscribe({
+    if (!this.currentEmployeeId) {
+      this.snackBar.open('No se pudo identificar al empleado', 'Cerrar');
+      return;
+    }
+
+    this.projectService.getProjectsByUserRole(this.currentEmployeeId ?? undefined).subscribe({
       next: (projectsResponse) => {
         const dialogRef = this.dialog.open(EventDialogComponent, {
           width: '500px',
@@ -371,7 +377,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
               requirementCode: ''
             },
             isEdit: false,
-            projects: projectsResponse.items, // Proyectos ya filtrados
+            projects: projectsResponse.items,
             activityTypes: this.activityColors
           }
         });

@@ -67,9 +67,16 @@ export class AuthService {
   }
 
   isAdmin(): boolean {
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const roles = userData.data?.roles || [];
-    return roles.some((role: any) => role.id === 1 && role.roleName === "Administrador");
+    try {
+      const roles = JSON.parse(localStorage.getItem('roles') || '[]');
+      console.log('Roles encontrados:', roles); // Debug
+      const isAdmin = roles.some((role: any) => role.id === 1 && role.roleName === "Administrador");
+      console.log('¿Es admin?', isAdmin); // Debug
+      return isAdmin;
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
   }
 
   getToken(): string | null {
