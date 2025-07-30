@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ApiResponse, ApiResponseByID, Project } from '../interfaces/project.interface';
+import { ApiResponse, ApiResponseByID, Project, ProjectDetails } from '../interfaces/project.interface';
 import { catchError, expand, forkJoin, map, mergeMap, Observable, of, reduce, switchMap, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 import { ProjectDetail, AllProjectsResponse, SimpleProjectItem} from '../../assigments/interfaces/assignment.interface';
@@ -201,21 +201,34 @@ export class ProjectService {
       });
     }
 
+    getProjectDetailsById(id: number): Observable<ProjectDetails> {
+      console.log('ProjectService: Attempting to call GET:', `${this.urlBase}/api/Project/GetProjectDetailByID/${id}`);
+      return this.http.get<ProjectDetails>(`${this.urlBase}/api/Project/GetProjectDetailByID/${id}`);
+    }
+
     createProject(createProjectRequest: Project): Observable<SuccessResponse<Project>> {
       console.log(createProjectRequest);
       return this.http.post<SuccessResponse<Project>>(`${this.urlBase}/api/Project/CreateProject`, createProjectRequest);
     }
 
     updateProject(id: number, updateProjectRequest: Project): Observable<SuccessResponse<Project>> {
-      console.log(id)
+      console.log('ID recibido en el servicio:', id);
+
       if (id === undefined || id === null || isNaN(id)) {
         throw new Error('ID de proyecto no válido: ' + id);
-      };
+      }
+
+      // Desestructura updateProjectRequest para OMITIR la propiedad 'id'
+      // 'restOfProject' contendrá todas las propiedades de updateProjectRequest EXCEPTO 'id'
+      const { id: _, ...restOfProject } = updateProjectRequest;
+
       const requestBody = {
-        id: Number(id),
-        ...updateProjectRequest
+        id: Number(id), // Usamos el 'id' que viene como parámetro (el "correcto")
+        ...restOfProject // Agregamos el resto de las propiedades del proyecto
       };
-      console.log(requestBody);
+
+      console.log('Cuerpo de la solicitud PUT:', requestBody);
+
       return this.http.put<SuccessResponse<Project>>(`${this.urlBase}/api/Project/UpdateProjectByID/${id}`, requestBody);
     }
 

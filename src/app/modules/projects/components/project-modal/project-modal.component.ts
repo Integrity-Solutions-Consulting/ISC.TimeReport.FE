@@ -163,18 +163,22 @@ export class ProjectModalComponent implements OnInit {
     }
 
     const projectData: Project = {
-      id: this.isEditMode && this.data?.project?.id ? this.data.project.id : undefined,
-      clientID: formValue.clientId,
-      projectStatusID: formValue.projectStatusId,
-      code: formValue.code,
-      name: formValue.name,
-      description: formValue.description,
-      startDate: formValue.startDate?.toISOString(),
-      endDate: formValue.endDate?.toISOString(),
-      actualStartDate: formValue.actualStartDate?.toISOString() || null,
-      actualEndDate: formValue.actualEndDate?.toISOString() || null,
-      budget: formValue.budget,
-      status: this.originalStatus,
+      id: this.projectForm.value.id!, // Add ! here
+      clientID: this.projectForm.value.clientID,
+      projectStatusID: this.projectForm.value.projectStatusID,
+      projectTypeID: this.projectForm.value.projectTypeID,
+      code: this.projectForm.value.code,
+      name: this.projectForm.value.name,
+      description: this.projectForm.value.description,
+      startDate: this.projectForm.value.startDate,
+      endDate: this.projectForm.value.endDate,
+      actualStartDate: this.projectForm.value.actualStartDate,
+      actualEndDate: this.projectForm.value.actualEndDate,
+      hours: this.projectForm.value.hours,
+      budget: this.projectForm.value.budget,
+      status: this.projectForm.value.status,
+      employeeProjects: [],
+      employeesPersonInfo: [],
     };
 
     if (this.isEditMode) {

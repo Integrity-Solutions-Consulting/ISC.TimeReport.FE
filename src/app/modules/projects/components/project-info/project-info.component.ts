@@ -12,8 +12,9 @@ import { MatError } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { ClientService } from '../../../clients/services/client.service';
 import { Client } from '../../../clients/interfaces/client.interface';
-import { Project } from '../../interfaces/project.interface';
+import { EmployeePersonInfo, EmployeeProject, Project, ProjectDetails } from '../../interfaces/project.interface';
 import { switchMap } from 'rxjs';
+import { MatTableModule } from '@angular/material/table';
 
 @Component({
   selector: 'project-info',
@@ -26,7 +27,8 @@ import { switchMap } from 'rxjs';
     MatChipsModule,
     MatButtonModule,
     MatProgressSpinner,
-    MatIconModule
+    MatIconModule,
+    MatTableModule
   ],
   providers: [DatePipe],
   templateUrl: './project-info.component.html',
@@ -38,6 +40,10 @@ export class ProjectInfoComponent implements OnInit{
   client: Client | null = null;   // Usando la interfaz Client
   isLoading = true;
   error: string | null = null;
+
+  // Propiedades para la tabla de recursos
+  displayedColumns: string[] = ['name', 'role', 'costPerHour', 'allocatedHours'];
+  dataSource: any[] = []; // Fuente de datos para la tabla
 
   constructor(
     private router: Router,
@@ -55,19 +61,37 @@ export class ProjectInfoComponent implements OnInit{
   }
 
   loadProjectDetails(id: number): void {
-    this.projectService.getProjectById(id).pipe(
-      switchMap(projectData => {
+      this.projectService.getProjectById(id).pipe(
+      switchMap((projectData: ProjectDetails) => { // Asegúrate de tipar projectData aquí también
         this.project = projectData;
+
+        // Tu lógica para dataSource con las validaciones
+        if (projectData && Array.isArray(projectData.employeeProjects) && Array.isArray(projectData.employeesPersonInfo)) {
+          this.dataSource = projectData.employeeProjects.map((ep: EmployeeProject) => {
+            const employeeInfo = projectData.employeesPersonInfo!.find((epi: EmployeePersonInfo) => epi.id === ep.employeeID);
+            return {
+              name: employeeInfo ? `${employeeInfo.firstName} ${employeeInfo.lastName}` : 'Desconocido',
+              role: ep.assignedRole,
+              costPerHour: ep.costPerHour,
+              allocatedHours: ep.allocatedHours
+            };
+          });
+        } else {
+          this.dataSource = [];
+          console.warn('employeeProjects or employeesPersonInfo is missing or not an array in the project data.', projectData);
+        }
+
         return this.clientService.getClientByID(projectData.clientID);
       })
     ).subscribe({
       next: (clientData) => {
-        this.client = clientData; // Almacenamos todo el objeto cliente
+        this.client = clientData;
         this.isLoading = false;
       },
       error: (err) => {
         console.error('Error loading data', err);
         this.isLoading = false;
+        this.error = 'No se pudo cargar la información del proyecto o del cliente.';
       }
     });
   }
