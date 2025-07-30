@@ -164,11 +164,17 @@ export class DailyActivitiesComponent implements AfterViewInit {
 
   loadProjects(): Observable<Project[]> {
     this.isLoadingProjects = true;
-    return this.projectService.getProjects().pipe(
-      map(projects => {
-        this.projectList = projects.items;
+
+    // Obtener información del usuario del localStorage
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const roles = userData.data?.roles || [];
+    const isAdmin = this.authService.isAdmin();
+
+    return this.projectService.getProjectsFilteredByRole(this.currentEmployeeId, isAdmin).pipe(
+      map(response => {
+        this.projectList = response.items || [];
         this.isLoadingProjects = false;
-        return projects.items;
+        return this.projectList;
       }),
       catchError(error => {
         console.error('Error loading projects', error);
@@ -308,57 +314,77 @@ export class DailyActivitiesComponent implements AfterViewInit {
   }
 
   handleDateSelect(selectInfo: DateSelectArg) {
-    const dialogRef = this.dialog.open(EventDialogComponent, {
-      width: '500px',
-      data: {
-        event: {
-          activityDate: selectInfo.start, // Fecha de inicio de la selección
-          // Valores por defecto para una nueva actividad
-          fullDay: true, // Por defecto como día completo
-          hours: 8,      // 8 horas por defecto
-          activityTypeID: 1, // Puedes elegir un valor por defecto o dejarlo nulo para que el usuario elija
-          projectId: null,
-          activityDescription: '',
-          details: null,
-          requirementCode: ''
-        },
-        isEdit: false,
-        projects: this.projectList, // Pasamos la lista de proyectos
-        activityTypes: this.activityColors // Pasamos los tipos de actividad para el select
-      }
-    });
+    const isAdmin = this.isAdminUser();
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        selectInfo.view.calendar.unselect(); // Deseleccionar la fecha en el calendario
-        this.createActivity(result);
+    // Cargar proyectos según el rol
+    this.projectService.getProjectsFilteredByRole(this.currentEmployeeId, isAdmin).subscribe({
+      next: (projectsResponse) => {
+        const dialogRef = this.dialog.open(EventDialogComponent, {
+          width: '500px',
+          data: {
+            event: {
+              activityDate: selectInfo.start,
+              fullDay: true,
+              hours: 8,
+              activityTypeID: 1,
+              projectId: null,
+              activityDescription: '',
+              details: null,
+              requirementCode: ''
+            },
+            isEdit: false,
+            projects: projectsResponse.items, // Proyectos ya filtrados
+            activityTypes: this.activityColors
+          }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+          if (result) {
+            selectInfo.view.calendar.unselect();
+            this.createActivity(result);
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading projects for dialog', error);
+        this.snackBar.open('Error al cargar proyectos', 'Cerrar', { duration: 3000 });
       }
     });
   }
 
   handleAddActivity() {
-    const dialogRef = this.dialog.open(EventDialogComponent, {
-      width: '500px',
-      data: {
-        event: {
-          activityDate: new Date(), // Fecha actual por defecto
-          fullDay: true,
-          hours: 8,
-          activityTypeID: 1,
-          projectId: null,
-          activityDescription: '',
-          details: '',
-          requirementCode: ''
-        },
-        isEdit: false,
-        projects: this.projectList,
-        activityTypes: this.activityColors
-      }
-    });
+    const isAdmin = this.isAdminUser();
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.createActivity(result);
+    this.projectService.getProjectsFilteredByRole(this.currentEmployeeId, isAdmin).subscribe({
+      next: (projectsResponse) => {
+        const dialogRef = this.dialog.open(EventDialogComponent, {
+          width: '500px',
+          data: {
+            event: {
+              activityDate: new Date(),
+              fullDay: true,
+              hours: 8,
+              activityTypeID: 1,
+              projectId: null,
+              activityDescription: '',
+              details: '',
+              requirementCode: ''
+            },
+            isEdit: false,
+            projects: projectsResponse.items, // Proyectos ya filtrados
+            activityTypes: this.activityColors
+          }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+          if (result) {
+            this.createActivity(result);
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading projects for dialog', error);
+        this.snackBar.open('Error al cargar proyectos', 'Cerrar', { duration: 3000 });
       }
     });
   }
@@ -413,6 +439,12 @@ export class DailyActivitiesComponent implements AfterViewInit {
         }
       }
     });
+  }
+
+  private isAdminUser(): boolean {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const roles = userData.data?.roles || [];
+    return roles.some((role: any) => role.id === 1 && role.roleName === "Administrador");
   }
 
   private applyEventColors(eventApi: EventApi, color: string): void {

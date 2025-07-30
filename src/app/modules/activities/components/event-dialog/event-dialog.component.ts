@@ -75,6 +75,7 @@ export class EventDialogComponent implements OnInit{
   ];
 
   currentEmployeeId: number | null = null;
+  isAdmin = false;
 
   constructor(
     private projectService: ProjectService,
@@ -95,16 +96,16 @@ export class EventDialogComponent implements OnInit{
     }
 
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const roles = userData.data?.roles || [];
+    this.isAdmin = roles.some((role: any) => role.id === 1 && role.roleName === "Administrador");
     this.currentEmployeeId = userData.data?.employeeID || null;
 
   }
 
   ngOnInit(): void {
     // Cargar proyectos si no se pasaron al diálogo (aunque ya se pasan desde el padre)
-    if (!this.projects.length) {
-      // Esto solo se ejecutaría si no se pasan desde el componente padre
-      // Para este caso, ya los estamos pasando, así que esta carga extra no es necesaria
-      // this.loadProjects();
+    if (!this.data.projects || this.data.projects.length === 0) {
+      this.loadProjects();
     }
 
     if (this.data.isEdit) {
@@ -136,9 +137,22 @@ export class EventDialogComponent implements OnInit{
   }
 
   loadProjects(): void {
-    this.projectService.getProjects().subscribe(projects => {
-      this.projects = projects.items;
-    });
+    if (this.isAdmin) {
+      // Cargar todos los proyectos para admin
+      this.projectService.getProjects().subscribe(projects => {
+        this.projects = projects.items || [];
+      });
+    } else if (this.currentEmployeeId) {
+      // Cargar solo proyectos del empleado
+      this.projectService.getProjectsByEmployee(this.currentEmployeeId, {
+        PageNumber: 1,
+        PageSize: 100
+      }).subscribe(response => {
+        this.projects = response.items || [];
+      });
+    } else {
+      this.projects = [];
+    }
   }
 
   preparePayload(): any {
