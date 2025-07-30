@@ -66,6 +66,12 @@ export class AuthService {
     return this._isAuthenticated();
   }
 
+  isAdmin(): boolean {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const roles = userData.data?.roles || [];
+    return roles.some((role: any) => role.id === 1 && role.roleName === "Administrador");
+  }
+
   getToken(): string | null {
     return localStorage.getItem('token');
   }
@@ -209,7 +215,11 @@ export class AuthService {
   }
 
   resetPassword(token: string, newPassword: string, confirmPassword: string): Observable<any> {
-    return this._httpClient.post(`${this.urlBase}/api/auth/reset-password?token=${token}`, { newPassword, confirmPassword });
+    return this._httpClient.post(`${this.urlBase}/api/auth/reset-password`, { newPassword, confirmPassword },
+      {
+        params: { token }
+      }
+    );
   }
 
   getRoles(): Observable<Role[]> {
