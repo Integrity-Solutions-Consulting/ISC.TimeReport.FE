@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ApiResponse, ApiResponseByID, Project, ProjectDetails } from '../interfaces/project.interface';
+import { ApiResponse, ApiResponseByID, ApiResponseData, Project, ProjectDetails } from '../interfaces/project.interface';
 import { catchError, expand, forkJoin, map, mergeMap, Observable, of, reduce, switchMap, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
-import { ProjectDetail, AllProjectsResponse, SimpleProjectItem} from '../interfaces/project.interface';
+import { ProjectDetail, AllProjectsResponse, SimpleProjectItem, Role} from '../interfaces/project.interface';
+import { AuthService } from '../../auth/services/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,9 @@ export class ProjectService {
 
     urlBase: string = environment.URL_BASE;
 
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient,
+                private authService: AuthService
+    ) { }
 
     getProjects(): Observable<any> {
         return this.http.get<ApiResponse>(`${this.urlBase}/api/Project/GetAllProjects`).pipe(
@@ -27,30 +30,22 @@ export class ProjectService {
       );
     }
 
-    getAllProjects(): Observable<any[]> {
-      const pageSize = 100; // Máximo permitido por el backend
+    getAllProjects(): Observable<Project[]> {
+      const pageSize = 100;
       let pageNumber = 1;
 
       return this.http
-        .get<any>(`${this.urlBase}/api/Project/GetAllProjects`, {
+        .get<ApiResponseData>(`${this.urlBase}/api/Project/GetAllProjects`, {
           params: new HttpParams()
             .set('PageNumber', pageNumber.toString())
             .set('PageSize', pageSize.toString())
         })
         .pipe(
-          expand((res) => {
-            if (res.data.length === pageSize) {
-              pageNumber++;
-              return this.http.get<any>(`${this.urlBase}/api/Project/GetAllProjects`, {
-                params: new HttpParams()
-                  .set('PageNumber', pageNumber.toString())
-                  .set('PageSize', pageSize.toString())
-              });
-            }
-            return of(); // Detener la paginación
-          }),
-          map(res => res.data),
-          reduce((acc, data) => [...acc, ...data], [] as any[]) // Combinar todas las páginas
+          map(response => response?.items || []), // Cambiado de data a items
+          catchError(error => {
+            console.error('Error fetching projects', error);
+            return of([]);
+          })
         );
     }
 
@@ -274,7 +269,33 @@ export class ProjectService {
       return this.http.get(`${this.urlBase}/api/Catalog/positions`);
     }
 
-    getProjectsFilteredByRole(employeeId: number | null, isAdmin: boolean, pageSize = 10, pageNumber = 1, search = ''): Observable<ApiResponse> {
+    isAdmin(): boolean {
+      try {
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        return userData?.data?.roles?.some((role: any) =>
+          role.id === 1 && role.roleName === "Administrador"
+        );
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        return false;
+      }
+    }
+
+    getProjectsByUserRole(employeeId: number): Observable<ApiResponse> {
+      if (this.isAdmin()) {
+        // Admin - Todos los proyectos
+        return this.getProjects(); // O usa getAllProjects() si necesitas paginación diferente
+      } else {
+        // No admin - Solo proyectos del empleado
+        return this.getProjectsByEmployee(employeeId, {
+          PageNumber: 1,
+          PageSize: 100,
+          search: ''
+        });
+      }
+    }
+
+    getProjectsFilteredByRole(employeeId: number | null, isAdmin: boolean, pageSize = 100, pageNumber = 1, search = ''): Observable<ApiResponse> {
       if (isAdmin) {
         // Si es admin, obtener todos los proyectos
         return this.getProjectsForTables(pageNumber, pageSize, search);
@@ -286,4 +307,33 @@ export class ProjectService {
         return of({ items: [], totalItems: 0, pageNumber: 0, pageSize: 0, totalPages: 0 });
       }
     }
+
+    getFilteredProjects(employeeId: number): Observable<ApiResponseData> {
+      console.log('Verificando permisos...'); // Debug
+
+      if (this.authService.isAdmin()) {
+        console.log('Accediendo como ADMIN - Obteniendo todos los proyectos'); // Debug
+        return this.http.get<ApiResponseData>(`${this.urlBase}/api/Project/GetAllProjects`).pipe(
+          catchError(error => {
+            console.error('Error loading all projects:', error);
+            return of({
+              items: [],
+              totalItems: 0,
+              pageNumber: 1,
+              pageSize: 0,
+              totalPages: 0
+            });
+          })
+        );
+      } else {
+        console.log('Accediendo como usuario normal - Obteniendo proyectos del empleado'); // Debug
+        return this.getProjectsByEmployee(employeeId, {
+          PageNumber: 1,
+          PageSize: 100,
+          search: ''
+        });
+      }
+    }
+
+
 }
