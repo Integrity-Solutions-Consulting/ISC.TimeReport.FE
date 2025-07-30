@@ -42,7 +42,7 @@ export class ProjectInfoComponent implements OnInit{
   error: string | null = null;
 
   // Propiedades para la tabla de recursos
-  displayedColumns: string[] = ['name', 'role', 'costPerHour', 'allocatedHours'];
+  displayedColumns: string[] = ['type', 'name', 'role', 'cost', 'hours']; // Columnas actualizadas
   dataSource: any[] = []; // Fuente de datos para la tabla
 
   constructor(
@@ -70,10 +70,11 @@ export class ProjectInfoComponent implements OnInit{
           this.dataSource = projectData.employeeProjects.map((ep: EmployeeProject) => {
             const employeeInfo = projectData.employeesPersonInfo!.find((epi: EmployeePersonInfo) => epi.id === ep.employeeID);
             return {
+              type: ep.supplierID ? 'Externo' : 'Interno', // Determina el tipo de recurso
               name: employeeInfo ? `${employeeInfo.firstName} ${employeeInfo.lastName}` : 'Desconocido',
               role: ep.assignedRole,
-              costPerHour: ep.costPerHour,
-              allocatedHours: ep.allocatedHours
+              cost: ep.costPerHour, // Mapeado a 'cost'
+              hours: ep.allocatedHours // Mapeado a 'hours'
             };
           });
         } else {

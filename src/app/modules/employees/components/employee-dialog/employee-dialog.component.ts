@@ -209,9 +209,9 @@ export class EmployeeDialogComponent implements OnInit {
     const identificationTypeControl = this.employeeForm.get('person.identificationTypeId');
     const identificationNumberControl = this.employeeForm.get('person.identificationNumber');
 
-    if (personType === 'Legal') {
+    if (personType === 'JURIDICA') {
       // Persona jurídica solo puede tener RUC (id: 2)
-      identificationTypeControl?.setValue(2);
+      identificationTypeControl?.setValue(2, { emitEvent: false });
       identificationTypeControl?.disable();
 
       // Actualizar validación del número de identificación
@@ -232,6 +232,8 @@ export class EmployeeDialogComponent implements OnInit {
     }
 
     identificationNumberControl?.updateValueAndValidity();
+
+    this.employeeForm.get('person')?.updateValueAndValidity();
   }
 
   private patchFormValues(employeeData: any): void {
