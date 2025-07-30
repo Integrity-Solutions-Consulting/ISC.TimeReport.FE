@@ -1,6 +1,5 @@
 <div class="project-detail-container">
   <mat-card class="project-card" *ngIf="!isLoading && project">
-    <!-- Header con título y estado -->
     <mat-card-header class="project-header">
       <div class="header-content">
         <mat-card-title class="project-title">{{project.name}}</mat-card-title>
@@ -22,7 +21,6 @@
 
     <mat-divider></mat-divider>
 
-    <!-- Contenido principal -->
     <mat-card-content class="project-content">
       <div class="description-section">
         <h3 class="section-title">DESCRIPCIÓN</h3>
@@ -48,9 +46,46 @@
           <span class="client-name">{{client?.tradeName}}</span>
         </div>
       </div>
+
+      <mat-divider style="margin-top: 20px; margin-bottom: 20px;"></mat-divider>
+
+      <div class="resources-section">
+        <h3 class="section-title">RECURSOS ASIGNADOS</h3>
+        <div class="mat-elevation-z2">
+          <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef> Nombre </th>
+              <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="role">
+              <th mat-header-cell *matHeaderCellDef> Rol Asignado </th>
+              <td mat-cell *matCellDef="let element"> {{element.role}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="costPerHour">
+              <th mat-header-cell *matHeaderCellDef> Costo/Hora </th>
+              <td mat-cell *matCellDef="let element"> {{element.costPerHour | currency}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="allocatedHours">
+              <th mat-header-cell *matHeaderCellDef> Horas Asignadas </th>
+              <td mat-cell *matCellDef="let element"> {{element.allocatedHours}} </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell" colspan="4">No hay recursos asignados a este proyecto.</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
     </mat-card-content>
 
-    <!-- Acciones -->
     <mat-card-actions class="project-actions">
       <button mat-stroked-button style="background-color: var(--itg-secondary); color: var(--itg-bg)" (click)="goBack()">
         <mat-icon>arrow_back</mat-icon>
@@ -59,7 +94,6 @@
     </mat-card-actions>
   </mat-card>
 
-  <!-- Loader -->
   <div class="loading-overlay" *ngIf="isLoading">
     <mat-spinner diameter="50"></mat-spinner>
     <p>Cargando detalles del proyecto...</p>

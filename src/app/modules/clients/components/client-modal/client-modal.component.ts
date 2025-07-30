@@ -210,9 +210,9 @@ export class ClientModalComponent implements OnInit {
     const identificationTypeControl = this.clientForm.get('person.identificationTypeId');
     const identificationNumberControl = this.clientForm.get('person.identificationNumber');
 
-    if (personType === 'Legal') {
+    if (personType === 'JURIDICA') {
       // Persona jurídica solo puede tener RUC (id: 2)
-      identificationTypeControl?.setValue(2);
+      identificationTypeControl?.setValue(2, { emitEvent: false });
       identificationTypeControl?.disable();
 
       // Actualizar validación del número de identificación
@@ -231,6 +231,8 @@ export class ClientModalComponent implements OnInit {
     }
 
     identificationNumberControl?.updateValueAndValidity();
+
+    this.clientForm.get('person')?.updateValueAndValidity();
   }
 
   private loadClientData(clientId: number): void {
@@ -326,7 +328,9 @@ export class ClientModalComponent implements OnInit {
       // Restaura los validadores de los campos de persona
       personGroup.get('personType')?.setValidators(Validators.required);
       personGroup.get('identificationTypeId')?.setValidators(Validators.required);
-      personGroup.get('identificationNumber')?.setValidators([Validators.pattern(/^[0-9]+$/), this.identificationNumberValidator.bind(this)]);
+      personGroup.get('identificationNumber')?.setValidators([Validators.pattern(/^[0-9]+$/),
+        //this.identificationNumberValidator.bind(this)
+      ]);
       personGroup.get('firstName')?.setValidators(Validators.required);
       personGroup.get('lastName')?.setValidators(Validators.required);
       personGroup.get('email')?.setValidators([Validators.required, Validators.email]);

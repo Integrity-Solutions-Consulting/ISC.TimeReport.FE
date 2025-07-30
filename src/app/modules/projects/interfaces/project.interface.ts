@@ -1,17 +1,20 @@
 export interface Project {
-  id?: number,
-  clientID: number,
-  projectStatusID: number,
-  code: string,
-  name: string,
-  description: string,
-  startDate: Date,
-  endDate: Date,
-  actualStartDate?: Date,
-  actualEndDate?: Date,
-  budget: number,
-  status: boolean
-  assignedEmployees?: number[];
+  id: number;
+  clientID: number;
+  projectStatusID: number;
+  projectTypeID: number | null;
+  code: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  actualStartDate: string | null;
+  actualEndDate: string | null;
+  hours: number;
+  budget: number;
+  status: boolean;
+  employeeProjects?: EmployeeProject[]; // Make it optional with '?'
+  employeesPersonInfo?: EmployeePersonInfo[]; // Make it optional with '?'
 }
 
 export interface ProjectWithID {
@@ -42,38 +45,46 @@ export interface ApiResponseByID {
   data: []
 }
 
+export interface EmployeeProject {
+  id: number;
+  employeeID: number;
+  supplierID: number | null; // Puede ser null
+  assignedRole: string;
+  costPerHour: number;
+  allocatedHours: number;
+  projectID: number;
+  status: boolean;
+}
+
+export interface EmployeePersonInfo {
+  id: number;
+  personID: number;
+  workModeID?: number; // Añadido workModeID basado en tu respuesta anterior
+  employeeCode: string;
+  identificationNumber: string;
+  firstName: string;
+  lastName: string;
+  status: boolean;
+}
+
 export interface ProjectDetails {
   id: number;
   clientID: number;
   projectStatusID: number;
-  projectTypeID: number;
+  projectTypeID: number | null; // Puede ser null
   code: string;
   name: string;
   description: string;
   startDate: string;
   endDate: string;
-  actualStartDate: string;
-  actualEndDate: string;
+  actualStartDate: string | null; // Puede ser null
+  actualEndDate: string | null;   // Puede ser null
   budget: number;
-  employeeProjects?: {
-    id: number;
-    employeeID: number;
-    supplierID: number;
-    assignedRole: string;
-    costPerHour: number;
-    allocatedHours: number;
-    projectID: number;
-    status: boolean;
-  }[];
-  employeesPersonInfo?: {
-    id: number;
-    personID: number;
-    employeeCode: string;
-    identificationNumber: string;
-    firstName: string;
-    lastName: string;
-    status: boolean;
-  }[];
+  hours: number; // Asegúrate de incluirlo si tu API lo envía
+  status: boolean; // Si tu API lo envía
+
+  employeeProjects?: EmployeeProject[]; // Marcado como opcional con '?', ya que tu API a veces no lo envía
+  employeesPersonInfo?: EmployeePersonInfo[]; // Marcado como opcional con '?'
 }
 
 export interface ResourceType {
