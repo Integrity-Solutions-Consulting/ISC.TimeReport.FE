@@ -114,3 +114,29 @@ export interface Position {
   id: number;
   positionName: string;
 }
+
+export interface EmployeeProjectAssignment {
+  id?: number;
+  employeeID?: number | null;
+  supplierID?: number | null;
+  assignedRole: string;
+  costPerHour: number;
+  allocatedHours: number;
+  projectID: number;
+  status: boolean; // This property is crucial for your filtering logic
+}
+
+export interface ProjectDetail {
+  id: number;
+  clientID: number;
+  projectStatusID: number;
+  code: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  // This MUST be EmployeeProjectAssignment[]
+  employeeProjects: EmployeeProjectAssignment[];
+  employeesPersonInfo: any[]; // Consider defining a proper type for this too if it's used much
+}

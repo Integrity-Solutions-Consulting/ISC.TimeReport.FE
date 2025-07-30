@@ -124,6 +124,7 @@ export class ClientModalComponent implements OnInit {
       existingPerson: [null],
       tradeName: [customerData.tradeName || '', Validators.required],
       legalName: [customerData?.legalName],
+      company: [customerData.company || 'ISC', Validators.required],
       // Grupo anidado para 'person'
       person: this.fb.group({
         personType: [customerData.person?.personType || 'JURIDICA', Validators.required],
@@ -258,6 +259,7 @@ export class ClientModalComponent implements OnInit {
     this.clientForm.patchValue({
       tradeName: clientData.tradeName,
       legalName: clientData.legalName,
+      company: clientData.company,
       person: {
         personType: clientData.person?.personType,
         identificationTypeId: clientData.person?.identificationTypeId,
