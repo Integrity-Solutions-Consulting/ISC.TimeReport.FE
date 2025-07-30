@@ -46,9 +46,9 @@ export interface ApiResponseByID {
 }
 
 export interface EmployeeProject {
-  id: number;
-  employeeID: number;
-  supplierID: number | null; // Puede ser null
+  id?: number;
+  employeeID?: number | null;  // For employee assignments
+  supplierID?: number | null;  // For supplier assignments
   assignedRole: string;
   costPerHour: number;
   allocatedHours: number;
@@ -115,17 +115,6 @@ export interface Position {
   positionName: string;
 }
 
-export interface EmployeeProjectAssignment {
-  id?: number;
-  employeeID?: number | null;
-  supplierID?: number | null;
-  assignedRole: string;
-  costPerHour: number;
-  allocatedHours: number;
-  projectID: number;
-  status: boolean; // This property is crucial for your filtering logic
-}
-
 export interface ProjectDetail {
   id: number;
   clientID: number;
@@ -136,7 +125,21 @@ export interface ProjectDetail {
   startDate: string;
   endDate: string;
   budget: number;
-  // This MUST be EmployeeProjectAssignment[]
-  employeeProjects: EmployeeProjectAssignment[];
-  employeesPersonInfo: any[]; // Consider defining a proper type for this too if it's used much
+  employeeProjects: EmployeeProject[]; // Non-nullable array
+  employeesPersonInfo: EmployeePersonInfo[];   // Non-nullable array
+  // Add other properties as needed
+}
+
+export interface AllProjectsResponse {
+  items: SimpleProjectItem[];
+  totalItems: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface SimpleProjectItem {
+  id: number;
+  name: string;
+  // ... any other properties for simple project items
 }
