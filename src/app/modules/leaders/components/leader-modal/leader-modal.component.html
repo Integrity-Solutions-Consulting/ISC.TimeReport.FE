@@ -37,7 +37,7 @@
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field-half">
         <mat-label style="font-family: 'Poppins'; ">Tipo de Líder</mat-label>
-        <mat-select formControlName="leadershipType" required> @for (type of leaderTypes; track type) {
+        <mat-select formControlName="leadershipType"> @for (type of leaderTypes; track type) {
             <mat-option [value]="type.id">
               {{type.name}}
             </mat-option>
