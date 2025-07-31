@@ -206,25 +206,18 @@ export class ProjectService {
       return this.http.post<SuccessResponse<Project>>(`${this.urlBase}/api/Project/CreateProject`, createProjectRequest);
     }
 
-    updateProject(id: number, updateProjectRequest: Project): Observable<SuccessResponse<Project>> {
+    updateProject(id: number, updateProjectRequest: Omit<Project, 'id'>): Observable<SuccessResponse<Project>> {
       console.log('ID recibido en el servicio:', id);
 
       if (id === undefined || id === null || isNaN(id)) {
         throw new Error('ID de proyecto no válido: ' + id);
       }
 
-      // Desestructura updateProjectRequest para OMITIR la propiedad 'id'
-      // 'restOfProject' contendrá todas las propiedades de updateProjectRequest EXCEPTO 'id'
-      const { id: _, ...restOfProject } = updateProjectRequest;
-
-      const requestBody = {
-        id: Number(id), // Usamos el 'id' que viene como parámetro (el "correcto")
-        ...restOfProject // Agregamos el resto de las propiedades del proyecto
-      };
-
-      console.log('Cuerpo de la solicitud PUT:', requestBody);
-
-      return this.http.put<SuccessResponse<Project>>(`${this.urlBase}/api/Project/UpdateProjectByID/${id}`, requestBody);
+      // No incluyas el id en el cuerpo de la solicitud
+      return this.http.put<SuccessResponse<Project>>(
+        `${this.urlBase}/api/Project/UpdateProjectByID/${id}`,
+        updateProjectRequest
+      );
     }
 
     inactivateProject(id: number, data: any): Observable<any> {

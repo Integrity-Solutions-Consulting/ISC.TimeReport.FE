@@ -185,7 +185,7 @@ export class ClientModalComponent implements OnInit {
 
     // Validación para persona jurídica
     if (personType === 'JURIDICA') {
-      if (identificationTypeId !== 2) { // 2 = RUC
+      if (identificationTypeId !== 3) { // 3 = RUC
         return { invalidIdentificationType: 'Persona jurídica debe usar RUC' };
       }
       if (!/^\d{13}$/.test(value)) {
@@ -200,7 +200,7 @@ export class ClientModalComponent implements OnInit {
           return { invalidCedulaLength: 'La cédula debe tener máximo 10 dígitos' };
         }
       }
-      // Para pasaporte (id: 3) no aplicamos validación de formato específico
+      // Para pasaporte (id: 2) no aplicamos validación de formato específico
     }
 
     return null;
@@ -212,8 +212,8 @@ export class ClientModalComponent implements OnInit {
     const identificationNumberControl = this.clientForm.get('person.identificationNumber');
 
     if (personType === 'JURIDICA') {
-      // Persona jurídica solo puede tener RUC (id: 2)
-      identificationTypeControl?.setValue(2, { emitEvent: false });
+      // Persona jurídica solo puede tener RUC (id: 3)
+      identificationTypeControl?.setValue(3, { emitEvent: false });
       identificationTypeControl?.disable();
 
       // Actualizar validación del número de identificación
@@ -222,7 +222,7 @@ export class ClientModalComponent implements OnInit {
         this.identificationNumberValidator.bind(this)
       ]);
     } else {
-      // Persona natural puede tener cédula (1) o pasaporte (3)
+      // Persona natural puede tener cédula (1) o pasaporte (2)
       identificationTypeControl?.enable();
 
       // Actualizar validación del número de identificación
@@ -382,7 +382,8 @@ export class ClientModalComponent implements OnInit {
 
       const clientData = {
         tradeName: formValue.tradeName,
-        legalName: formValue.legalName,
+        legalName: formValue.legalName || formValue.tradeName,
+        company: formValue.company || 'ISC',
         person: formValue.person,
         status: this.originalStatus
       };
@@ -399,15 +400,17 @@ export class ClientModalComponent implements OnInit {
       // Lógica para persona existente
       const clientData = {
         personID: formValue.existingPerson,
+        company: formValue.company || 'ISC',
         tradeName: formValue.tradeName,
-        legalName: formValue.legalName
+        legalName: formValue.legalName || formValue.tradeName
       };
       this.dialogRef.close({ type: 'withPersonID', data: clientData });
     } else {
       // Lógica para nueva persona
       const clientData = {
         tradeName: formValue.tradeName,
-        legalName: formValue.legalName,
+        legalName: formValue.legalName || formValue.tradeName,
+        company: formValue.company || 'ISC',
         person: formValue.person // Ahora viene en la estructura correcta
       };
       this.dialogRef.close({ type: 'withPerson', data: clientData });
