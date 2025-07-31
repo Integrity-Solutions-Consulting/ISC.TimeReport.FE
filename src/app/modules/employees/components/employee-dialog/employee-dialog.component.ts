@@ -119,6 +119,7 @@ export class EmployeeDialogComponent implements OnInit {
         personOption: ['new'],
         existingPerson: [null],
         positionID: [employeeData.positionID || null, Validators.required],
+        workModeID: [employeeData.workModeID || 1],
         employeeCode: [employeeData.employeeCode || ''],
         departmentID: [employeeData.departmentID || null],
         corporateEmail: [employeeData.corporateEmail || null, [Validators.required, Validators.email]],
@@ -319,6 +320,7 @@ export class EmployeeDialogComponent implements OnInit {
 
       const employeeData = {
         positionID: formValue.positionID,
+        workModeID: formValue.workModeID,
         employeeCode: formValue.employeeCode,
         contractType: formValue.contractType,
         departmentID: formValue.departmentID,
@@ -340,6 +342,7 @@ export class EmployeeDialogComponent implements OnInit {
       // Lógica para persona existente
       const employeeData = {
         positionID: formValue.positionID,
+        workModeID: formValue.workModeID,
         employeeCode: formValue.employeeCode,
         contractType: formValue.contractType,
         departmentID: formValue.departmentID,
@@ -353,6 +356,7 @@ export class EmployeeDialogComponent implements OnInit {
       // Lógica para nueva persona
       const employeeData = {
         positionID: formValue.positionID,
+        workModeID: formValue.workModeID,
         employeeCode: formValue.employeeCode,
         contractType: formValue.contractType,
         departmentID: formValue.departmentID,

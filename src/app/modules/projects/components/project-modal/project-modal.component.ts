@@ -55,7 +55,8 @@ export class ProjectModalComponent implements OnInit {
       description: [''],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
-      budget: ['', [Validators.required, Validators.min(0)]]
+      budget: ['', [Validators.required, Validators.min(0)]],
+      hours: ['', Validators.min(0)]
     });
   }
 
@@ -107,7 +108,8 @@ export class ProjectModalComponent implements OnInit {
       endDate: ['', Validators.required],
       actualStartDate: [null],
       actualEndDate: [null],
-      budget: [0]
+      budget: [0],
+      hours: [0]
     });
   }
 
@@ -143,7 +145,8 @@ export class ProjectModalComponent implements OnInit {
       endDate: project.endDate ? new Date(project.endDate) : null,
       actualStartDate: project.actualStartDate ? new Date(project.actualStartDate) : null,
       actualEndDate: project.actualEndDate ? new Date(project.actualEndDate) : null,
-      budget: project.budget
+      budget: project.budget,
+      hours: project.hours
     });
   }
 
@@ -162,24 +165,23 @@ export class ProjectModalComponent implements OnInit {
       return;
     }
 
-    const projectData: Project = {
-      id: this.projectForm.value.id!, // Add ! here
-      clientID: this.projectForm.value.clientID,
-      projectStatusID: this.projectForm.value.projectStatusID,
-      projectTypeID: this.projectForm.value.projectTypeID,
-      code: this.projectForm.value.code,
-      name: this.projectForm.value.name,
-      description: this.projectForm.value.description,
-      startDate: this.projectForm.value.startDate,
-      endDate: this.projectForm.value.endDate,
-      actualStartDate: this.projectForm.value.actualStartDate,
-      actualEndDate: this.projectForm.value.actualEndDate,
-      hours: this.projectForm.value.hours,
-      budget: this.projectForm.value.budget,
-      status: this.projectForm.value.status,
-      employeeProjects: [],
-      employeesPersonInfo: [],
+    const projectData: Omit<Project, 'id'> = {
+      clientID: formValue.clientId,
+      projectStatusID: formValue.projectStatusId,
+      projectTypeID: formValue.projectTypeId || 0, // Valor por defecto si es null
+      code: formValue.code,
+      name: formValue.name,
+      description: formValue.description,
+      startDate: formValue.startDate,
+      endDate: formValue.endDate,
+      actualStartDate: formValue.actualStartDate,
+      actualEndDate: formValue.actualEndDate,
+      hours: formValue.hours,
+      budget: formValue.budget,
+      status: true // O usa formValue.status si está en el formulario
     };
+
+    console.log(projectData);
 
     if (this.isEditMode) {
       const projectId = this.data?.project?.id;
@@ -197,7 +199,10 @@ export class ProjectModalComponent implements OnInit {
         }
       });
     } else {
-      this.projectService.createProject(projectData).subscribe({
+      this.projectService.createProject({
+        ...projectData,
+        id: 0 // El backend probablemente ignorará esto al crear
+      } as Project).subscribe({
         next: (response) => {
           this.dialogRef.close(response);
         },
