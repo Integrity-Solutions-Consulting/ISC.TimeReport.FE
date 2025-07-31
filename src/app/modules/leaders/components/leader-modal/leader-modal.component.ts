@@ -154,6 +154,12 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
       this.updateIdentificationValidators(personType);
     });
 
+    this.leaderForm.get('leadershipType')?.valueChanges.subscribe(value => {
+      this.updateIdentificationRequiredStatus(value);
+    });
+
+    this.updateIdentificationRequiredStatus(this.leaderForm.get('leadershipType')?.value);
+
     this.leaderForm.get('personOption')?.valueChanges.subscribe(value => {
       this.useExistingPerson = value === 'existing';
       this.togglePersonFields();
@@ -200,8 +206,13 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
     const personType = this.leaderForm?.get('person.personType')?.value;
     const identificationTypeId = this.leaderForm?.get('person.identificationTypeId')?.value;
     const value = control.value;
+    const leadershipType = this.leaderForm?.get('leadershipType')?.value;
 
     if (!value) return null;
+
+    if (leadershipType === false) {
+      return null;
+    }
 
     // Validación para persona jurídica
     if (personType === 'JURIDICA') {
@@ -246,6 +257,22 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
       identificationTypeControl?.enable();
 
       // Actualizar validación del número de identificación
+      identificationNumberControl?.setValidators([
+        Validators.required,
+        this.identificationNumberValidator.bind(this)
+      ]);
+    }
+
+    identificationNumberControl?.updateValueAndValidity();
+  }
+
+  private updateIdentificationRequiredStatus(isIntegrityLeader: boolean): void {
+    const identificationNumberControl = this.leaderForm.get('person.identificationNumber');
+
+    if (!isIntegrityLeader) { // Externo
+      identificationNumberControl?.clearValidators();
+      identificationNumberControl?.setErrors(null);
+    } else { // Integrity
       identificationNumberControl?.setValidators([
         Validators.required,
         this.identificationNumberValidator.bind(this)
@@ -398,6 +425,11 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
   }
 
   onSubmit(): void {
+
+    if (this.leaderForm.get('leadershipType')?.value === false) {
+      this.leaderForm.get('person.identificationNumber')?.setErrors(null);
+    }
+
     this.markFormGroupTouched(this.leaderForm);
 
     if (this.leaderForm.invalid) {

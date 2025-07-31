@@ -74,10 +74,36 @@ a.mdc-list-item {
   justify-content: space-between;
 }
 
+.submenu-item {
+  padding-left: 5px !important;
+}
+
 .active-link {
   color: var(--itg-primary) !important;
 
   &:hover {
     background-color: var(--itg-primary-bg) !important;
+  }
+}
+.menu-expansion-panel {
+  box-shadow: none !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+
+  .menu-expansion-header {
+    padding: 0 16px;
+    height: 48px;
+
+    .mat-content {
+      align-items: center;
+    }
+
+    .expansion-icon {
+      margin-left: auto;
+    }
+  }
+
+  .mat-expansion-panel-body {
+    padding: 0 !important;
   }
 }

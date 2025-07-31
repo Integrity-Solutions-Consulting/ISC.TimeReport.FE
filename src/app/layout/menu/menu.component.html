@@ -7,16 +7,58 @@
   </div>
 
   <mat-nav-list>
-    <a  mat-list-item
-        *ngFor="let menu of options"
-        [routerLink]="menu.modulePath"
-        routerLinkActive="active-link"
-        class="menu-items"
-    >
-      <mat-icon style="margin-right: 10px;">
-        {{menu.icon}}
-      </mat-icon>
-      {{ menu.moduleName }}
-    </a>
+    <ng-container *ngFor="let item of menuItems">
+      <!-- Mostrar items normales -->
+      <a *ngIf="item.type === 'item'"
+         mat-list-item
+         [routerLink]="item.modulePath"
+         routerLinkActive="active-link"
+         class="menu-items">
+        <mat-icon style="margin-right: 10px;">{{item.icon}}</mat-icon>
+        {{ item.moduleName }}
+      </a>
+
+      <!-- Mostrar expansion panel para Actividades -->
+      <mat-expansion-panel *ngIf="item.type === 'expansion' && item.moduleName === 'Actividades'"
+                           [expanded]="item.expanded"
+                           class="menu-expansion-panel">
+        <mat-expansion-panel-header class="menu-expansion-header">
+          <mat-icon style="margin-right: 10px;">{{item.icon}}</mat-icon>
+          <span>{{item.moduleName}}</span>
+        </mat-expansion-panel-header>
+
+        <mat-nav-list>
+          <a mat-list-item
+             *ngFor="let option of item.options"
+             [routerLink]="option.modulePath"
+             routerLinkActive="active-link"
+             class="menu-items submenu-item">
+            <mat-icon style="margin-right: 10px;">{{option.icon}}</mat-icon>
+            {{ option.moduleName }}
+          </a>
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <!-- Mostrar expansion panel para Configuración -->
+      <mat-expansion-panel *ngIf="item.type === 'expansion' && item.moduleName === 'Configuración'"
+                           [expanded]="item.expanded"
+                           class="menu-expansion-panel">
+        <mat-expansion-panel-header class="menu-expansion-header">
+          <mat-icon style="margin-right: 10px;">{{item.icon}}</mat-icon>
+          <span>{{item.moduleName}}</span>
+        </mat-expansion-panel-header>
+
+        <mat-nav-list>
+          <a mat-list-item
+             *ngFor="let option of item.options"
+             [routerLink]="option.modulePath"
+             routerLinkActive="active-link"
+             class="menu-items submenu-item">
+            <mat-icon style="margin-right: 10px;">{{option.icon}}</mat-icon>
+            {{ option.moduleName }}
+          </a>
+        </mat-nav-list>
+      </mat-expansion-panel>
+    </ng-container>
   </mat-nav-list>
 </div>
