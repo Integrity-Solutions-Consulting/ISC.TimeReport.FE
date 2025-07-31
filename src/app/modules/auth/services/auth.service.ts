@@ -6,6 +6,7 @@ import { LoginRequest, AuthResponse, Role, Module } from "../interfaces/auth.int
 import { UserWithFullName } from "../../roles/interfaces/role.interface";
 import { EmployeeWithPerson } from "../../employees/interfaces/employee.interface";
 import { jwtDecode } from "jwt-decode";
+import { Router } from "@angular/router";
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +20,7 @@ export class AuthService {
   private usernameSubject = new BehaviorSubject<string>(this.getUsernameFromStorage());
   username$ = this.usernameSubject.asObservable();
   private currentEmployeeId = new BehaviorSubject<number | null>(null);
+  private router = inject(Router);
 
   constructor() {
     this.initializeAuthState();
@@ -40,17 +42,31 @@ export class AuthService {
       `${this.urlBase}/api/auth/login`,
       credentials
     ).pipe(
-      tap((response: AuthResponse) => {
-        console.log('Login response:', response); // Para debug
-        if (response.code !== 200) { // Asumo que 200 es el código de éxito
+      switchMap((response: AuthResponse) => {
+        if (response.code !== 200) {
           throw new Error(response.message);
         }
-        this.setSession(response);
-        this._isAuthenticated.set(true);
+
+        return this.setSession(response).pipe(
+          map(() => {
+            this._isAuthenticated.set(true);
+            return response;
+          })
+        );
+      }),
+      tap(() => {
+        // Redirigir después de que TODO esté cargado
+        setTimeout(() => {
+          if (this.isAdmin()) {
+            this.router.navigate(['/menu']);
+          } else {
+            this.router.navigate(['/menu/activities']);
+          }
+        }, 50); // Pequeño delay para asegurar que Angular procese los cambios
       }),
       catchError(error => {
         this.clearSession();
-        throw error;
+        return throwError(() => error);
       })
     );
   }
@@ -153,37 +169,49 @@ export class AuthService {
     );
   }
 
-  private setSession(authResult: AuthResponse): void {
-    if (!authResult.data?.token) {
-      throw new Error('Invalid authentication response: token is missing');
-    }
-
-    // Guardar token
-    localStorage.setItem('token', authResult.data.token);
-    localStorage.setItem('employeeID', authResult.data.employeeID.toString());
-
-    // Obtener información del empleado usando el employeeID
-    this.getEmployeeInfo(authResult.data.employeeID).subscribe(employee => {
-      if (employee) {
-        const fullName = `${employee.person.firstName} ${employee.person.lastName}`;
-        localStorage.setItem('userFullName', fullName);
-        this.usernameSubject.next(fullName);
+  private setSession(authResult: AuthResponse): Observable<void> {
+    return new Observable(observer => {
+      if (!authResult.data?.token) {
+        observer.error(new Error('Invalid authentication response: token is missing'));
+        return;
       }
+
+      // Guardar datos sincrónicos primero
+      localStorage.setItem('token', authResult.data.token);
+      localStorage.setItem('employeeID', authResult.data.employeeID.toString());
+
+      // Guardar información básica del usuario
+      localStorage.setItem('user', JSON.stringify({
+        userID: authResult.data.userID,
+        employeeID: authResult.data.employeeID
+      }));
+
+      // Procesar módulos y roles
+      const menuPaths = authResult.data.modules.map((module: Module) => module.modulePath);
+      localStorage.setItem('menus', JSON.stringify(menuPaths));
+      this._userMenus.set(menuPaths);
+
+      localStorage.setItem('roles', JSON.stringify(authResult.data.roles));
+      this._userRoles.set(authResult.data.roles);
+
+      // Obtener información del empleado (asíncrono)
+      this.getEmployeeInfo(authResult.data.employeeID).subscribe({
+        next: (employee) => {
+          if (employee) {
+            const fullName = `${employee.person.firstName} ${employee.person.lastName}`;
+            localStorage.setItem('userFullName', fullName);
+            this.usernameSubject.next(fullName);
+          }
+          observer.next();
+          observer.complete();
+        },
+        error: (err) => {
+          console.error('Error getting employee info:', err);
+          observer.next(); // Continuamos aunque falle esto
+          observer.complete();
+        }
+      });
     });
-
-    // Guardar información del usuario
-    localStorage.setItem('user', JSON.stringify({
-      userID: authResult.data.userID,
-      employeeID: authResult.data.employeeID
-    }));
-
-    // Convertir módulos a rutas de menú
-    const menuPaths = authResult.data.modules.map((module: Module) => module.modulePath);
-    localStorage.setItem('menus', JSON.stringify(menuPaths));
-    this._userMenus.set(menuPaths);
-
-    localStorage.setItem('roles', JSON.stringify(authResult.data.roles));
-    this._userRoles.set(authResult.data.roles);
   }
 
   private getEmployeeInfo(employeeID: number): Observable<any> {
