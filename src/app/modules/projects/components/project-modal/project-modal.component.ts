@@ -168,7 +168,7 @@ export class ProjectModalComponent implements OnInit {
     const projectData: Omit<Project, 'id'> = {
       clientID: formValue.clientId,
       projectStatusID: formValue.projectStatusId,
-      projectTypeID: formValue.projectTypeId || 0, // Valor por defecto si es null
+      projectTypeID: formValue.projectTypeId || null, // Valor por defecto si es null
       code: formValue.code,
       name: formValue.name,
       description: formValue.description,
@@ -199,10 +199,7 @@ export class ProjectModalComponent implements OnInit {
         }
       });
     } else {
-      this.projectService.createProject({
-        ...projectData,
-        id: 0 // El backend probablemente ignorará esto al crear
-      } as Project).subscribe({
+      this.projectService.createProject(projectData).subscribe({
         next: (response) => {
           this.dialogRef.close(response);
         },
