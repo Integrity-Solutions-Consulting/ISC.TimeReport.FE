@@ -45,15 +45,30 @@ export interface ApiResponseByID {
   data: []
 }
 
+export interface EmployeeProjectMiddle {
+  employeeId?: number | null;  // Nota: employeeId (sin mayúscula D)
+  supplierID?: number | null;
+  assignedRole: string;
+  costPerHour: number;
+  allocatedHours: number;
+  id?: number;                // Solo para actualizaciones
+  status?: boolean;           // Solo para actualizaciones
+}
+
 export interface EmployeeProject {
   id?: number;
-  employeeID?: number | null;  // For employee assignments
-  supplierID?: number | null;  // For supplier assignments
+  employeeID?: number | null;
+  supplierID?: number | null;
   assignedRole: string;
   costPerHour: number;
   allocatedHours: number;
   projectID: number;
   status: boolean;
+}
+
+export interface ResourceAssignmentPayload {
+  projectID: number;
+  employeeProjectMiddle: EmployeeProjectMiddle[];  // Nota: minúscula
 }
 
 export interface EmployeePersonInfo {

@@ -6,27 +6,23 @@
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Código</mat-label>
-        <input matInput formControlName="code">
+        <input matInput formControlName="code" placeholder="Código del Proyecto">
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Nombre</mat-label>
-        <input matInput formControlName="name">
+        <input matInput formControlName="name" placeholder="Nombre del Proyecto">
       </mat-form-field>
     </div>
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Descripción</mat-label>
-        <textarea matInput formControlName="description"></textarea>
+        <textarea matInput formControlName="description" placeholder="Descripción"></textarea>
       </mat-form-field>
     </div>
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Cliente</mat-label>
-        <mat-select formControlName="clientId">
+        <mat-select formControlName="clientId" placeholder="Cliente">
           @if (isLoadingClients) {
             <mat-option disabled>Cargando clientes...</mat-option>
           } @else {
@@ -41,8 +37,7 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Estado del Proyecto</mat-label>
-        <mat-select formControlName="projectStatusId">
+        <mat-select formControlName="projectStatusId" placeholder="Estado del Proyecto">
           @for (code of projectCodes; track code) {
             <mat-option [value]="code.id">{{code.name}}</mat-option>
           }
@@ -52,16 +47,14 @@
 
     <div class="form-row">
       <mat-form-field class="form-field-half" appearance="outline">
-        <mat-label style="font-family: 'Poppins'; ">Fecha de Inicio</mat-label>
-        <input matInput [matDatepicker]="picker1" formControlName="startDate">
+        <input matInput [matDatepicker]="picker1" formControlName="startDate" placeholder="Fecha de Inicio">
         <mat-hint>MM/DD/YYYY</mat-hint>
         <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
         <mat-datepicker #picker1></mat-datepicker>
       </mat-form-field>
 
       <mat-form-field class="form-field-half" appearance="outline">
-        <mat-label style="font-family: 'Poppins'; ">Fecha de Terminación</mat-label>
-        <input matInput [matDatepicker]="picker2" formControlName="endDate" [min]="projectForm.get('startDate')?.value">
+        <input matInput [matDatepicker]="picker2" formControlName="endDate" [min]="projectForm.get('startDate')?.value" placeholder="Fecha de Terminación">
         <mat-hint>MM/DD/YYYY</mat-hint>
         <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
         <mat-datepicker #picker2></mat-datepicker>
@@ -81,6 +74,7 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
+        <mat-label style="font-family: 'Poppins'; ">Número de Horas</mat-label>
         <input matInput formControlName="hours" type="number" min="0" placeholder="Número de Horas">
       </mat-form-field>
     </div>

@@ -7,8 +7,7 @@
     <div class="section-title" style="font-family: 'Poppins';">Detalles del Empleado</div>
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Cargo</mat-label>
-        <mat-select formControlName="positionID">
+        <mat-select formControlName="positionID" placeholder="Cargo">
           @for (position of positions; track position) {
             <mat-option [value]="position.id">{{position.name}}</mat-option>
           }
@@ -16,15 +15,13 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Código del Empleado</mat-label>
-        <input matInput formControlName="employeeCode" required>
+        <input matInput formControlName="employeeCode" placeholder="Código del Empleado (*)" required>
       </mat-form-field>
     </div>
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Departamento</mat-label>
-        <mat-select formControlName="departmentID">
+        <mat-select formControlName="departmentID" placeholder="Departamento">
           @for (dept of departments; track dept) {
             <mat-option [value]="dept.id">{{dept.name}}</mat-option>
           }
@@ -34,8 +31,7 @@
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Correo Corporativo</mat-label>
-        <input matInput formControlName="corporateEmail" type="email">
+        <input matInput formControlName="corporateEmail" type="email" placeholder="Correo Corporativo">
         <mat-error *ngIf="employeeForm.get('corporateEmail')?.hasError('email')">
           Formato de email inválido
         </mat-error>
@@ -66,8 +62,8 @@
       </div>
 
       <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width"> <mat-label style="font-family: 'Poppins'; ">Número de Identificación</mat-label>
-          <input matInput formControlName="identificationNumber" required>
+        <mat-form-field appearance="outline" class="full-width">
+          <input matInput formControlName="identificationNumber" placeholder="Número de Identificación (*)" required>
           <mat-error *ngIf="employeeForm.get('person.identificationNumber')?.hasError('required')">
             Este campo es requerido
           </mat-error>
@@ -85,28 +81,24 @@
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Nombres</mat-label>
-          <input matInput formControlName="firstName">
+          <input matInput formControlName="firstName" placeholder="Nombres">
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Apellidos</mat-label>
-          <input matInput formControlName="lastName">
+          <input matInput formControlName="lastName" placeholder="Apellidos">
         </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Fecha de Nacimiento</mat-label>
-          <input matInput [matDatepicker]="picker3" formControlName="birthDate">
+          <input matInput [matDatepicker]="picker3" formControlName="birthDate" placeholder="Fecha de Nacimiento">
           <mat-hint>MM/DD/YYYY</mat-hint>
           <mat-datepicker-toggle matIconSuffix [for]="picker3"></mat-datepicker-toggle>
           <mat-datepicker #picker3></mat-datepicker>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Correo Electrónico</mat-label>
-          <input matInput formControlName="email" type="email">
+          <input matInput formControlName="email" type="email" placeholder="Correo Electrónico">
           <mat-error *ngIf="employeeForm.get('person.email')?.hasError('email')">
             Formato de email inválido
           </mat-error>
@@ -115,19 +107,14 @@
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Teléfono</mat-label>
-          <input matInput formControlName="phone">
-          <mat-error *ngIf="employeeForm.get('person.phone')?.hasError('required')">
-            Este campo es requerido
-          </mat-error>
+          <input matInput formControlName="phone" placeholder="Teléfono">
           <mat-error *ngIf="employeeForm.get('person.phone')?.hasError('pattern')">
             El teléfono debe contener solo números (máximo 10 dígitos)
           </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Dirección</mat-label>
-          <input matInput formControlName="address">
+          <input matInput formControlName="address" placeholder="Dirección">
         </mat-form-field>
       </div>
 
@@ -151,6 +138,59 @@
         </mat-form-field>
       </div>
     </div>
+    <div class="section-title" style="font-family: 'Poppins';">Datos de Contrato</div>
+
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title style="font-family: 'Poppins'">
+          Información Adicional del Empleado
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput [matDatepicker]="picker1" formControlName="hireDate" placeholder="Fecha de Ingreso">
+          <mat-hint>MM/DD/YYYY</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
+          <mat-datepicker #picker1></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput [matDatepicker]="picker2" formControlName="terminationDate" placeholder="Fecha de Terminación">
+          <mat-hint>MM/DD/YYYY</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
+          <mat-datepicker #picker2></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins'; ">Salario</mat-label>
+          <input matInput type="number" formControlName="salary" placeholder="Salario">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins'; ">Categoría</mat-label>
+          <mat-select formControlName="category" placeholder="Categoría">
+            <mat-option value="JUNIOR">Junior</mat-option>
+            <mat-option value="SEMI_SENIOR">Semi-Senior</mat-option>
+            <mat-option value="SENIOR">Senior</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-select formControlName="companies" multiple placeholder="Empresa">
+            <mat-select-trigger>
+              {{employeeForm.value.companies?.length ? (employeeForm.value.companies.length === 2 ? 'ISC y RPS' : employeeForm.value.companies[0] === 1 ? 'ISC' : 'RPS') : ''}}
+            </mat-select-trigger>
+            <mat-option value="1">ISC</mat-option>
+            <mat-option value="2">RPS</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-expansion-panel>
   </form>
 </mat-dialog-content>
 <mat-dialog-actions>

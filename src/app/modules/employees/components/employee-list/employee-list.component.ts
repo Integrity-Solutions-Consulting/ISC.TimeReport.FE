@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, Injectable, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, inject, Injectable, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -67,7 +67,7 @@ export class EmployeePaginatorIntl implements MatPaginatorIntl {
   templateUrl: './employee-list.component.html',
   styleUrl: './employee-list.component.scss'
 })
-export class EmployeeListComponent {
+export class EmployeeListComponent implements AfterViewInit {
 
   private employeeService = inject(EmployeeService);
   readonly snackBar = inject(MatSnackBar);
@@ -79,6 +79,11 @@ export class EmployeeListComponent {
   ) {}
 
   employees: Employee[] = [];
+
+  ngAfterViewInit() {
+    // Esto asegura que el sort se asigne cuando la vista esté lista
+    this.dataSource.sort = this.sort;
+  }
 
   displayedColumns: string[] = ['idtype', 'idnumber', 'firstname', 'lastname', 'email', 'position', 'status', 'options'];
 
@@ -170,6 +175,29 @@ export class EmployeeListComponent {
           this.pageSize = response.pageSize;
           this.currentPage = response.pageNumber - 1;
 
+          // Asigna el sort después de tener los datos
+          setTimeout(() => {
+            this.dataSource.sort = this.sort;
+            this.dataSource.sortingDataAccessor = (data: any, sortHeaderId: string) => {
+              // Lógica personalizada para sorting si es necesario
+              if (sortHeaderId === 'position') {
+                return this.getPositionName(data.positionID);
+              }
+              if (sortHeaderId === 'idtype') {
+                return this.getIdentificationTypeName(data.person.identificationTypeId);
+              }
+              if (sortHeaderId === 'firstname') return data.person.firstName;
+              if (sortHeaderId === 'lastname') return data.person.lastName;
+              if (sortHeaderId === 'email') return data.person.email;
+              if (sortHeaderId === 'idnumber') return data.person.identificationNumber;
+              // Para propiedades anidadas
+              if (sortHeaderId.includes('.')) {
+                return sortHeaderId.split('.').reduce((o, i) => o[i], data);
+              }
+              return data[sortHeaderId];
+            };
+          });
+
           if (this.paginator) {
             this.paginator.length = this.totalItems;
             this.paginator.pageSize = this.pageSize;
@@ -177,12 +205,12 @@ export class EmployeeListComponent {
           }
         } else {
           console.error('La respuesta del API no tiene la estructura esperada:', response);
-          this.dataSource = new MatTableDataSource<Employee>([]); // Tabla vacía como fallback
+          this.dataSource = new MatTableDataSource<Employee>([]);
         }
       },
       error: (err) => {
         console.error('Error al cargar empleados:', err);
-        this.dataSource = new MatTableDataSource<Employee>([]); // Tabla vacía en caso de error
+        this.dataSource = new MatTableDataSource<Employee>([]);
       }
     });
   }

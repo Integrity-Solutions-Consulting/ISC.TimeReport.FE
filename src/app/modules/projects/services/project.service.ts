@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ApiResponse, ApiResponseByID, ApiResponseData, Project, ProjectDetails } from '../interfaces/project.interface';
+import { ApiResponse, ApiResponseByID, ApiResponseData, Project, ProjectDetails, ResourceAssignmentPayload } from '../interfaces/project.interface';
 import { catchError, expand, forkJoin, map, mergeMap, Observable, of, reduce, switchMap, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 import { ProjectDetail, AllProjectsResponse, SimpleProjectItem, Role} from '../interfaces/project.interface';
@@ -244,8 +244,8 @@ export class ProjectService {
         return this.http.get<any>(`${this.urlBase}/api/Project/GetAllProjectsWhereEmployee`, { params: httpParams });
     }
 
-    assignResourcesToProject(request: any): Observable<any> {
-      return this.http.post(`${this.urlBase}/api/Project/AssignEmployeesToProject`, request);
+    assignResourcesToProject(payload: ResourceAssignmentPayload): Observable<any> {
+      return this.http.post(`${this.urlBase}/api/Project/AssignEmployeesToProject`, payload);
     }
 
     getAllEmployees(pageSize: number, pageNumber: number, search: string): Observable<any> {

@@ -12,6 +12,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { EmployeeService } from '../../services/employee.service';
 import { PersonService } from '../../services/person.service';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @Component({
   selector: 'employee-dialog',
@@ -27,6 +28,7 @@ import { PersonService } from '../../services/person.service';
     ReactiveFormsModule,
     MatCardModule,
     MatDialogModule,
+    MatExpansionModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -123,7 +125,11 @@ export class EmployeeDialogComponent implements OnInit {
         employeeCode: [employeeData.employeeCode || ''],
         departmentID: [employeeData.departmentID || null],
         corporateEmail: [employeeData.corporateEmail || null, [Validators.required, Validators.email]],
-        salary: [employeeData.salary],
+        salary: [employeeData.salary || 0],
+        hireDate: [hireDateValue],
+        terminationDate: [terminationDateValue],
+        category: [employeeData.category || 'JUNIOR'],
+        companies: [employeeData.companies || []],
         // Grupo anidado para 'person'
         person: this.fb.group({
           personType: [employeeData.person?.personType || 'NATURAL', Validators.required],
@@ -312,6 +318,17 @@ export class EmployeeDialogComponent implements OnInit {
 
     const formValue = this.employeeForm?.getRawValue(); // Usa getRawValue() para incluir campos deshabilitados
 
+    let companyValue = 0;
+    if (formValue.companies) {
+      if (formValue.companies.includes('1') && formValue.companies.includes('2')) {
+        companyValue = 3; // Ambas empresas
+      } else if (formValue.companies.includes('1')) {
+        companyValue = 1; // Solo ISC
+      } else if (formValue.companies.includes('2')) {
+        companyValue = 2; // Solo RPS
+      }
+    }
+
     if (formValue.person?.birthDate) {
       formValue.person.birthDate = formatDate(formValue.person.birthDate, 'yyyy-MM-dd', 'en-US');
     }
@@ -328,6 +345,10 @@ export class EmployeeDialogComponent implements OnInit {
         salary: formValue.salary,
         person: formValue.person,
         status: this.originalStatus,
+        hireDate: formValue.hireDate ? formatDate(formValue.hireDate, 'yyyy-MM-dd', 'en-US') : null,
+        terminationDate: formValue.terminationDate ? formatDate(formValue.terminationDate, 'yyyy-MM-dd', 'en-US') : null,
+        category: formValue.category,
+        company: companyValue,
       };
 
       this.employeeService.updateEmployeeWithPerson(this.employeeId, employeeData).subscribe({
