@@ -11,8 +11,7 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
-import { ProjectDetail, EmployeeProject } from '../../interfaces/project.interface'; // Import ProjectDetail
-
+import { ProjectDetail, EmployeeProject, EmployeeProjectMiddle, ResourceAssignmentPayload } from '../../interfaces/project.interface';
 
 interface DialogData {
   projectId: number;
@@ -50,10 +49,10 @@ export class AssignmentDialogComponent {
   providers: any[] = [];
   positions: any[] = [];
   selectedResourceType: number = 1;
-  selectedResources: any[] = [];
   projectName: string = '';
-  existingAssignments: any[] = [];
-  assignmentsToDelete: any[] = [];
+  existingAssignments: (EmployeeProject & {markedForDeletion?: boolean})[] = [];
+  assignmentsToDelete: Partial<EmployeeProject>[] = [];
+  selectedResources: EmployeeProjectMiddle[] = [];
 
   displayedColumns: string[] = ['type', 'name', 'profile', 'cost', 'hours', 'actions'];
 
@@ -74,6 +73,15 @@ export class AssignmentDialogComponent {
 
     this.loadInitialData();
     this.loadProjectDetails();
+  }
+
+  private resetForm(): void {
+    this.assignmentForm.patchValue({
+      resource: null,
+      profile: null,
+      costPerHour: 0,
+      totalHours: 0
+    });
   }
 
   async loadInitialData() {
@@ -100,23 +108,16 @@ export class AssignmentDialogComponent {
 
       if (projectDetails?.employeeProjects) {
         this.existingAssignments = projectDetails.employeeProjects
-          .filter(assignment => assignment.status === true)
+          .filter(assignment => assignment.status)
           .map(assignment => ({
-            id: assignment.id,
-            employeeId: assignment.employeeID ?? null,  // Use null coalescing
-            supplierID: assignment.supplierID ?? null,  // Use null coalescing
-            assignedRole: assignment.assignedRole,
-            costPerHour: assignment.costPerHour,
-            allocatedHours: assignment.allocatedHours,
-            isExisting: true,
-            status: assignment.status
+            ...assignment,
+            employeeID: assignment.employeeID,
+            supplierID: assignment.supplierID,
+            markedForDeletion: false
           }));
-      } else {
-        this.existingAssignments = [];
       }
     } catch (error) {
       console.error('Error loading project details:', error);
-      this.existingAssignments = [];
     }
   }
 
@@ -139,40 +140,34 @@ export class AssignmentDialogComponent {
 
   addResource() {
     if (this.assignmentForm.valid) {
-      const formValue = this.assignmentForm.value;
-
-      const newResource = {
-        employeeId: this.selectedResourceType === 1 ? formValue.resource : null,
-        supplierID: this.selectedResourceType === 2 ? formValue.resource : null,
-        assignedRole: formValue.profile,
-        costPerHour: formValue.costPerHour,
-        allocatedHours: formValue.totalHours,
-        status: true,
-        timestamp: new Date().getTime()
+      const newResource: EmployeeProjectMiddle = {
+        [this.selectedResourceType === 1 ? 'employeeId' : 'supplierID']: this.assignmentForm.value.resource,
+        assignedRole: this.assignmentForm.value.profile,
+        costPerHour: this.assignmentForm.value.costPerHour,
+        allocatedHours: this.assignmentForm.value.totalHours
       };
 
       this.selectedResources = [...this.selectedResources, newResource];
-
-      this.assignmentForm.patchValue({
-        resource: null,
-        profile: null,
-        costPerHour: 0,
-        totalHours: 0
-      });
-
-      setTimeout(() => {
-        const firstField = document.querySelector('mat-select[formControlName="resource"]');
-        if (firstField) {
-          (firstField as HTMLElement).focus();
-        }
-      });
+      this.resetForm();
     }
   }
 
   removeResource(index: number, isExisting: boolean = false) {
     if (isExisting) {
-      const assignmentToMarkInactive = { ...this.existingAssignments[index], status: false };
-      this.assignmentsToDelete.push(assignmentToMarkInactive);
+      const assignment = this.existingAssignments[index];
+
+      // Guardar todos los campos necesarios para la eliminación
+      if (assignment.id) {
+        this.assignmentsToDelete.push({
+          id: assignment.id,
+          employeeID: assignment.employeeID,
+          supplierID: assignment.supplierID,
+          assignedRole: assignment.assignedRole,
+          costPerHour: assignment.costPerHour,
+          allocatedHours: assignment.allocatedHours
+        });
+      }
+
       this.existingAssignments.splice(index, 1);
       this.existingAssignments = [...this.existingAssignments];
     } else {
@@ -181,47 +176,70 @@ export class AssignmentDialogComponent {
     }
   }
 
-  getResourceName(resource: any): string {
-    if (resource.employeeId) {
+  getResourceName(resource: EmployeeProject): string {
+    if (resource.employeeID) {
       if (this.data.employeesPersonInfo) {
-        const employee = this.data.employeesPersonInfo.find(e => e.id === resource.employeeId);
+        const employee = this.data.employeesPersonInfo.find(e => e.id === resource.employeeID);
         if (employee) return `${employee.firstName} ${employee.lastName}`;
       }
-      const newEmployee = this.employees.find(e => e.id === resource.employeeId);
-      return newEmployee ? `${newEmployee.person.firstName} ${newEmployee.person.lastName}` : 'Empleado no encontrado';
-    } else {
+      const employee = this.employees.find(e => e.id === resource.employeeID);
+      return employee ? `${employee.person.firstName} ${employee.person.lastName}` : 'Empleado no encontrado';
+    } else if (resource.supplierID) {
       const provider = this.providers.find(p => p.id === resource.supplierID);
       return provider ? provider.businessName : 'Proveedor no encontrado';
     }
+    return 'Recurso no identificado';
   }
 
   assignResources() {
-    const allAssignmentsToUpdate = [
-      ...this.existingAssignments,
-      ...this.selectedResources,
-      ...this.assignmentsToDelete
-    ];
+    // 1. Preparar nuevos recursos (sin ID)
+    const newAssignments: EmployeeProjectMiddle[] = this.selectedResources.map(resource => ({
+      employeeId: resource.employeeId || null,
+      supplierID: resource.supplierID || null,
+      assignedRole: resource.assignedRole,
+      costPerHour: resource.costPerHour,
+      allocatedHours: resource.allocatedHours,
+      //status: true
+    }));
 
-    const payload = {
+    // 2. Preparar recursos existentes que se mantienen
+    const keptResources: EmployeeProjectMiddle[] = this.existingAssignments.map(resource => ({
+      //id: resource.id,
+      employeeId: resource.employeeID,
+      supplierID: resource.supplierID,
+      assignedRole: resource.assignedRole,
+      costPerHour: resource.costPerHour,
+      allocatedHours: resource.allocatedHours,
+      //status: true
+    }));
+
+    // 3. Preparar recursos a eliminar (con todos los campos requeridos)
+    const deletedResources: EmployeeProjectMiddle[] = this.assignmentsToDelete.map(assignment => ({
+      //id: assignment.id!,
+      employeeId: assignment.employeeID || null,
+      supplierID: assignment.supplierID || null,
+      assignedRole: assignment.assignedRole || 'Eliminado', // Valor por defecto
+      costPerHour: assignment.costPerHour || 0,             // Valor por defecto
+      allocatedHours: assignment.allocatedHours || 0,       // Valor por defecto
+      //status: false
+    }));
+
+    // Payload final
+    const payload: ResourceAssignmentPayload = {
       projectID: this.data.projectId,
-      employeeProjectMiddle: allAssignmentsToUpdate.map(resource => ({
-        id: resource.id || 0,
-        employeeID: resource.employeeId || null,
-        supplierID: resource.supplierID || null,
-        assignedRole: resource.assignedRole,
-        costPerHour: resource.costPerHour,
-        allocatedHours: resource.allocatedHours,
-        projectID: this.data.projectId,
-        status: resource.status
-      }))
+      employeeProjectMiddle: [
+        ...newAssignments,
+        ...keptResources,
+        //...deletedResources
+      ]
     };
 
+    console.log('Payload a enviar:', payload);
     this.projectService.assignResourcesToProject(payload).subscribe({
-      next: () => {
-        this.dialogRef.close(true);
-      },
+      next: () => this.dialogRef.close(true),
       error: (err) => {
-        console.error('Error assigning resources:', err);
+        console.error('Error:', err);
+        this.loadProjectDetails();
       }
     });
   }

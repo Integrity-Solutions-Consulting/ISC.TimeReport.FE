@@ -120,3 +120,15 @@
   // You might want to make the background color slightly different for disabled state
   // background-color: #cccccc !important;
 }
+
+mat-expansion-panel {
+  margin: 15px 0;
+
+  .mat-expansion-panel-header {
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
