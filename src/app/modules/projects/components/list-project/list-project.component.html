@@ -3,8 +3,8 @@
   <div class="top-items">
     <mat-form-field appearance="outline" class="search-field">
       <input matInput
-            (keyup)="applyFilter($event)"
-            [formControl]="searchControl" placeholder="Buscar por nombres, código de proyecto..."
+            [formControl]="searchControl"
+            placeholder="Buscar por nombres, código de proyecto..."
             #input>
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
