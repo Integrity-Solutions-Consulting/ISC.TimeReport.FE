@@ -14,13 +14,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { ProjectService } from '../../../projects/services/project.service';
 import { Project } from '../../../projects/interfaces/project.interface';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 @Injectable()
 export class LeaderPaginatorIntl implements MatPaginatorIntl {
@@ -56,7 +57,8 @@ export class LeaderPaginatorIntl implements MatPaginatorIntl {
     MatInputModule,
     MatSortModule,
     MatPaginatorModule,
-    MatTooltipModule
+    MatTooltipModule,
+    ReactiveFormsModule
   ],
   providers: [
     {provide: MatPaginatorIntl, useClass: LeaderPaginatorIntl}
@@ -79,22 +81,35 @@ export class LeaderListComponent implements OnInit{
   leaders: Leader[] = [];
   projects: Project[] = [];
 
+  selection = new SelectionModel<any>(true, []);
+
   dataSource: MatTableDataSource<Leader> = new MatTableDataSource<Leader>();
 
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  displayedColumns: string[] = ['idtype', 'idnumber', 'leadertype', 'names', 'surnames', 'project', 'status', 'options'];
+  searchControl = new FormControl('');
 
-  selection = new SelectionModel<any>(true, []);
+  displayedColumns: string[] = ['idtype', 'idnumber', 'leadertype', 'names', 'surnames', 'project', 'status', 'options'];
 
   totalItems: number = 0;
   pageSize: number = 10;
   currentPage: number = 0;
   currentSearch: string = '';
+  lastSearch: string = '';
 
   ngOnInit(): void {
-    this.loadLeaders();
+    this.loadLeaders(this.currentPage + 1, this.pageSize, this.currentSearch);
+    this.searchControl.valueChanges.pipe(
+          debounceTime(300),
+          distinctUntilChanged()
+        ).subscribe(value => {
+          this.currentSearch = value || ''; // Update the search string
+          this.currentPage = 0;             // Reset internal 0-based page index to 0
+          this.paginator.firstPage();       // Reset MatPaginator to first page (pageIndex becomes 0)
+          // Calls loadEmployees, passing (0 + 1) = 1 as the page number for the backend
+          this.loadLeaders(1, this.pageSize, this.currentSearch);
+        });
     this.loadProjects();
   }
 
@@ -113,24 +128,13 @@ export class LeaderListComponent implements OnInit{
     this.leaderService.getLeaders(pageNumber, pageSize, search).subscribe({
       next: (response) => {
         if (response?.items) {
-          this.dataSource = new MatTableDataSource<Leader>(response.items);
+          this.dataSource.data = response.items; // Actualiza solo los datos
           this.totalItems = response.totalItems;
-          this.pageSize = response.pageSize;
-          this.currentPage = response.pageNumber - 1;
-
-          if (this.paginator) {
-            this.paginator.length = this.totalItems;
-            this.paginator.pageSize = this.pageSize;
-            this.paginator.pageIndex = this.currentPage;
-          }
-        } else {
-          console.error('La respuesta del API no tiene la estructura esperada:', response);
-          this.dataSource = new MatTableDataSource<Leader>([]); // Tabla vacía como fallback
         }
       },
       error: (err) => {
-        console.error('Error al cargar proyectos:', err);
-        this.dataSource = new MatTableDataSource<Leader>([]); // Tabla vacía en caso de error
+        console.error('Error:', err);
+        this.snackBar.open("Error al cargar líderes", "Cerrar", {duration: 5000});
       }
     });
   }
@@ -138,7 +142,6 @@ export class LeaderListComponent implements OnInit{
   onPageChange(event: PageEvent): void {
     this.pageSize = event.pageSize;
     this.currentPage = event.pageIndex + 1;
-    // Pasa el valor de búsqueda actual al cargar los empleados
     this.loadLeaders(this.currentPage, this.pageSize, this.currentSearch);
   }
 
@@ -292,14 +295,14 @@ export class LeaderListComponent implements OnInit{
     });
   }
 
-  applyFilter(event: Event) {
+  /*applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
 
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
-  }
+  }*/
 
   viewLeaderDetails(projectId: number): void {
     this.router.navigate([projectId], { relativeTo: this.route });
