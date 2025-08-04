@@ -134,7 +134,7 @@ export class ClientModalComponent implements OnInit {
         email: [customerData.person?.email || '', [Validators.required, Validators.email]],
         address: [customerData.person?.address || null],
         phone: [customerData.person?.phone || null],
-        genderID: [customerData.person?.genderId || null],
+        genderID: [customerData.person?.genderId || 0],
         nationalityId: [customerData.person?.nationalityId || null],
         identificationTypeId: [customerData.person?.identificationTypeId || 0],
         identificationNumber: [customerData.person?.identificationNumber || '']

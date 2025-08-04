@@ -216,7 +216,7 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
 
     // Validación para persona jurídica
     if (personType === 'JURIDICA') {
-      if (identificationTypeId !== 2) { // 2 = RUC
+      if (identificationTypeId !== 3) {
         return { invalidIdentificationType: 'Persona jurídica debe usar RUC' };
       }
       if (!/^\d{13}$/.test(value)) {
@@ -241,9 +241,9 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
     const identificationTypeControl = this.leaderForm.get('person.identificationTypeId');
     const identificationNumberControl = this.leaderForm.get('person.identificationNumber');
 
-    if (personType === 'Legal') {
+    if (personType === 'JURIDICA') {
       // Persona jurídica solo puede tener RUC (id: 2)
-      identificationTypeControl?.setValue(2);
+      identificationTypeControl?.setValue(3, { emitEvent: false });
       identificationTypeControl?.disable();
 
       // Actualizar validación del número de identificación
@@ -264,6 +264,8 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
     }
 
     identificationNumberControl?.updateValueAndValidity();
+
+    this.leaderForm.get('person')?.updateValueAndValidity();
   }
 
   private updateIdentificationRequiredStatus(isIntegrityLeader: boolean): void {
