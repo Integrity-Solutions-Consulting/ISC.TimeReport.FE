@@ -2,23 +2,31 @@
 
 <mat-dialog-content>
   <form [formGroup]="roleForm" *ngIf="!isLoading">
-    <mat-form-field appearance="outline" class="full-width">
-      <input matInput formControlName="roleName" placeholder="Nombre de Rol" required>
+    <mat-form-field appearance="outline" class="form-field">
+      <input matInput formControlName="roleName" required placeholder="Nombre de Rol">
+      <mat-icon matPrefix>badge</mat-icon>
+      <mat-hint>Ingrese un nombre único para el rol</mat-hint>
       <mat-error *ngIf="roleForm.get('roleName')?.hasError('required')">
         El nombre del rol es requerido
       </mat-error>
+      <mat-error *ngIf="roleForm.get('roleName')?.hasError('minlength')">
+        Mínimo 3 caracteres
+      </mat-error>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <input matInput formControlName="description" placeholder="Descripción" rows="3">
+    <!-- Campo Description con mejor estilo -->
+    <mat-form-field appearance="outline" class="form-field">
+      <textarea matInput formControlName="description" placeholder="Descripción" rows="3"></textarea>
+      <mat-icon matPrefix>description</mat-icon>
+      <mat-hint>Describa el propósito de este rol</mat-hint>
     </mat-form-field>
 
     <h3>Módulos Accesibles</h3>
     <mat-selection-list formControlName="moduleIds">
       <mat-list-option *ngFor="let module of allModules" [value]="module.id" checkboxPosition="before">
-        <!--<mat-icon matListIcon>{{module.icon}}</mat-icon>-->
+
         <div matLine>{{module.moduleName}}</div>
-        <!--<div matLine>{{module.modulePath}}</div>-->
+
       </mat-list-option>
     </mat-selection-list>
   </form>

@@ -102,3 +102,107 @@
   background-color: var(--itg-primary);
   border-radius: 4px;
 }
+
+/* Estilos generales del diálogo */
+.mat-dialog-container {
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Campos del formulario */
+.form-field {
+  width: 100%;
+  margin-bottom: 20px;
+
+  .mat-icon {
+    color: rgba(0, 0, 0, 0.54);
+    margin-right: 8px;
+  }
+
+  .mat-form-field-outline {
+    background-color: #f5f5f5;
+    border-radius: 4px;
+  }
+
+  .mat-form-field-outline-thicker {
+    border-width: 2px;
+  }
+
+  .mat-input-element {
+    padding: 8px 0;
+    font-size: 14px;
+  }
+
+  .mat-form-field-label {
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .mat-form-field-wrapper {
+    padding-bottom: 0;
+  }
+
+  .mat-form-field-subscript-wrapper {
+    margin-top: 4px;
+  }
+}
+
+/* Lista de módulos */
+.modules-title {
+  margin: 24px 0 16px;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.modules-list {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 8px 0;
+  max-height: 300px;
+  overflow-y: auto;
+
+  .module-name {
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .module-description {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .mat-list-option {
+    height: auto;
+    padding: 8px 16px;
+  }
+}
+
+/* Acciones del diálogo */
+.mat-dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 16px;
+
+  button {
+    min-width: 100px;
+    border-radius: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+  }
+}
+
+/* Efectos de hover y focus */
+.mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  color: var(--itg-primary);
+}
+
+.mat-form-field.mat-focused .mat-form-field-label {
+  color: var(--itg-primary);
+}
+
+.mat-list-option:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}

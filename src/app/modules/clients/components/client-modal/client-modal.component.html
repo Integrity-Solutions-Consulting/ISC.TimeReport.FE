@@ -7,8 +7,7 @@
     <div class="section-title" style="font-family: 'Poppins';">Datos del Cliente</div>
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Empresa</mat-label>
-        <input matInput formControlName="tradeName">
+        <input matInput formControlName="tradeName" placeholder="Empresa">
       </mat-form-field>
     </div>
 
@@ -47,28 +46,24 @@
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label style="font-family: 'Poppins'; ">Número de Identificación</mat-label>
-          <input matInput formControlName="identificationNumber">
+          <input matInput formControlName="identificationNumber" placeholder="Número de Identificación">
         </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Nombres</mat-label>
-          <input matInput formControlName="firstName">
+          <input matInput formControlName="firstName" placeholder="Nombres">
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Apellidos</mat-label>
-          <input matInput formControlName="lastName">
+          <input matInput formControlName="lastName" placeholder="Apellidos">
         </mat-form-field>
       </div>
 
       <div class="form-row">
 
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Correo Electrónico</mat-label>
-          <input matInput formControlName="email" type="email">
+          <input matInput formControlName="email" type="email" placeholder="Correo Electrónico">
           <mat-error *ngIf="clientForm.get('person.email')?.hasError('email')">
             Formato de email inválido
           </mat-error>
@@ -77,23 +72,20 @@
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Teléfono</mat-label>
-          <input matInput formControlName="phone">
+          <input matInput formControlName="phone" placeholder="Teléfono">
           <mat-error *ngIf="clientForm.get('person.phone')?.hasError('pattern')">
             El teléfono debe contener solo números (máximo 10 dígitos)
           </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Dirección</mat-label>
-          <input matInput formControlName="address">
+          <input matInput formControlName="address" placeholder="Dirección">
         </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">País</mat-label>
-          <mat-select formControlName="nationalityId">
+          <mat-select formControlName="nationalityId" placeholder="País">
             @for (nation of nationalities; track nation) {
               <mat-option [value]="nation.id">{{nation.name}}</mat-option>
             }

@@ -77,7 +77,7 @@ export class RolesListComponent implements OnInit, AfterViewInit {
 
   openEditRoleDialog(role: any): void {
     const dialogRef = this.dialog.open(RoleDialogComponent, {
-      width: '600px',
+      width: '800px',
       data: { role, modules: this.allModules }
     });
 

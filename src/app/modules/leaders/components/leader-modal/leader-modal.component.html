@@ -13,8 +13,7 @@
 
     <div class="form-row" *ngIf="useExistingPerson">
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Seleccionar persona existente</mat-label>
-        <mat-select formControlName="existingPerson" (selectionChange)="onPersonSelected($event)"> <mat-option>-- Seleccione una persona --</mat-option>
+        <mat-select formControlName="existingPerson" (selectionChange)="onPersonSelected($event)" placeholder="Proyecto">
           <mat-option *ngIf="isLoadingPersons" disabled>
             <div style="display: flex; align-items: center;">
               <mat-spinner diameter="20"></mat-spinner>
@@ -49,8 +48,7 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Proyecto</mat-label>
-        <mat-select formControlName="projectID" required> <mat-option>-- Seleccione un proyecto --</mat-option>
+        <mat-select formControlName="projectID" required placeholder="Proyecto">
           <mat-option *ngIf="isLoadingProjects" disabled>
             <div style="display: flex; align-items: center;">
               <mat-spinner diameter="20"></mat-spinner>
@@ -69,32 +67,9 @@
       </mat-form-field>
     </div>
 
-    <!--<div class="form-row">
-      <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Fecha de Inicio</mat-label>
-        <input matInput [matDatepicker]="picker1" formControlName="startDate" required> <mat-hint>MM/DD/YYYY</mat-hint>
-        <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
-        <mat-datepicker #picker1></mat-datepicker>
-        <mat-error *ngIf="leaderForm.get('startDate')?.hasError('required') && leaderForm.get('startDate')?.touched">
-          Este campo es requerido
-        </mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Fecha de Fin</mat-label>
-        <input matInput [matDatepicker]="picker2" formControlName="endDate" [min]="leaderForm.get('startDate')?.value" required> <mat-hint>MM/DD/YYYY</mat-hint>
-        <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
-        <mat-datepicker #picker2></mat-datepicker>
-        <mat-error *ngIf="leaderForm.get('endDate')?.hasError('required') && leaderForm.get('endDate')?.touched">
-          Este campo es requerido
-        </mat-error>
-      </mat-form-field>
-    </div>-->
-
     <div class="form-row">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Área</mat-label>
-        <textarea matInput formControlName="responsibilities"></textarea>
+      <mat-form-field appearance="outline" class="form-field-half">
+        <input matInput formControlName="responsibilities" placeholder="Área">
       </mat-form-field>
     </div>
 
@@ -115,8 +90,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Tipo de Identificación</mat-label>
-          <mat-select formControlName="identificationTypeId">
+          <mat-select formControlName="identificationTypeId" placeholder="Tipo de Identificación">
             @for (type of identificationTypes; track type) {
               <mat-option [value]="type.id">{{type.name}}</mat-option>
             }
@@ -126,8 +100,7 @@
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label style="font-family: 'Poppins'; ">Número de Identificación</mat-label>
-          <input matInput formControlName="identificationNumber" required>
+          <input matInput formControlName="identificationNumber" required placeholder="Número de Identificación">
           <mat-error *ngIf="leaderForm.get('person.identificationNumber')?.hasError('required')">
             Este campo es requerido
           </mat-error>
@@ -145,28 +118,24 @@
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Nombres</mat-label>
-          <input matInput formControlName="firstName">
+          <input matInput formControlName="firstName" placeholder="Nombres">
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Apellidos</mat-label>
-          <input matInput formControlName="lastName">
+          <input matInput formControlName="lastName" placeholder="Apellidos">
         </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Fecha de Nacimiento</mat-label>
-          <input matInput [matDatepicker]="picker3" formControlName="birthDate">
+          <input matInput [matDatepicker]="picker3" formControlName="birthDate" placeholder="Fecha de Nacimiento">
           <mat-hint>MM/DD/YYYY</mat-hint>
           <mat-datepicker-toggle matIconSuffix [for]="picker3"></mat-datepicker-toggle>
           <mat-datepicker #picker3></mat-datepicker>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Correo Electrónico</mat-label>
-          <input matInput formControlName="email" type="email">
+          <input matInput formControlName="email" type="email" placeholder="Correo Electrónico">
           <mat-error *ngIf="leaderForm.get('person.email')?.hasError('email')">
             Formato de email inválido
           </mat-error>
@@ -175,8 +144,7 @@
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Teléfono</mat-label>
-          <input matInput formControlName="phone">
+          <input matInput formControlName="phone" placeholder="Fecha de Nacimiento">
           <mat-error *ngIf="leaderForm.get('person.phone')?.hasError('required')">
             Este campo es requerido
           </mat-error>
@@ -186,15 +154,13 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Dirección</mat-label>
-          <input matInput formControlName="address">
+          <input matInput formControlName="address" placeholder="Dirección">
         </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">Género</mat-label>
-          <mat-select formControlName="genderID">
+          <mat-select formControlName="genderID" placeholder="Género">
             @for (gender of genders; track gender) {
               <mat-option [value]="gender.id">{{gender.name}}</mat-option>
             }
@@ -202,8 +168,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins'; ">País</mat-label>
-          <mat-select formControlName="nationalityId">
+          <mat-select formControlName="nationalityId" placeholder="País">
             @for (nation of nationalities; track nation) {
               <mat-option [value]="nation.id">{{nation.name}}</mat-option>
             }
