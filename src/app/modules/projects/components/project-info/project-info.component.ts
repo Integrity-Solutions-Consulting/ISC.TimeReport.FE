@@ -13,7 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ClientService } from '../../../clients/services/client.service';
 import { Client } from '../../../clients/interfaces/client.interface';
 import { EmployeePersonInfo, EmployeeProject, Project, ProjectDetails } from '../../interfaces/project.interface';
-import { switchMap } from 'rxjs';
+import { forkJoin, switchMap } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 
 @Component({
@@ -61,28 +61,45 @@ export class ProjectInfoComponent implements OnInit{
   }
 
   loadProjectDetails(id: number): void {
-      this.projectService.getProjectById(id).pipe(
-      switchMap((projectData: ProjectDetails) => { // Asegúrate de tipar projectData aquí también
-        this.project = projectData;
+    this.isLoading = true;
 
-        // Tu lógica para dataSource con las validaciones
-        if (projectData && Array.isArray(projectData.employeeProjects) && Array.isArray(projectData.employeesPersonInfo)) {
-          this.dataSource = projectData.employeeProjects.map((ep: EmployeeProject) => {
-            const employeeInfo = projectData.employeesPersonInfo!.find((epi: EmployeePersonInfo) => epi.id === ep.employeeID);
+    forkJoin({
+      basicInfo: this.projectService.getProjectById(id),
+      detailInfo: this.projectService.getProjectDetailByID(id)
+    }).pipe(
+      switchMap(({basicInfo, detailInfo}) => {
+        // Combinamos la información básica con los detalles
+        this.project = {
+          ...basicInfo,
+          ...detailInfo,
+          status: basicInfo.status // O usa detailInfo.projectStatusID según necesites
+        };
+
+        // Procesamos los recursos asignados del detalle
+        if (detailInfo.employeeProjects && detailInfo.employeesPersonInfo) {
+          this.dataSource = detailInfo.employeeProjects
+          .filter(ep => ep.status === true)
+          .map((ep: EmployeeProject) => {
+            const employeeInfo = detailInfo.employeesPersonInfo.find(
+              epi => epi.id === ep.employeeID
+            );
+
             return {
-              type: ep.supplierID ? 'Externo' : 'Interno', // Determina el tipo de recurso
-              name: employeeInfo ? `${employeeInfo.firstName} ${employeeInfo.lastName}` : 'Desconocido',
+              type: ep.supplierID ? 'Proveedor' : 'Empleado',
+              name: employeeInfo ?
+                  `${employeeInfo.firstName} ${employeeInfo.lastName}` :
+                  (ep.supplierID ? 'Proveedor Externo' : 'Desconocido'),
               role: ep.assignedRole,
-              cost: ep.costPerHour, // Mapeado a 'cost'
-              hours: ep.allocatedHours // Mapeado a 'hours'
+              cost: ep.costPerHour,
+              hours: ep.allocatedHours
             };
           });
         } else {
           this.dataSource = [];
-          console.warn('employeeProjects or employeesPersonInfo is missing or not an array in the project data.', projectData);
         }
 
-        return this.clientService.getClientByID(projectData.clientID);
+        // Obtenemos la información del cliente
+        return this.clientService.getClientByID(basicInfo.clientID || detailInfo.clientID);
       })
     ).subscribe({
       next: (clientData) => {

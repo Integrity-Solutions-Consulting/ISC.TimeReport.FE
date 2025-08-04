@@ -5,15 +5,19 @@
         <mat-card-title class="project-title">{{project.name}}</mat-card-title>
         <mat-card-subtitle class="project-subtitle">
           <span>Código: {{project.code}}</span>
+          <!-- Usamos project.status o project.projectStatusID según lo que estés usando -->
           <mat-chip class="status-chip" [ngClass]="{
-            'active': project.status,
-            'inactive': !project.status
+              'active': project.status,
+              'inactive': !project.status
           }">
             {{project.status ? 'ACTIVO' : 'INACTIVO'}}
+            <!-- O alternativamente: -->
+            <!-- {{project.projectStatusID === 3 ? 'ACTIVO' : 'INACTIVO'}} -->
           </mat-chip>
         </mat-card-subtitle>
       </div>
       <div class="budget-badge">
+        <!-- Usamos budget de donde venga (puede ser de basicInfo o detailInfo) -->
         <span class="budget-amount">{{project.budget | currency}}</span>
         <span class="budget-label">PRESUPUESTO</span>
       </div>
