@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogActions, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
 import { ApiResponse, Project, ProjectWithID } from '../../interfaces/project.interface';
@@ -112,45 +112,70 @@ export class ListProjectComponent implements OnInit{
 
     ngOnInit(): void {
       this.loadProjects();
+
+      this.searchControl.valueChanges.pipe(
+        debounceTime(300),
+        distinctUntilChanged()
+      ).subscribe(value => {
+        this.currentSearch = value || '';
+        this.currentPage = 0; // Resetear a la primera página (0-based)
+        this.loadProjects(1, this.pageSize, this.currentSearch); // Enviar página 1-based
+      });
     }
 
     loadProjects(pageNumber: number = 1, pageSize: number = 10, search: string = ''): void {
+      this.loading = true;
+
       this.projectService.getProjectsForTables(pageNumber, pageSize, search).subscribe({
         next: (response) => {
+          this.loading = false;
           if (response?.items) {
-              this.dataSource = new MatTableDataSource<Project>(response.items);
-              this.totalItems = response.totalItems;
-              this.pageSize = response.pageSize;
-              this.currentPage = response.pageNumber - 1;
+            this.dataSource.data = response.items;
+            this.totalItems = response.totalItems;
+            this.pageSize = response.pageSize;
 
-              if (this.paginator) {
-                this.paginator.length = this.totalItems;
-                this.paginator.pageSize = this.pageSize;
-                this.paginator.pageIndex = this.currentPage;
-              }
-            } else {
-            console.error('La respuesta del API no tiene la estructura esperada:', response);
-            this.dataSource = new MatTableDataSource<Project>([]); // Tabla vacía como fallback
+            // Ajuste crítico: Convertir página 1-based a 0-based para el paginador
+            this.currentPage = response.pageNumber - 1;
+
+            // Sincroniza el paginador si existe
+            if (this.paginator) {
+              this.paginator.length = this.totalItems;
+              this.paginator.pageSize = this.pageSize;
+              this.paginator.pageIndex = this.currentPage; // Índice 0-based
+            }
           }
         },
         error: (err) => {
+          this.loading = false;
           console.error('Error al cargar proyectos:', err);
-          this.dataSource = new MatTableDataSource<Project>([]); // Tabla vacía en caso de error
+          this.snackBar.open('Error al cargar proyectos', 'Cerrar', {duration: 5000});
         }
       });
     }
 
     onPageChange(event: PageEvent): void {
       this.pageSize = event.pageSize;
-      this.currentPage = event.pageIndex + 1;
+      this.currentPage = event.pageIndex;
       // Pasa el valor de búsqueda actual al cargar los empleados
-      this.loadProjects(this.currentPage, this.pageSize, this.currentSearch);
+      this.loadProjects(this.currentPage + 1, this.pageSize, this.currentSearch);
     }
 
-    ngAfterViewInit(){
-      if (this.paginator || this.sort){
+    ngAfterViewInit() {
+      // Configura el sort si existe
+      if (this.sort) {
         this.dataSource.sort = this.sort;
-        this.dataSource.paginator = this.paginator;
+      }
+
+      // Sincroniza el paginador si existe
+      if (this.paginator) {
+        this.paginator.page.subscribe((event) => {
+          this.onPageChange(event);
+        });
+
+        // Configuración inicial del paginador
+        this.paginator.length = this.totalItems;
+        this.paginator.pageSize = this.pageSize;
+        this.paginator.pageIndex = this.currentPage;
       }
     }
 
