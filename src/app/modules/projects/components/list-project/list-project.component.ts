@@ -85,6 +85,7 @@ export class ListProjectComponent implements OnInit{
     @ViewChild(MatPaginator) paginator!: MatPaginator;
 
     searchControl = new FormControl('');
+    currentSearchTerm: string = '';
 
     selection = new SelectionModel<any>(true, []);
 
@@ -111,20 +112,24 @@ export class ListProjectComponent implements OnInit{
     ) {}
 
     ngOnInit(): void {
+      this.setupSearchControl();
       this.loadProjects();
+    }
 
+    private setupSearchControl(): void {
       this.searchControl.valueChanges.pipe(
         debounceTime(300),
         distinctUntilChanged()
-      ).subscribe(value => {
-        this.currentSearch = value || '';
-        this.currentPage = 0; // Resetear a la primera página (0-based)
-        this.loadProjects(1, this.pageSize, this.currentSearch); // Enviar página 1-based
+      ).subscribe(searchTerm => {
+        this.currentSearch = searchTerm || ''; // Usamos currentSearch que es la variable consistente
+        this.currentPage = 0; // Resetear a la primera página
+        this.loadProjects(1, this.pageSize, this.currentSearch);
       });
     }
 
     loadProjects(pageNumber: number = 1, pageSize: number = 10, search: string = ''): void {
       this.loading = true;
+      this.currentSearch = search; // Mantenemos actualizado el término de búsqueda
 
       this.projectService.getProjectsForTables(pageNumber, pageSize, search).subscribe({
         next: (response) => {
@@ -133,15 +138,13 @@ export class ListProjectComponent implements OnInit{
             this.dataSource.data = response.items;
             this.totalItems = response.totalItems;
             this.pageSize = response.pageSize;
-
-            // Ajuste crítico: Convertir página 1-based a 0-based para el paginador
             this.currentPage = response.pageNumber - 1;
 
-            // Sincroniza el paginador si existe
+            // Actualiza el paginador si existe
             if (this.paginator) {
               this.paginator.length = this.totalItems;
               this.paginator.pageSize = this.pageSize;
-              this.paginator.pageIndex = this.currentPage; // Índice 0-based
+              this.paginator.pageIndex = this.currentPage;
             }
           }
         },
@@ -156,7 +159,6 @@ export class ListProjectComponent implements OnInit{
     onPageChange(event: PageEvent): void {
       this.pageSize = event.pageSize;
       this.currentPage = event.pageIndex;
-      // Pasa el valor de búsqueda actual al cargar los empleados
       this.loadProjects(this.currentPage + 1, this.pageSize, this.currentSearch);
     }
 
@@ -198,31 +200,27 @@ export class ListProjectComponent implements OnInit{
       this.selection.select(...this.projects);
     }
 
-    applyFilter(event: Event) {
-      const filterValue = (event.target as HTMLInputElement).value;
-      this.dataSource.filter = filterValue.trim().toLowerCase();
-
-      if (this.dataSource.paginator) {
-        this.dataSource.paginator.firstPage();
-      }
-    }
-
-
     openCreateDialog(): void {
-      const dialogRef = this.dialog.open(ProjectModalComponent, {
-        width: '800px',
-        disableClose: true,
-        data: { project: null }
-      });
+        const dialogRef = this.dialog.open(ProjectModalComponent, {
+            width: '800px',
+            disableClose: true,
+            data: { project: null }
+        });
 
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          this.projectService.createProject(result);
-          this.snackBar.open("Proyecto creado con éxito", "Cerrar", {duration: 5000})
-        } else {
-          this.snackBar.open("Ocurrió un error", "Cerrar", {duration: 5000})
-        }
-      });
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                this.projectService.createProject(result).subscribe({
+                    next: () => {
+                        this.snackBar.open("Proyecto creado con éxito", "Cerrar", {duration: 5000});
+                        // Recargar los proyectos después de crear uno nuevo
+                        this.loadProjects(this.currentPage + 1, this.pageSize, this.currentSearch);
+                    },
+                    error: () => {
+                        this.snackBar.open("Ocurrió un error al crear el proyecto", "Cerrar", {duration: 5000});
+                    }
+                });
+            }
+        });
     }
 
     openEditDialog(project: Project): void {

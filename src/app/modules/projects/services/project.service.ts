@@ -93,14 +93,14 @@ export class ProjectService {
 
     getProjectsForTables(pageNumber: number, pageSize: number, search: string = ''): Observable<ApiResponse> {
         let params = new HttpParams()
-          .set('PageNumber', pageNumber.toString())
-          .set('PageSize', pageSize.toString());
+            .set('pageNumber', pageNumber.toString())
+            .set('pageSize', pageSize.toString());
 
-        if (search) {
-          params = params.set('search', search);
+        if (search && search.trim() !== '') {
+            params = params.set('search', search.trim());  // Cambiado a 'search' que es lo que espera el endpoint
         }
 
-        return this.http.get<ApiResponse>(`${this.urlBase}/api/Project/GetAllProjects`, { params })
+        return this.http.get<ApiResponse>(`${this.urlBase}/api/Project/GetAllProjects`, { params });
     }
 
     getProjectsForDetails(): Observable<AllProjectsResponse> {
