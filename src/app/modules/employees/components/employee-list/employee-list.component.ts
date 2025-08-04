@@ -151,7 +151,7 @@ export class EmployeeListComponent implements AfterViewInit {
   currentSearch: string = '';
 
   ngOnInit(): void {
-    this.loadEmployees(this.currentPage + 1, this.pageSize, this.currentSearch);;
+    this.loadEmployees(this.currentPage + 1, this.pageSize, this.currentSearch);
 
     // Suscribirse a los cambios del campo de búsqueda con debounce
     this.searchControl.valueChanges.pipe(
