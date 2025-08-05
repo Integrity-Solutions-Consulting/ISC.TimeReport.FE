@@ -4,33 +4,114 @@
 
 .top-container {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
+  align-items: flex-start; // Cambiado a flex-start para mejor control
+  width: 100%;
   gap: 16px;
+  padding: 8px 0;
 
-  .search-field {
-    width: 50%;
+  // Alinear la base de todos los elementos (donde estaría el texto)
+  .search-field,
+  .month-selector,
+  .period-toggle,
+  .download-button {
+    align-self: center; // Fuerza la alineación vertical al centro
+    margin-top: 16px; // Compensa la altura de los inputs
   }
 
-  .right-controls {
+  .search-field {
+    flex: 2;
+    min-width: 250px;
+
+    // Ajuste específico para el input
+    .mat-form-field-wrapper {
+      padding-bottom: 0; // Elimina espacio extra inferior
+    }
+  }
+
+  .month-selector {
+    flex: 1;
+    min-width: 120px;
+
+    .mat-form-field-wrapper {
+      padding-bottom: 0;
+    }
+  }
+
+  .period-toggle {
+    flex: 1;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-    min-width: 300px;
+    align-items: center;
+    min-width: 180px;
+    height: 56px; // Misma altura que los mat-form-field
+    margin-top: 0; // Ajuste fino de posición
 
-    .download-button {
-      background-color: #3f51b5;
-      color: white;
-
-      mat-icon {
-        margin-right: 8px;
-      }
+    .toggle-label {
+      font-size: 14px;
+      white-space: nowrap;
     }
 
-    .date-picker {
+    .mat-slide-toggle {
+      background-color: var(--itg-primary);
+      margin: 0 8px;
+    }
+  }
+
+  .download-button {
+    background-color: var(--itg-primary);
+    height: 40px; // Misma altura que los inputs
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    margin-top: 0; // Ajuste fino de posición
+
+    mat-icon {
+      margin-right: 8px;
+    }
+
+    &:disabled {
+      background-color: var(--itg-bg); // Gris claro
+      cursor: not-allowed; // Cambiar el cursor
+      opacity: 0.7; // Opcional: reducir un poco la opacidad
+    }
+  }
+
+  @media (max-width: 900px) {
+    flex-wrap: wrap;
+    align-items: center;
+
+    .search-field {
+      flex: 1 1 100%;
+      margin-top: 0;
+    }
+
+    .month-selector,
+    .period-toggle {
+      flex: 1;
+      min-width: 120px;
+      margin-top: 0;
+    }
+
+    .download-button {
+      margin-top: 0;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .month-selector,
+    .period-toggle {
+      flex: 1 1 100%;
+    }
+
+    .period-toggle {
+      justify-content: flex-start;
+      height: auto;
+      margin: 8px 0;
+    }
+
+    .download-button {
       width: 100%;
+      margin: 4px 0;
     }
   }
 }
