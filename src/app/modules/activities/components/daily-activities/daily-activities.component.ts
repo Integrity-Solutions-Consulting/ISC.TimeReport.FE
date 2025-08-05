@@ -19,6 +19,8 @@ import { Observable, take, map, catchError, throwError, of } from 'rxjs';
 import { ApiResponse } from '../../interfaces/activity.interface';
 import { ReportDialogComponent } from '../report-dialog/report-dialog.component';
 import { AuthService } from '../../../auth/services/auth.service';
+import { provideNativeDateAdapter, DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
 
 @Component({
   selector: 'daily-activities',
@@ -32,7 +34,24 @@ import { AuthService } from '../../../auth/services/auth.service';
     RouterModule
   ],
   providers: [
-    ActivityService
+    ActivityService,
+    { provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
+    {
+      provide: DateAdapter,
+      useClass: MomentDateAdapter,
+      deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS],
+    },
+    { provide: MAT_DATE_FORMATS, useValue: {
+      parse: {
+        dateInput: 'DD/MM/YYYY',
+      },
+      display: {
+        dateInput: 'DD/MM/YYYY',
+        monthYearLabel: 'MMMM YYYY',
+        dateA11yLabel: 'LL',
+        monthYearA11yLabel: 'MMMM YYYY'
+      },
+    }}
   ],
   templateUrl: './daily-activities.component.html',
   styleUrl: './daily-activities.component.scss'
@@ -245,6 +264,8 @@ export class DailyActivitiesComponent implements AfterViewInit {
         const project = this.projectList.find(p => p.id === activity.projectID);
         const activityType = this.activityColors.find(t => t.id === activity.activityTypeID);
         const color = activityType?.value || '#9E9E9E';
+        const rawTitle = `${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`;
+        const truncatedTitle = rawTitle.length > 30 ? rawTitle.substring(0, 27) + '...' : rawTitle;
 
         console.log('Creando evento para actividad:', { // Debug
           id: activity.id,
@@ -256,7 +277,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
 
         const eventData = {
           id: activity.id.toString(),
-          title: `${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`,
+          title: truncatedTitle,
           start: startDate,
           end: endDate,
           allDay: allDayEvent,
@@ -364,7 +385,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
     this.projectService.getProjectsByUserRole(this.currentEmployeeId ?? undefined).subscribe({
       next: (projectsResponse) => {
         const dialogRef = this.dialog.open(EventDialogComponent, {
-          width: '500px',
+          width: '800px',
           data: {
             event: {
               activityDate: new Date(),
@@ -576,7 +597,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
     const extendedProps = clickInfo.event.extendedProps;
 
     const dialogRef = this.dialog.open(EventDialogComponent, {
-      width: '500px',
+      width: '800px',
       data: {
         event: {
           id: clickInfo.event.id,
