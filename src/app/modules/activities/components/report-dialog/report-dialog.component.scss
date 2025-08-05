@@ -35,3 +35,19 @@ mat-form-field {
     background-color: #f5f5f5;
   }
 }
+
+.employee-info {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Espacio entre el label y el nombre */
+  margin-bottom: 16px; /* Espacio debajo del elemento */
+
+  mat-label {
+    margin: 0; /* Elimina el margen por defecto */
+    font-weight: 500; /* Opcional: para que coincida con el estilo de otros labels */
+  }
+
+  .employee-name {
+    font-size: 14px; /* Tamaño de fuente similar al de los inputs */
+  }
+}

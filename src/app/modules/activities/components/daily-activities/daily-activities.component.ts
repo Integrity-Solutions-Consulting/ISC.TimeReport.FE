@@ -78,7 +78,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
     eventsSet: this.handleEvents.bind(this),
     customButtons: {
       addActivity: {
-        text: 'Agregar actividad',
+        text: 'Agregar Actividad',
         click: this.handleAddActivity.bind(this)
       },
       generateReport: {

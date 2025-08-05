@@ -367,9 +367,20 @@ export class ReportDialogComponent implements OnInit {
       .set('month', payload.month.toString())
       .set('fullMonth', payload.isFullMonth.toString());
 
+    const employeeName = this.currentEmployeeName.replace(/\s+/g, '_');
+    const clientName = this.getClientName(payload.clientId).replace(/\s+/g, '_');
+    const period = payload.isFullMonth ? 'Mes_Completo' : 'Quincena';
+    const monthName = this.months.find(m => m.value === payload.month)?.name || '';
+
     this.dailyActivityService.exportExcel(params).subscribe({
       next: (blob: Blob) => {
-        this.downloadExcelFile(blob, payload);
+        this.downloadExcelFile(blob, {
+          ...payload,
+          employeeName,
+          clientName,
+          period,
+          monthName
+        });
         this.generatingReport = false;
         this.dialogRef.close();
       },
@@ -381,8 +392,31 @@ export class ReportDialogComponent implements OnInit {
     });
   }
 
+  private getClientName(clientId: number): string {
+    if (!clientId) return 'Todos';
+    const client = this.clients.find(c => c.id === clientId);
+    return client ? (client.tradeName || client.legalName) : 'Desconocido';
+  }
+
   private downloadExcelFile(blob: Blob, payload: any): void {
-    const fileName = `Reporte_${payload.year}_${payload.month}.xlsm`;
+    // Formatear nombres para eliminar caracteres especiales
+    const formatName = (name: string) => name.replace(/[^a-zA-Z0-9_]/g, '');
+
+    const employeeName = formatName(payload.employeeName);
+    const clientName = formatName(payload.clientName);
+    const period = payload.isFullMonth ? 'Mes_Completo' : 'Quincena';
+    const monthName = formatName(payload.monthName);
+
+    // Construir el nombre del archivo
+    let fileName = `Reporte_${employeeName}_`;
+
+    if (clientName && clientName !== 'Todos') {
+      fileName += `${clientName}_`;
+    }
+
+    fileName += `${payload.year}_${monthName}_${period}.xlsm`;
+
+    // Descargar el archivo
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

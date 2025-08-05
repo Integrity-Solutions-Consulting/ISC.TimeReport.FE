@@ -86,6 +86,8 @@ export class EventDialogComponent implements OnInit{
       this.event = { ...this.event, ...data.event };
     }
 
+    this.event.projectId = this.event.projectId || null;
+
     // Si data.projects y data.activityTypes existen, úsalos
     if (data.projects) {
       this.projects = data.projects;
@@ -160,6 +162,19 @@ export class EventDialogComponent implements OnInit{
       }).subscribe(response => {
         this.projects = response.items || [];
       });
+    }
+  }
+
+  onProjectChange(projectId: number | null): void {
+    if (projectId) {
+      const selectedProject = this.projects.find(p => p.id === projectId);
+      if (selectedProject && selectedProject.code) {
+        this.event.requirementCode = selectedProject.code;
+      } else {
+        this.event.requirementCode = '';
+      }
+    } else {
+      this.event.requirementCode = '';
     }
   }
 

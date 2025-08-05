@@ -4,9 +4,7 @@
     <!-- Mostrar información del empleado actual -->
     <div class="employee-info">
       <mat-label>Empleado:</mat-label>
-      <div class="employee-details">
-        <span>{{ currentEmployeeName }}</span>
-      </div>
+      <span class="employee-name">{{ currentEmployeeName }}</span>
     </div>
 
     <!-- Campo de cliente con select -->
@@ -51,14 +49,14 @@
 
     <div class="form-field">
       <mat-slide-toggle formControlName="isFullMonth">
-        Mes completo
+        {{ payloadForm.get('isFullMonth')?.value ? 'Mes Completo' : 'Quincena' }}
       </mat-slide-toggle>
     </div>
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="payloadForm.invalid || generatingReport">
+  <button mat-raised-button style="background-color: var(--itg-primary); color:var(--itg-bg);" (click)="onSubmit()" [disabled]="payloadForm.invalid || generatingReport">
     <span *ngIf="!generatingReport">Generar</span>
     <mat-spinner *ngIf="generatingReport" diameter="20"></mat-spinner>
   </button>
