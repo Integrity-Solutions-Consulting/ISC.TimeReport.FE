@@ -127,8 +127,8 @@ export class ClientListComponent implements OnInit{
 
   readonly identificationTypesMap: {[key: string]: string} = {
     '1': 'Cédula',
-    '2': 'RUC',
-    '3': 'Pasaporte',
+    '2': 'Pasaporte',
+    '3': 'RUC',
   };
 
   /*loadCustomers(): void {
