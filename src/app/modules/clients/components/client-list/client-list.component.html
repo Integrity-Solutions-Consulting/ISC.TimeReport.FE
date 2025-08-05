@@ -18,21 +18,6 @@
 
   <table mat-table [dataSource]="dataSource" matSort style="border-radius: 8px 8px 0 0; overflow: hidden;">
 
-    <!--<ng-container matColumnDef="select">
-      <th mat-header-cell *matHeaderCellDef>
-        <mat-checkbox (change)="$event ? toggleAll() : null"
-                      [checked]="selection.hasValue() && isAllSelected()"
-                      [indeterminate]="selection.hasValue() && !isAllSelected()">
-        </mat-checkbox>
-      </th>
-      <td mat-cell *matCellDef="let row">
-        <mat-checkbox (click)="$event.stopPropagation()"
-                     (change)="$event ? selection.toggle(row) : null"
-                     [checked]="selection.isSelected(row)">
-        </mat-checkbox>
-      </td>
-    </ng-container>-->
-
     <ng-container matColumnDef="idtype">
       <th mat-header-cell *matHeaderCellDef mat-sort-header> Tipo </th>
       <td mat-cell *matCellDef="let element">{{element.person?.identificationTypeId ? getIdentificationTypeName(element.person.identificationTypeId) : 'No especificado'}}</td>

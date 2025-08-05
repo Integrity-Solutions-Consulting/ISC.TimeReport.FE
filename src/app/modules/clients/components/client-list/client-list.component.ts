@@ -98,6 +98,25 @@ export class ClientListComponent implements OnInit{
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
+  ngAfterViewInit() {
+    // Configura el sort si existe
+    if (this.sort) {
+      this.dataSource.sort = this.sort;
+    }
+
+    // Sincroniza el paginador si existe
+    if (this.paginator) {
+      this.paginator.page.subscribe((event) => {
+        this.onPageChange(event);
+      });
+
+      // Configuración inicial del paginador
+      this.paginator.length = this.totalItems;
+      this.paginator.pageSize = this.pageSize;
+      this.paginator.pageIndex = this.currentPage;
+    }
+  }
+
   searchControl = new FormControl('');
 
   editingCustomer: any = null;
@@ -131,26 +150,17 @@ export class ClientListComponent implements OnInit{
     '3': 'RUC',
   };
 
-  /*loadCustomers(): void {
-    this.customerService.getCustomers().subscribe({
-      next: (response: Client[]) => {
-        this.customers = response;
-        this.dataSource.data = this.customers;
-      },
-      error: (err) => {
-        console.error('Error al cargar clientes:', err);
-      }
-    });
-  }*/
-
   loadClients(pageNumber: number = 1, pageSize: number = 10, search: string = ''): void {
     this.clientService.getClients(pageNumber, pageSize, search).subscribe({
       next: (response) => {
         if (response?.items) {
-            this.dataSource = new MatTableDataSource<Client>(response.items);
+            this.dataSource.data = response.items;
             this.totalItems = response.totalItems;
             this.pageSize = response.pageSize;
             this.currentPage = response.pageNumber - 1;
+
+            this.dataSource.sort = this.sort;
+            this.dataSource.paginator = this.paginator;
 
             if (this.paginator) {
               this.paginator.length = this.totalItems;
@@ -159,12 +169,15 @@ export class ClientListComponent implements OnInit{
             }
           } else {
           console.error('La respuesta del API no tiene la estructura esperada:', response);
-          this.dataSource = new MatTableDataSource<Client>([]); // Tabla vacía como fallback
+          this.dataSource = new MatTableDataSource<Client>([]);
         }
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Error al cargar proyectos:', err);
-        this.dataSource = new MatTableDataSource<Client>([]); // Tabla vacía en caso de error
+        this.dataSource.data = [];
+        this.dataSource = new MatTableDataSource<Client>([]);
+        this.isLoading = false;
       }
     });
   }
@@ -175,13 +188,6 @@ export class ClientListComponent implements OnInit{
       // Pasa el valor de búsqueda actual al cargar los empleados
       this.loadClients(this.currentPage, this.pageSize, this.currentSearch);
     }
-
-  ngAfterViewInit(){
-    if (this.paginator || this.sort){
-      this.dataSource.sort = this.sort;
-      this.dataSource.paginator = this.paginator;
-    }
-  }
 
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(ClientModalComponent, {

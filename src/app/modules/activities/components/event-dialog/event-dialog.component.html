@@ -37,7 +37,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <textarea matInput [(ngModel)]="event.activityDescription" rows="3" placeholder="Descripción" required name="description"></textarea>
+      <input matInput [(ngModel)]="event.activityDescription" rows="3" placeholder="Descripción" required name="description">
     </mat-form-field>
 
     <!--<mat-form-field appearance="outline" class="full-width">
@@ -53,14 +53,19 @@
 
     <div class="row">
       <mat-form-field appearance="outline" class="half-width">
-        <mat-label>Fecha actividad</mat-label>
-        <input matInput [matDatepicker]="activityDatePicker" [(ngModel)]="event.activityDate" required name="activityDate">
+        <mat-label>Fecha Actividad</mat-label>
+        <input matInput
+              [matDatepicker]="activityDatePicker"
+              [(ngModel)]="event.activityDate"
+              required
+              name="activityDate"
+              placeholder="dd/mm/aaaa">
         <mat-datepicker-toggle matSuffix [for]="activityDatePicker"></mat-datepicker-toggle>
         <mat-datepicker #activityDatePicker></mat-datepicker>
       </mat-form-field>
 
       <mat-form-field appearance="outline" *ngIf="!isFullDay">
-        <mat-label>Número de horas</mat-label>
+        <mat-label>Número de Horas</mat-label>
         <input matInput type="number" [(ngModel)]="event.hours" name="hours" min="1" max="8" [required]="!isFullDay" (ngModelChange)="validateHours()">
         <mat-error *ngIf="!isFullDay">
           Horas inválidas (debe ser entre 1 y 8).

@@ -43,6 +43,10 @@ export class ProjectPaginatorIntl implements MatPaginatorIntl {
   }
 }
 
+interface ProjectWithIndex extends Project {
+  [key: string]: any; // Esto permite el acceso indexado con strings
+}
+
 @Component({
   selector: 'list-project',
   standalone: true,
@@ -109,7 +113,18 @@ export class ListProjectComponent implements OnInit{
     constructor(
       private router: Router,
       private route: ActivatedRoute
-    ) {}
+    ) {
+      this.dataSource = new MatTableDataSource();
+      this.dataSource.sortingDataAccessor = (item: ProjectWithIndex, property: string) => {
+        switch (property) {
+          case 'startDate':
+          case 'endDate':
+            return new Date(item[property]).getTime();
+          default:
+            return item[property];
+        }
+      };
+    }
 
     ngOnInit(): void {
       this.setupSearchControl();

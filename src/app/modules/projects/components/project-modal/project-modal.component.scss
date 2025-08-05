@@ -27,6 +27,48 @@
   }
 }
 
+/* Estilos para el textarea */
+mat-form-field {
+  &.mat-form-field-appearance-outline {
+    textarea.mat-input-element {
+      resize: vertical;
+      min-height: 80px;
+      padding: 0.75em 0; /* Mejor alineación vertical */
+      line-height: 1.5; /* Mejor espaciado entre líneas */
+
+      /* Placeholder alineado */
+      &::placeholder {
+        opacity: 1;
+        color: rgba(0, 0, 0, 0.54);
+        transition: all 0.2s;
+      }
+
+      &:focus::placeholder {
+        opacity: 0.5;
+      }
+    }
+
+    /* Ajuste específico para la alineación del label */
+    .mat-form-field-label {
+      top: 2.1em; /* Ajuste fino para alinear con inputs */
+      margin-top: 0.2em;
+    }
+
+    /* Cuando está enfocado o con valor */
+    &.mat-form-field-can-float.mat-form-field-should-float .mat-form-field-label,
+    &.mat-form-field-can-float .mat-input-server:focus + .mat-form-field-label-wrapper .mat-form-field-label {
+      transform: translateY(-1.1em) scale(0.75);
+    }
+  }
+}
+
+/* Asegurar consistencia con los inputs normales */
+mat-form-field input.mat-input-element,
+mat-form-field textarea.mat-input-element {
+  font: inherit;
+  vertical-align: baseline;
+}
+
 // Optional: Adjust for smaller screens to stack fields vertically
 @media (max-width: 600px) {
   .form-row {
@@ -97,3 +139,4 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+

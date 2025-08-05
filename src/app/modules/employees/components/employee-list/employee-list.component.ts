@@ -22,6 +22,20 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatNativeDateModule, provideNativeDateAdapter, DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
+
+export const MY_DATE_FORMATS = {
+  parse: {
+    dateInput: 'DD/MM/YYYY',
+  },
+  display: {
+    dateInput: 'dd/MM/yyyy',
+    monthYearLabel: 'MMMM yyyy',
+    dateA11yLabel: 'dd/MM/yyyy',
+    monthYearA11yLabel: 'MMMM yyyy'
+  },
+};
 
 @Injectable()
 export class EmployeePaginatorIntl implements MatPaginatorIntl {
@@ -62,7 +76,7 @@ export class EmployeePaginatorIntl implements MatPaginatorIntl {
     ReactiveFormsModule
   ],
   providers: [
-    {provide: MatPaginatorIntl, useClass: EmployeePaginatorIntl}
+    {provide: MatPaginatorIntl, useClass: EmployeePaginatorIntl},
   ],
   templateUrl: './employee-list.component.html',
   styleUrl: './employee-list.component.scss'
