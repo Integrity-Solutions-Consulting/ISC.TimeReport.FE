@@ -3,7 +3,7 @@ import { FormBuilder, type FormGroup, Validators, ReactiveFormsModule, FormsModu
 import { AuthService } from "../../services/auth.service"
 import type { LoginRequest } from "../../interfaces/auth.interface"
 import { CommonModule } from "@angular/common"
-import { Router } from "@angular/router"
+import { Router, RouterModule } from "@angular/router"
 import { LoadingComponent } from "../../components/login-loading/login-loading.component"
 import { AlertaComponent } from "../../components/alerta/alerta.component"
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -19,7 +19,9 @@ import { MatButtonModule } from '@angular/material/button';
     CommonModule,
     LoadingComponent,
     AlertaComponent,
-    MatIconModule
+    MatIconModule,
+    MatButtonModule,
+    RouterModule
   ],
   templateUrl: "./login.component.html",
   styleUrl: "./login.component.scss",
