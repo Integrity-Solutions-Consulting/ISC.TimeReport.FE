@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ApiResponse, ApiResponseByID, ApiResponseData, Project, ProjectDetails, ResourceAssignmentPayload } from '../interfaces/project.interface';
+import { ApiResponse, ApiResponseByID, ApiResponseData, Position, Project, ProjectDetails, ResourceAssignmentPayload } from '../interfaces/project.interface';
 import { catchError, expand, forkJoin, map, mergeMap, Observable, of, reduce, switchMap, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 import { ProjectDetail, AllProjectsResponse, SimpleProjectItem, Role} from '../interfaces/project.interface';
@@ -258,8 +258,8 @@ export class ProjectService {
       return this.http.get(`${this.urlBase}/api/InventoryApi/GetInventoryProviders`);
     }
 
-    getPositions(): Observable<any> {
-      return this.http.get(`${this.urlBase}/api/Catalog/positions`);
+    getPositions(): Observable<Position[]> {
+      return this.http.get<Position[]>(`${this.urlBase}/api/Catalog/positions`);
     }
 
     isAdmin(): boolean {

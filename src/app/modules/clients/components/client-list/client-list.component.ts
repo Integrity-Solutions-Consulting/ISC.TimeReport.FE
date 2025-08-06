@@ -159,9 +159,6 @@ export class ClientListComponent implements OnInit{
             this.pageSize = response.pageSize;
             this.currentPage = response.pageNumber - 1;
 
-            this.dataSource.sort = this.sort;
-            this.dataSource.paginator = this.paginator;
-
             if (this.paginator) {
               this.paginator.length = this.totalItems;
               this.paginator.pageSize = this.pageSize;
@@ -183,11 +180,10 @@ export class ClientListComponent implements OnInit{
   }
 
   onPageChange(event: PageEvent): void {
-      this.pageSize = event.pageSize;
-      this.currentPage = event.pageIndex + 1;
-      // Pasa el valor de búsqueda actual al cargar los empleados
-      this.loadClients(this.currentPage, this.pageSize, this.currentSearch);
-    }
+    this.pageSize = event.pageSize;
+    this.currentPage = event.pageIndex;
+    this.loadClients(this.currentPage + 1, this.pageSize, this.currentSearch);
+  }
 
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(ClientModalComponent, {
