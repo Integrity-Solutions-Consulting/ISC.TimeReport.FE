@@ -11,7 +11,7 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
-import { ProjectDetail, EmployeeProject, EmployeeProjectMiddle, ResourceAssignmentPayload } from '../../interfaces/project.interface';
+import { ProjectDetail, EmployeeProject, EmployeeProjectMiddle, ResourceAssignmentPayload, Position } from '../../interfaces/project.interface';
 
 interface DialogData {
   projectId: number;

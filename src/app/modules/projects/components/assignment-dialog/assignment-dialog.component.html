@@ -42,12 +42,8 @@
         <span>Perfil</span>
         <mat-form-field appearance="outline">
           <mat-select formControlName="profile">
-            @if (selectedResourceType === 1) {
-              @for (position of positions; track position) {
-                <mat-option [value]="position.positionName">{{position.positionName}}</mat-option>
-              }
-            } @else {
-              <mat-option [value]="'Proveedor'">Proveedor</mat-option>
+            @for (position of positions; track position.id) {
+              <mat-option [value]="position.positionName">{{position.positionName}}</mat-option>
             }
           </mat-select>
         </mat-form-field>
