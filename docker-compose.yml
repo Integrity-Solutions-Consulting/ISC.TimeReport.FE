@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  angular_frontend:
+    image: time_report_front:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    restart: always
+    container_name: time_report_front
