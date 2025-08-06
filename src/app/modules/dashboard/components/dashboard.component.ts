@@ -143,6 +143,7 @@ export class DashboardComponent implements OnInit{
   showLabels: boolean = true;
   isDoughnut: boolean = true;
   legendPosition: LegendPosition = LegendPosition.Right;
+  tooltipDisabled: boolean = false;
 
   view: number[] = [700, 400];
 
@@ -254,13 +255,19 @@ export class DashboardComponent implements OnInit{
           // Transformar los datos al formato que necesita ngx-charts
           this.circleData = data.map(item => ({
             name: item.clientName,
-            value: item.porcentaje
+            value: item.porcentaje,
           }));
         },
         error: (err) => {
           console.error('Error al cargar recursos por cliente:', err);
         }
       });
+  }
+
+  customTooltipText({ data }: { data: any }): string {
+    return `
+      abd
+    `;
   }
 
   loadDataForCards(): void {
