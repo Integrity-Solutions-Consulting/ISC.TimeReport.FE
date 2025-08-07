@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { Project } from '../../../projects/interfaces/project.interface';
+import { Project, ProjectWithID } from '../../../projects/interfaces/project.interface';
 import { ProjectService } from '../../../projects/services/project.service';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivityService } from '../../services/activity.service';
@@ -71,7 +71,7 @@ export const MY_DATE_FORMATS = {
 })
 export class EventDialogComponent implements OnInit{
 
-  projects: Project[] = [];
+  projects: ProjectWithID[] = [];
 
   isFullDay = true;
 

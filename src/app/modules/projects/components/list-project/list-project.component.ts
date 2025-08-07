@@ -79,7 +79,7 @@ export class ListProjectComponent implements OnInit{
     private snackBar = inject(MatSnackBar);
     private dialog = inject(MatDialog)
 
-    projects: Project[] = [];
+    projects: ProjectWithID[] = [];
 
     loading = false;
 
@@ -238,7 +238,7 @@ export class ListProjectComponent implements OnInit{
         });
     }
 
-    openEditDialog(project: Project): void {
+    openEditDialog(project: ProjectWithID): void {
       if (!project.id) {
         this.snackBar.open("No se puede editar: ID de proyecto no válido", "Cerrar", {duration: 5000});
         return;

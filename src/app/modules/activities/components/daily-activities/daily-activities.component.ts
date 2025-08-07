@@ -12,7 +12,7 @@ import { EventDialogComponent } from '../event-dialog/event-dialog.component';
 import { ActivityService } from '../../services/activity.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router, RouterModule } from '@angular/router';
-import { Project } from '../../../projects/interfaces/project.interface';
+import { Project, ProjectWithID } from '../../../projects/interfaces/project.interface';
 import { ProjectService } from '../../../projects/services/project.service';
 import { Activity } from '../../interfaces/activity.interface';
 import { Observable, take, map, catchError, throwError, of } from 'rxjs';
@@ -58,7 +58,7 @@ import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } 
 })
 export class DailyActivitiesComponent implements AfterViewInit {
   currentEmployeeId: number | null = null;
-  projectList: Project[] = [];
+  projectList: ProjectWithID[] = [];
   activityColors = [
     { id: 1, value: '#2E8B57'},
     { id: 2, value: '#4169E1'},

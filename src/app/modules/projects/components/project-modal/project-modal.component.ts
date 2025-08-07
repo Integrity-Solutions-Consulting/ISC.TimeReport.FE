@@ -1,12 +1,12 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, formatDate } from '@angular/common';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { ProjectService } from '../../services/project.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { Project } from '../../interfaces/project.interface';
+import { Project, ProjectWithID } from '../../interfaces/project.interface';
 import { provideNativeDateAdapter, DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
 import { MatInputModule } from '@angular/material/input';
@@ -77,7 +77,7 @@ export class ProjectModalComponent implements OnInit {
     private projectService: ProjectService,
     private clientService: ClientService,
     private dialogRef: MatDialogRef<ProjectModalComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { project?: Project }
+    @Inject(MAT_DIALOG_DATA) public data: { project?: ProjectWithID }
   ) {
     this.projectForm = this.fb.group({
       projectStatusId: ['', Validators.required],
@@ -108,7 +108,7 @@ export class ProjectModalComponent implements OnInit {
 
     if (this.data?.project) {
       this.isEditMode = true;
-      this.originalStatus = this.data.project.status;
+      /*this.originalStatus = this.data.project.status;
       /*this.projectId = this.data.project.projectId;*/
       this.patchFormValues(this.data.project);
     }
@@ -166,80 +166,73 @@ export class ProjectModalComponent implements OnInit {
     });
   }
 
-  private patchFormValues(project: Project): void {
+  private patchFormValues(project: ProjectWithID): void {
+    const {id, ...projectData } = project;
     this.projectForm.patchValue({
       clientId: project.clientID,
       projectStatusId: project.projectStatusID,
       code: project.code,
       name: project.name,
       description: project.description,
-      startDate: project.startDate ? new Date(project.startDate) : null,
-      endDate: project.endDate ? new Date(project.endDate) : null,
-      actualStartDate: project.actualStartDate ? new Date(project.actualStartDate) : null,
-      actualEndDate: project.actualEndDate ? new Date(project.actualEndDate) : null,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      actualStartDate: project.actualStartDate ? this.strictFormatDate(project.actualStartDate) : null,
+      actualEndDate: project.actualEndDate ? this.strictFormatDate(project.actualEndDate) : null,
       budget: project.budget,
       hours: project.hours
     });
   }
 
+  private strictFormatDate(date: Date | string): string {
+    const d = new Date(date);
+    const pad = (num: number) => num.toString().padStart(2, '0');
+
+    // Formato: YYYY-MM-DDTHH:mm:ss.000Z (incluyendo milisegundos)
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.000Z`;
+  }
+
   onSubmit() {
-    if (this.projectForm.invalid) {
-      // Marcar todos los campos como touched para mostrar errores
-      this.projectForm.markAllAsTouched();
-      return;
-    }
+    if (this.projectForm.invalid) return;
 
-    const formValue = this.projectForm.value;
+    const formValue = this.projectForm.getRawValue();
 
-    // Validación adicional de fechas (por si acaso)
-    if (new Date(formValue.endDate) < new Date(formValue.startDate)) {
-      alert('La fecha de fin no puede ser anterior a la fecha de inicio');
-      return;
-    }
-
-    const projectData: Omit<Project, 'id'> = {
+    // Construir objeto Project sin ID
+    const projectData: Project = {
       clientID: formValue.clientId,
-      projectStatusID: formValue.projectStatusId,
-      projectTypeID: formValue.projectTypeId || null, // Valor por defecto si es null
+      projectStatusID: Number(formValue.projectStatusId),
+      projectTypeID: formValue.projectTypeId ? Number(formValue.projectTypeId) : null,
       code: formValue.code,
       name: formValue.name,
-      description: formValue.description,
-      startDate: formValue.startDate,
-      endDate: formValue.endDate,
-      actualStartDate: formValue.actualStartDate,
-      actualEndDate: formValue.actualEndDate,
-      hours: formValue.hours,
-      budget: formValue.budget,
-      status: true // O usa formValue.status si está en el formulario
+      description: formValue.description || '',
+      startDate: new Date(this.projectForm.value.startDate).toISOString(),
+      endDate: new Date(this.projectForm.value.endDate).toISOString(),
+      actualStartDate: new Date(this.projectForm.value.startDate).toISOString() || null,
+      actualEndDate: new Date(this.projectForm.value.endDate).toISOString() || null,
+      budget: Number(formValue.budget) || 0,
+      hours: Number(formValue.hours) || 0,
+      status: undefined
     };
 
-    console.log(projectData);
+    // DEBUG: Verificar estructura exacta
+    console.log('Datos a enviar:', JSON.parse(JSON.stringify(projectData)));
 
     if (this.isEditMode) {
-      const projectId = this.data?.project?.id;
-      if (!projectId) {
-        console.error('No se puede actualizar: ID de proyecto no proporcionado');
-        return;
-      }
-
-      this.projectService.updateProject(projectId, projectData).subscribe({
-        next: (response) => {
-          this.dialogRef.close(response);
-        },
-        error: (err) => {
-          console.error('Error al actualizar proyecto:', err);
-        }
-      });
+      // Lógica para edición...
     } else {
       this.projectService.createProject(projectData).subscribe({
-        next: (response) => {
-          this.dialogRef.close(response);
-        },
-        error: (err) => {
-          console.error('Error al crear proyecto:', err);
-        }
+        next: (response) => this.dialogRef.close(response),
+        error: (err) => console.error('Error:', err)
       });
     }
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup) {
+    Object.values(formGroup.controls).forEach(control => {
+      control.markAsTouched();
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
+      }
+    });
   }
 
   onCancel() {

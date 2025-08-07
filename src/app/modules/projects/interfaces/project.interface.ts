@@ -1,5 +1,4 @@
 export interface Project {
-  id?: number;
   clientID: number;
   projectStatusID: number;
   projectTypeID: number | null;
@@ -12,24 +11,28 @@ export interface Project {
   actualEndDate: string | null;
   hours: number;
   budget: number;
-  status: boolean;
+  status?: boolean;
   employeeProjects?: EmployeeProject[]; // Make it optional with '?'
   employeesPersonInfo?: EmployeePersonInfo[]; // Make it optional with '?'
 }
 
 export interface ProjectWithID {
   id: number,
-  clientID: number,
-  projectStatusID: number,
-  code: string,
-  name: string,
-  description: string,
-  startDate: Date,
-  endDate: Date,
-  actualStartDate?: Date,
-  actualEndDate?: Date,
-  budget: number,
-  status: boolean
+  clientID: number;
+  projectStatusID: number;
+  projectTypeID: number | null;
+  code: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  actualStartDate: string | null;
+  actualEndDate: string | null;
+  hours: number;
+  budget: number;
+  status?: boolean;
+  employeeProjects?: EmployeeProject[]; // Make it optional with '?'
+  employeesPersonInfo?: EmployeePersonInfo[]; // Make it optional with '?'
 }
 
 export interface ApiResponse {
@@ -165,7 +168,7 @@ export interface Role {
 }
 
 export interface ApiResponseData {
-  items: Project[];
+  items: ProjectWithID[];
   totalItems: number;
   pageNumber: number;
   pageSize: number;

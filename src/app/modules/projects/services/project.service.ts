@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ApiResponse, ApiResponseByID, ApiResponseData, Position, Project, ProjectDetails, ResourceAssignmentPayload } from '../interfaces/project.interface';
+import { ApiResponse, ApiResponseByID, ApiResponseData, Position, Project, ProjectDetails, ProjectWithID, ResourceAssignmentPayload } from '../interfaces/project.interface';
 import { catchError, expand, forkJoin, map, mergeMap, Observable, of, reduce, switchMap, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 import { ProjectDetail, AllProjectsResponse, SimpleProjectItem, Role} from '../interfaces/project.interface';
@@ -30,7 +30,7 @@ export class ProjectService {
       );
     }
 
-    getAllProjects(): Observable<Project[]> {
+    getAllProjects(): Observable<ProjectWithID[]> {
       const pageSize = 100;
       let pageNumber = 1;
 
@@ -201,9 +201,32 @@ export class ProjectService {
       return this.http.get<ProjectDetail>(`${this.urlBase}/api/Project/GetProjectDetailByID/${id}`);
     }
 
-    createProject(createProjectRequest: Project): Observable<SuccessResponse<Project>> {
-      console.log(createProjectRequest);
-      return this.http.post<SuccessResponse<Project>>(`${this.urlBase}/api/Project/CreateProject`, createProjectRequest);
+    createProject(projectData: Project): Observable<ProjectWithID> {
+      // 1. Crear copia segura sin ID
+      const payload: Omit<ProjectWithID, 'id'> = {
+        clientID: projectData.clientID,
+        projectStatusID: projectData.projectStatusID,
+        projectTypeID: projectData.projectTypeID,
+        code: projectData.code,
+        name: projectData.name,
+        description: projectData.description,
+        startDate: projectData.startDate,
+        endDate: projectData.endDate,
+        actualStartDate: projectData.actualStartDate,
+        actualEndDate: projectData.actualEndDate,
+        budget: projectData.budget,
+        hours: projectData.hours,
+        status: projectData.status
+      };
+
+      // 2. Verificación final del payload
+      console.log('Payload que se enviará:', JSON.parse(JSON.stringify(payload)));
+
+      // 3. Realizar la petición
+      return this.http.post<ProjectWithID>(
+        `${this.urlBase}/api/Project/CreateProject`,
+        payload
+      );
     }
 
     updateProject(id: number, updateProjectRequest: Omit<Project, 'id'>): Observable<SuccessResponse<Project>> {
