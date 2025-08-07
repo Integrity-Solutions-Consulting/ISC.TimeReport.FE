@@ -16,7 +16,7 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { ProjectService } from '../../../projects/services/project.service';
-import { Project } from '../../../projects/interfaces/project.interface';
+import { Project, ProjectWithID } from '../../../projects/interfaces/project.interface';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
@@ -79,7 +79,7 @@ export class LeaderListComponent implements OnInit{
   ) {}
 
   leaders: Leader[] = [];
-  projects: Project[] = [];
+  projects: ProjectWithID[] = [];
 
   selection = new SelectionModel<any>(true, []);
 

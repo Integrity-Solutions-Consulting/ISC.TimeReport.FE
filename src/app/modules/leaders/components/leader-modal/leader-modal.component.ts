@@ -14,7 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { ProjectService } from '../../../projects/services/project.service';
-import { Project } from '../../../projects/interfaces/project.interface';
+import { Project, ProjectWithID } from '../../../projects/interfaces/project.interface';
 
 @Component({
   selector: 'app-leader-modal',
@@ -45,7 +45,7 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
 
   leaderForm!: FormGroup;
   personsList: Person[] = [];
-  projectsList: Project[] = [];
+  projectsList: ProjectWithID[] = [];
   useExistingPerson: boolean = false;
   isLoadingPersons = false;
   isLoadingProjects = false;
