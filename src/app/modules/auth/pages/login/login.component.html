@@ -1,4 +1,7 @@
-<app-loading *ngIf="isLoading" />
+<app-loading
+  *ngIf="isLoading"
+  title="Verificando Credenciales"
+  subtitle="Por favor, espere un momento..." />
 <app-alerta
   [mensaje]="mensajeError"
   [visible]="mostrarError"

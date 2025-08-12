@@ -14,6 +14,7 @@ import { EmployeeService } from '../../services/employee.service';
 import { PersonService } from '../../services/person.service';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
+import { LoadingComponent } from '../../../auth/components/login-loading/login-loading.component';
 
 export const MY_DATE_FORMATS = {
   parse: {
@@ -63,7 +64,8 @@ export const MY_DATE_FORMATS = {
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
-    MatDatepickerModule
+    MatDatepickerModule,
+    LoadingComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -92,6 +94,8 @@ export class EmployeeDialogComponent implements OnInit {
     { value: true, viewValue: 'Indefinido' },
     { value: false, viewValue: 'Por Proyecto' }
   ];
+
+  isLoading = false;
 
   private employeeId: any;
 
@@ -346,6 +350,8 @@ export class EmployeeDialogComponent implements OnInit {
       return;
     }
 
+    this.employeeService.showLoading();
+
     const formValue = this.employeeForm?.getRawValue(); // Usa getRawValue() para incluir campos deshabilitados
 
     let companyValue = 0;
@@ -383,9 +389,11 @@ export class EmployeeDialogComponent implements OnInit {
 
       this.employeeService.updateEmployeeWithPerson(this.employeeId, employeeData).subscribe({
         next: () => {
+          this.employeeService.hideLoading();
           this.dialogRef.close({ success: true });
         },
         error: (err) => {
+          this.employeeService.hideLoading();
           console.error('Error updating client:', err);
         }
       });
@@ -402,6 +410,7 @@ export class EmployeeDialogComponent implements OnInit {
         person: formValue.person,
         status: this.originalStatus
       };
+      this.employeeService.hideLoading();
       this.dialogRef.close({ type: 'withPersonID', data: employeeData });
     } else {
       // Lógica para nueva persona
@@ -416,11 +425,13 @@ export class EmployeeDialogComponent implements OnInit {
         person: formValue.person,
         status: this.originalStatus
       };
+      this.employeeService.hideLoading();
       this.dialogRef.close({ type: 'withPerson', data: employeeData });
     }
   }
 
   onCancel(): void {
+    this.employeeService.hideLoading();
     this.dialogRef.close();
   }
 
