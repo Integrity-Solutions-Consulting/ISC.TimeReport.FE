@@ -164,3 +164,32 @@ td.mat-cell {
   font-size: 14px;
   font-weight: 500;
 }
+
+.mat-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  line-height: 36px;
+}
+
+/* Estilo para los íconos del menú */
+.mat-menu-item mat-icon {
+  margin-right: 8px;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+/* Estilo para el botón del menú */
+[mat-icon-button] {
+  transition: all 0.2s ease;
+}
+
+[mat-icon-button]:hover {
+  background: rgba(0, 0, 0, 0.04);
+  transform: scale(1.1);
+}
+
+/* Asegurar que el menú tenga un ancho mínimo */
+.mat-menu-panel {
+  min-width: 180px;
+}

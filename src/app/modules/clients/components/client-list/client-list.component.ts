@@ -30,6 +30,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatMenuModule } from '@angular/material/menu';
 
 @Injectable()
 export class CustomerPaginatorIntl implements MatPaginatorIntl {
@@ -67,6 +68,7 @@ export class CustomerPaginatorIntl implements MatPaginatorIntl {
     MatInputModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatMenuModule,
     MatSortModule,
     MatPaginatorModule,
     MatTooltipModule,

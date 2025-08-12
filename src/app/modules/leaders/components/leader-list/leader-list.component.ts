@@ -22,6 +22,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatMenuModule } from '@angular/material/menu';
 
 @Injectable()
 export class LeaderPaginatorIntl implements MatPaginatorIntl {
@@ -53,6 +54,7 @@ export class LeaderPaginatorIntl implements MatPaginatorIntl {
     MatCheckboxModule,
     MatIconModule,
     MatButtonModule,
+    MatMenuModule,
     MatFormFieldModule,
     MatInputModule,
     MatSortModule,

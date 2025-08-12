@@ -24,6 +24,7 @@ import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatNativeDateModule, provideNativeDateAdapter, DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
+import { MatMenuModule } from '@angular/material/menu';
 
 export const MY_DATE_FORMATS = {
   parse: {
@@ -70,6 +71,7 @@ export class EmployeePaginatorIntl implements MatPaginatorIntl {
     MatInputModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatMenuModule,
     MatSortModule,
     MatPaginatorModule,
     MatTooltipModule,

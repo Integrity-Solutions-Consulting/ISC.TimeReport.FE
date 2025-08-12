@@ -22,6 +22,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AssignmentDialogComponent } from '../assignment-dialog/assignment-dialog.component';
+import { MatMenuModule } from '@angular/material/menu';
 
 @Injectable()
 export class ProjectPaginatorIntl implements MatPaginatorIntl {
@@ -59,6 +60,7 @@ interface ProjectWithIndex extends Project {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatMenuModule,
     MatSortModule,
     MatPaginatorModule,
     MatTooltipModule,

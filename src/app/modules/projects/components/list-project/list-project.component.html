@@ -56,25 +56,27 @@
     <ng-container matColumnDef="options">
       <th mat-header-cell *matHeaderCellDef> Acciones </th>
       <td mat-cell *matCellDef="let element">
-        <button mat-icon-button class="edit-button" (click)="openEditDialog(element)" matTooltip="Editar">
-          <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="edit"></mat-icon>
+        <button mat-icon-button [matMenuTriggerFor]="menu">
+          <mat-icon>more_vert</mat-icon>
         </button>
-        <button mat-icon-button class="view-button" (click)="viewProjectDetails(element.id)" matTooltip="Visualizar">
-          <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="visibility"></mat-icon>
-        </button>
-        <button mat-icon-button
-                [class.delete-button]="element.status"
-                [class.activate-button]="!element.status"
-                (click)="toggleProjectStatus(element)"
-                [matTooltip]="element.status ? 'Desactivar' : 'Activar'">
-          <mat-icon aria-hidden="false"
-                    [fontIcon]="element.status ? 'delete' : 'check_circle'"></mat-icon>
-        </button>
-        <button mat-icon-button class="assign-button"
-                (click)="openAssignDialog(element)"
-                matTooltip="Asignar">
-          <mat-icon aria-hidden="false" aria-label="Example home icon" fontIcon="assignment"></mat-icon>
-        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="openEditDialog(element)">
+            <mat-icon>edit</mat-icon>
+            <span>Editar</span>
+          </button>
+          <button mat-menu-item (click)="viewProjectDetails(element.id)">
+            <mat-icon>visibility</mat-icon>
+            <span>Visualizar</span>
+          </button>
+          <button mat-menu-item (click)="toggleProjectStatus(element)">
+            <mat-icon>{{element.status ? 'delete' : 'check_circle'}}</mat-icon>
+            <span>{{element.status ? 'Desactivar' : 'Activar'}}</span>
+          </button>
+          <button mat-menu-item (click)="openAssignDialog(element)">
+            <mat-icon>assignment</mat-icon>
+            <span>Asignar</span>
+          </button>
+        </mat-menu>
       </td>
     </ng-container>
 
