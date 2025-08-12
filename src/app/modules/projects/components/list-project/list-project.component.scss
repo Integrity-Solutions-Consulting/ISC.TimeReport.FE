@@ -87,6 +87,16 @@ td.mat-cell {
   padding: 16px;
 }
 
+.mat-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mat-menu-item mat-icon {
+  margin-right: 8px;
+}
+
 .top-items {
   display: flex;
   justify-content: space-between;
