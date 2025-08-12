@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { forkJoin, Observable, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, forkJoin, Observable, throwError } from 'rxjs';
+import { catchError, finalize, map, tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 import { ApiResponse, GetAllEmployeesResponse, Employee, EmployeeWithPerson, EmployeeWithPersonID } from '../interfaces/employee.interface';
@@ -12,8 +12,18 @@ import { ApiResponse, GetAllEmployeesResponse, Employee, EmployeeWithPerson, Emp
 export class EmployeeService {
 
   urlBase: string = environment.URL_BASE;
+  private loadingSubject = new BehaviorSubject<boolean>(false);
+  loadingState$ = this.loadingSubject.asObservable();
 
   constructor(private http: HttpClient) { }
+
+  showLoading() {
+    this.loadingSubject.next(true);
+  }
+
+  hideLoading() {
+    this.loadingSubject.next(false);
+  }
 
   getEmployees(pageNumber: number, pageSize: number, search: string = ''): Observable<ApiResponse> {
     let params = new HttpParams()
@@ -46,23 +56,33 @@ export class EmployeeService {
   }
 
   createEmployeeWithPerson(employeeWithPersonRequest: EmployeeWithPerson): Observable<SuccessResponse<Employee>> {
-    return this.http.post<SuccessResponse<Employee>>(`${this.urlBase}/api/Employee/CreateEmployeeWithPerson`, employeeWithPersonRequest);
+    this.showLoading();
+    return this.http.post<SuccessResponse<Employee>>(`${this.urlBase}/api/Employee/CreateEmployeeWithPerson`, employeeWithPersonRequest)
+            .pipe(finalize(() => this.hideLoading()));
   }
 
   createEmployeeWithPersonID(employeeWithPersonIDRequest: EmployeeWithPersonID): Observable<SuccessResponse<Employee>> {
-    return this.http.post<SuccessResponse<Employee>>(`${this.urlBase}/api/Employee/CreateEmployeeWithPersonID`, employeeWithPersonIDRequest);
+    this.showLoading();
+    return this.http.post<SuccessResponse<Employee>>(`${this.urlBase}/api/Employee/CreateEmployeeWithPersonID`, employeeWithPersonIDRequest)
+            .pipe(finalize(() => this.hideLoading()));
   }
 
   updateEmployeeWithPerson(id: number, updateWithPersonRequest: EmployeeWithPerson): Observable<SuccessResponse<Employee>> {
-    return this.http.put<SuccessResponse<Employee>>(`${this.urlBase}/api/Employee/UpdateEmployeeWithPerson/${id}`, updateWithPersonRequest);
+    this.showLoading();
+    return this.http.put<SuccessResponse<Employee>>(`${this.urlBase}/api/Employee/UpdateEmployeeWithPerson/${id}`, updateWithPersonRequest)
+      .pipe(finalize(() => this.hideLoading()));
   }
 
   inactivateEmployee(id: number, data: any): Observable<any> {
-    return this.http.delete(`${this.urlBase}/api/Employee/InactiveEmployeeByID/${id}`);
+    this.showLoading();
+    return this.http.delete(`${this.urlBase}/api/Employee/InactiveEmployeeByID/${id}`)
+    .pipe(finalize(() => this.hideLoading()));
   }
 
   activateEmployee(id: number, data: any): Observable<any> {
-    return this.http.delete(`${this.urlBase}/api/Employee/ActiveEmployeeByID/${id}`);
+    this.showLoading();
+    return this.http.delete(`${this.urlBase}/api/Employee/ActiveEmployeeByID/${id}`)
+    .pipe(finalize(() => this.hideLoading()));
   }
 
   getIdentificationTypes(): Observable<{ id: number, name: string }[]> {

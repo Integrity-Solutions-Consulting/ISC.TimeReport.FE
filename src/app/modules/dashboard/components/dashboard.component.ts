@@ -22,6 +22,8 @@ import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ChartData, ChartEvent, ChartType } from 'chart.js';
+import { BaseChartDirective } from 'ng2-charts';
 
 interface ActividadResponse {
   tipoActividad: string;
@@ -90,7 +92,8 @@ export const MY_FORMATS = {
     MatSelectModule,
     MatSortModule,
     MatMenuModule,
-    NgxChartsModule
+    NgxChartsModule,
+    BaseChartDirective
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
