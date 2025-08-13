@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { RoleService } from '../../services/role.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ErrorHandlerService } from '../../../../shared/services/errorhandler.service';
 
 @Component({
   selector: 'app-role-dialog',
@@ -40,6 +41,7 @@ export class RoleDialogComponent implements OnInit {
     private fb: FormBuilder,
     private roleService: RoleService,
     private authService: AuthService,
+    private errorHandler: ErrorHandlerService,
     public dialogRef: MatDialogRef<RoleDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { role?: any }
   ) {
@@ -89,6 +91,7 @@ export class RoleDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.roleForm.valid) {
+      this.isLoading = true;
       const formValue = this.roleForm.value;
       const roleData = {
         roleName: formValue.roleName,
@@ -96,7 +99,21 @@ export class RoleDialogComponent implements OnInit {
         moduleIds: formValue.moduleIds
       };
 
-      this.dialogRef.close(roleData);
+      const operation = this.isEditMode
+        ? this.roleService.updateRole(this.data.role.id, roleData)
+        : this.roleService.createRole(roleData);
+
+      operation.subscribe({
+        next: () => this.dialogRef.close(true),
+        error: (err) => {
+          this.isLoading = false;
+          if (err.error?.Message === 'Ya existe un rol con ese nombre') {
+            this.errorHandler.showError(err.error.Message);
+          } else {
+            this.errorHandler.showError('Ocurrió un error al procesar la solicitud');
+          }
+        }
+      });
     }
   }
 
