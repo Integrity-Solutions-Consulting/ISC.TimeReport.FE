@@ -11,6 +11,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { ErrorHandlerService } from '../../../../shared/services/errorhandler.service';
 
 @Component({
   selector: 'app-role-edit-dialog',
@@ -35,12 +36,14 @@ export class RoleEditDialogComponent implements OnInit {
   allModules: Module[] = [];
   isEditMode = false;
   isLoading = true;
+  isSaving = false;
 
   constructor(
     public dialogRef: MatDialogRef<RoleEditDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: {role?: Role},
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private errorHandler: ErrorHandlerService
   ) {
     this.roleForm = this.fb.group({
       roleName: ['', Validators.required],
@@ -84,27 +87,35 @@ export class RoleEditDialogComponent implements OnInit {
   }
 
   onSave(): void {
+    if (this.roleForm.invalid || this.isSaving) return;
 
-    if (this.roleForm.invalid) return;
-
+    this.isSaving = true;
     const { roleName, description, moduleIds } = this.roleForm.value;
     const payload = {
       roleName,
       description,
-      moduleIds: moduleIds || [] // Asegurar array vacío si es null/undefined
+      moduleIds: moduleIds || []
     };
 
-    if (this.isEditMode && this.data.role) {
-      this.authService.updateRole(this.data.role.id, payload).subscribe({
-        next: () => this.dialogRef.close(true),
-        error: (err) => console.error('Error updating role:', err)
-      });
-    } else {
-      this.authService.createRole(payload).subscribe({
-        next: () => this.dialogRef.close(true),
-        error: (err) => console.error('Error creating role:', err)
-      });
-    }
+    const operation = this.isEditMode && this.data.role
+      ? this.authService.updateRole(this.data.role.id, payload)
+      : this.authService.createRole(payload);
+
+    operation.subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.dialogRef.close(true);
+      },
+      error: (err) => {
+        this.isSaving = false;
+        if (err.error?.Message === 'Ya existe un rol con ese nombre') {
+          this.errorHandler.showError(err.error.Message);
+        } else {
+          const errorMessage = err.error?.Message || 'Ocurrió un error al procesar la solicitud';
+          this.errorHandler.showError(errorMessage);
+        }
+      }
+    });
   }
 
   onCancel(): void {
