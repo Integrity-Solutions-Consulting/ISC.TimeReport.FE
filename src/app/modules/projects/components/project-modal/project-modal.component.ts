@@ -14,6 +14,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { Client } from '../../../clients/interfaces/client.interface';
 import { ClientService } from '../../../clients/services/client.service';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { Observable, take } from 'rxjs';
+import { SuccessResponse } from '../../../../shared/interfaces/response.interface';
 
 export const MY_DATE_FORMATS = {
   parse: {
@@ -134,16 +136,16 @@ export class ProjectModalComponent implements OnInit {
     this.projectForm = this.fb.group({
       clientId: ['', Validators.required],
       projectStatusId: ['', Validators.required],
-      code: [''],
-      name: ['', Validators.required],
+      code: ['', [Validators.required, Validators.maxLength(50)]],
+      name: ['', [Validators.required, Validators.maxLength(150)]],
       description: [''],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
       actualStartDate: [null],
       actualEndDate: [null],
-      budget: [0],
-      hours: [0]
-    });
+      budget: [0, [Validators.required, Validators.min(0)]],
+      hours: [0, [Validators.min(0)]]
+    }, { validator: this.dateRangeValidator() });
   }
 
   private loadClients(): void {
@@ -193,14 +195,19 @@ export class ProjectModalComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.projectForm.invalid || this.isSubmitting) return;
+    if (this.isSubmitting) {
+      return;
+    }
+
+    if (this.projectForm.invalid) {
+      this.markFormGroupTouched(this.projectForm);
+      return;
+    }
+
     this.isSubmitting = true;
-
-    const formValue = this.projectForm.getRawValue();
-
     this.projectService.showLoading();
 
-    // Construir objeto Project sin ID
+    const formValue = this.projectForm.getRawValue();
     const projectData: Project = {
       clientID: formValue.clientId,
       projectStatusID: Number(formValue.projectStatusId),
@@ -214,41 +221,27 @@ export class ProjectModalComponent implements OnInit {
       actualEndDate: formValue.actualEndDate ? new Date(formValue.actualEndDate).toISOString() : null,
       budget: Number(formValue.budget) || 0,
       hours: Number(formValue.hours) || 0,
-      status: undefined
+      status: true
     };
 
 
-    if (this.isEditMode) {
-      const projectId = this.data?.project?.id;
-      if (!projectId) {
-        console.error('No se puede actualizar: ID de proyecto no proporcionado');
-        return;
-      }
+    const request$: Observable<ProjectWithID | SuccessResponse<Project>> = this.isEditMode && this.data?.project?.id
+      ? this.projectService.updateProject(this.data.project.id, projectData)
+      : this.projectService.createProject(projectData);
 
-      this.projectService.updateProject(projectId, projectData).subscribe({
-        next: (response) => {
-          this.projectService.hideLoading();
-          this.isSubmitting = false;
-          this.dialogRef.close(response);
-        },
-        error: (err) => {
-          this.projectService.hideLoading();
-          this.isSubmitting = false;
-          console.error('Error al actualizar proyecto:', err);
-        }
-      });
-    } else {
-      this.projectService.createProject(projectData).subscribe({
-        next: (response) => {
-          this.projectService.hideLoading();
-          this.isSubmitting = false;
-          this.dialogRef.close(response)},
-        error: (err) => {
-          this.projectService.hideLoading();
-          this.isSubmitting = false;
-          console.error('Error:', err)}
-      });
-    }
+    request$.subscribe({
+      next: (response: any) => {
+        this.projectService.hideLoading();
+        this.isSubmitting = false;
+        this.dialogRef.close(response);
+      },
+      error: (err: any) => {
+        this.projectService.hideLoading();
+        this.isSubmitting = false;
+        console.error('Error:', err);
+        // Mostrar mensaje de error al usuario
+      }
+    });
   }
 
   private markFormGroupTouched(formGroup: FormGroup) {
