@@ -8,7 +8,7 @@ export const activitiesRoutes: Routes = [
         component: CalendarPage,
     },
     {
-      path: 'collaborators',
+      path: 'tracking',
       component: ListCollabPage
     }
 ];

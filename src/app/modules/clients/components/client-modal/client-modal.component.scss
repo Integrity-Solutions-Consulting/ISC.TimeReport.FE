@@ -125,3 +125,28 @@
   // You might want to make the background color slightly different for disabled state
   // background-color: #cccccc !important;
 }
+
+.mat-form-field.ng-invalid.ng-touched {
+  .mat-form-field-outline {
+    color: var(--itg-error);
+  }
+}
+
+.mat-error {
+  color: var(--itg-error);
+}
+
+.error-snackbar {
+  background-color: #f44336; /* Rojo de Material para errores */
+  color: white;
+}
+
+.success-snackbar {
+  background-color: #4caf50; /* Verde de Material para éxito */
+  color: white;
+}
+
+/* Opcional: Para que aparezca en la parte superior */
+.mat-snack-bar-container {
+  margin-top: 64px !important; /* Ajusta según tu navbar */
+}

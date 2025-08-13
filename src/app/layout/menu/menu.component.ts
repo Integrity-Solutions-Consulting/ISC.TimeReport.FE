@@ -58,7 +58,7 @@ export class MenuComponent implements OnInit {
 
         // Para módulos normales
         if (item.modulePath !== '/activities' &&
-            item.modulePath !== '/activities/collaborators' &&
+            item.modulePath !== '/activities/tracking' &&
             item.modulePath !== '/settings' &&
             item.modulePath !== '/users') {
           return {
@@ -76,7 +76,7 @@ export class MenuComponent implements OnInit {
     // Insertar el panel de Actividades después de Proyectos (posición 1)
     if (this.isAdmin) {
       const activitiesModule = parsedMenus.find((item: any) => item.modulePath === '/activities');
-      const collaboratorsModule = parsedMenus.find((item: any) => item.modulePath === '/activities/collaborators');
+      const trackingModule = parsedMenus.find((item: any) => item.modulePath === '/activities/tracking');
 
       const activitiesPanel: MenuItem = {
         type: 'expansion',
@@ -90,9 +90,9 @@ export class MenuComponent implements OnInit {
             icon: activitiesModule?.icon || 'work'
           },
           {
-            moduleName: collaboratorsModule?.moduleName || 'Colaboradores',
-            modulePath: collaboratorsModule?.modulePath ? `/menu/${collaboratorsModule.modulePath.replace(/^\/+/, '')}` : '/menu/activities/collaborators',
-            icon: collaboratorsModule?.icon || 'construction'
+            moduleName: trackingModule?.moduleName || 'Seguimiento',
+            modulePath: trackingModule?.modulePath ? `/menu/${trackingModule.modulePath.replace(/^\/+/, '')}` : '/menu/activities/collaborators',
+            icon: trackingModule?.icon || 'construction'
           }
         ]
       };
