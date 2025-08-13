@@ -86,8 +86,7 @@
   <button mat-raised-button
           style="background-color: var(--itg-primary); color: var(--itg-bg)"
           (click)="onSubmit()"
-          [disabled]="projectForm.invalid || projectForm.pending"
-          [class.disabled-button]="projectForm.invalid">
-    Guardar
+          [disabled]="projectForm.invalid || projectForm.pending || isSubmitting">
+    {{isSubmitting ? 'Guardando...' : 'Guardar'}}
   </button>
 </mat-dialog-actions>

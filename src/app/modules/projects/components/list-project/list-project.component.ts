@@ -226,16 +226,9 @@ export class ListProjectComponent implements OnInit{
 
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                this.projectService.createProject(result).subscribe({
-                    next: () => {
-                        this.snackBar.open("Proyecto creado con éxito", "Cerrar", {duration: 5000});
-                        // Recargar los proyectos después de crear uno nuevo
-                        this.loadProjects(this.currentPage + 1, this.pageSize, this.currentSearch);
-                    },
-                    error: () => {
-                        this.snackBar.open("Ocurrió un error al crear el proyecto", "Cerrar", {duration: 5000});
-                    }
-                });
+                // Solo recarga los proyectos, el modal ya hizo la creación
+                this.loadProjects(this.currentPage + 1, this.pageSize, this.currentSearch);
+                this.snackBar.open("Proyecto creado con éxito", "Cerrar", {duration: 5000});
             }
         });
     }
