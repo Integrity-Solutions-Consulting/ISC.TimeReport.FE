@@ -90,8 +90,6 @@ export class ClientModalComponent implements OnInit {
     this.isEditMode = !!customerData.id;
 
     this.initializeForm(customerData);
-    this.dialogRef.close({ success: true });
-    this.showSuccessSnackbar('Cliente guardado exitosamente');
   }
 
   ngOnInit(): void {
@@ -396,6 +394,7 @@ export class ClientModalComponent implements OnInit {
       this.clientService.updateClientWithPerson(this.customerId, clientData).subscribe({
         next: () => {
           this.dialogRef.close({ success: true });
+          this.showSuccessSnackbar('Cliente guardado exitosamente');
         },
         error: (err) => {
           this.handleApiError(err);
@@ -421,6 +420,7 @@ export class ClientModalComponent implements OnInit {
       this.clientService.createClientWithPerson(clientData).subscribe({
         next: () => {
           this.dialogRef.close({ success: true });
+          this.showSuccessSnackbar('Cliente guardado exitosamente');
         },
         error: (err) => {
           this.handleApiError(err);
