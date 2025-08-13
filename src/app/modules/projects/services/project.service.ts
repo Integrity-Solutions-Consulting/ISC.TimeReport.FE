@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ApiResponse, ApiResponseByID, ApiResponseData, Position, Project, ProjectDetails, ProjectWithID, ResourceAssignmentPayload } from '../interfaces/project.interface';
-import { catchError, expand, forkJoin, map, mergeMap, Observable, of, reduce, switchMap, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, expand, finalize, forkJoin, map, mergeMap, Observable, of, reduce, switchMap, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 import { ProjectDetail, AllProjectsResponse, SimpleProjectItem, Role} from '../interfaces/project.interface';
 import { AuthService } from '../../auth/services/auth.service';
@@ -11,6 +11,20 @@ import { AuthService } from '../../auth/services/auth.service';
   providedIn: 'root'
 })
 export class ProjectService {
+
+    // Subject para controlar el estado de carga
+    private loadingSubject = new BehaviorSubject<boolean>(false);
+    loadingState$ = this.loadingSubject.asObservable();
+
+    // Método para mostrar el spinner
+    showLoading() {
+      this.loadingSubject.next(true);
+    }
+
+    // Método para ocultar el spinner
+    hideLoading() {
+      this.loadingSubject.next(false);
+    }
 
     urlBase: string = environment.URL_BASE;
 
@@ -202,6 +216,7 @@ export class ProjectService {
     }
 
     createProject(projectData: Project): Observable<ProjectWithID> {
+      this.showLoading();
       // 1. Crear copia segura sin ID
       const payload: Omit<ProjectWithID, 'id'> = {
         clientID: projectData.clientID,
@@ -226,10 +241,12 @@ export class ProjectService {
       return this.http.post<ProjectWithID>(
         `${this.urlBase}/api/Project/CreateProject`,
         payload
-      );
+      ).pipe(finalize(() => this.hideLoading())
+    );
     }
 
     updateProject(id: number, updateProjectRequest: Omit<Project, 'id'>): Observable<SuccessResponse<Project>> {
+      this.showLoading();
       console.log('ID recibido en el servicio:', id);
 
       if (id === undefined || id === null || isNaN(id)) {
@@ -240,22 +257,31 @@ export class ProjectService {
       return this.http.put<SuccessResponse<Project>>(
         `${this.urlBase}/api/Project/UpdateProjectByID/${id}`,
         updateProjectRequest
-      );
+      ).pipe(finalize(() => this.hideLoading())
+    );
     }
 
     inactivateProject(id: number, data: any): Observable<any> {
-      return this.http.delete(`${this.urlBase}/api/Project/InactiveProjectByID/${id}`);
+      this.showLoading();
+      return this.http.delete(`${this.urlBase}/api/Project/InactiveProjectByID/${id}`)
+      .pipe(finalize(() => this.hideLoading())
+    );
     }
 
     activateProject(id: number, data: any): Observable<any> {
-      return this.http.delete(`${this.urlBase}/api/Project/ActiveProjectByID/${id}`);
+      this.showLoading();
+      return this.http.delete(`${this.urlBase}/api/Project/ActiveProjectByID/${id}`)
+      .pipe(finalize(() => this.hideLoading())
+    );
     }
 
     downloadExcelReport(params: HttpParams): Observable<Blob> {
+      this.showLoading();
       return this.http.get(`${this.urlBase}/api/TimeReport/export-excel`, {
         params,
         responseType: 'blob'
-      });
+      }).pipe(finalize(() => this.hideLoading())
+    );
     }
 
     getProjectsByEmployee(employeeId: number, params: { PageNumber: number, PageSize: number, search?: string }): Observable<any> {

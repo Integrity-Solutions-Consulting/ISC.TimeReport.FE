@@ -71,6 +71,7 @@ export class ProjectModalComponent implements OnInit {
   originalStatus: boolean = true;
   clients: Client[] = [];
   isLoadingClients = false;
+  isSubmitting = false;
 
   constructor(
     private fb: FormBuilder,
@@ -192,9 +193,12 @@ export class ProjectModalComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.projectForm.invalid) return;
+    if (this.projectForm.invalid || this.isSubmitting) return;
+    this.isSubmitting = true;
 
     const formValue = this.projectForm.getRawValue();
+
+    this.projectService.showLoading();
 
     // Construir objeto Project sin ID
     const projectData: Project = {
@@ -204,24 +208,45 @@ export class ProjectModalComponent implements OnInit {
       code: formValue.code,
       name: formValue.name,
       description: formValue.description || '',
-      startDate: new Date(this.projectForm.value.startDate).toISOString(),
-      endDate: new Date(this.projectForm.value.endDate).toISOString(),
-      actualStartDate: new Date(this.projectForm.value.startDate).toISOString() || null,
-      actualEndDate: new Date(this.projectForm.value.endDate).toISOString() || null,
+      startDate: new Date(formValue.startDate).toISOString(),
+      endDate: new Date(formValue.endDate).toISOString(),
+      actualStartDate: formValue.actualStartDate ? new Date(formValue.actualStartDate).toISOString() : null,
+      actualEndDate: formValue.actualEndDate ? new Date(formValue.actualEndDate).toISOString() : null,
       budget: Number(formValue.budget) || 0,
       hours: Number(formValue.hours) || 0,
       status: undefined
     };
 
-    // DEBUG: Verificar estructura exacta
-    console.log('Datos a enviar:', JSON.parse(JSON.stringify(projectData)));
 
     if (this.isEditMode) {
-      // Lógica para edición...
+      const projectId = this.data?.project?.id;
+      if (!projectId) {
+        console.error('No se puede actualizar: ID de proyecto no proporcionado');
+        return;
+      }
+
+      this.projectService.updateProject(projectId, projectData).subscribe({
+        next: (response) => {
+          this.projectService.hideLoading();
+          this.isSubmitting = false;
+          this.dialogRef.close(response);
+        },
+        error: (err) => {
+          this.projectService.hideLoading();
+          this.isSubmitting = false;
+          console.error('Error al actualizar proyecto:', err);
+        }
+      });
     } else {
       this.projectService.createProject(projectData).subscribe({
-        next: (response) => this.dialogRef.close(response),
-        error: (err) => console.error('Error:', err)
+        next: (response) => {
+          this.projectService.hideLoading();
+          this.isSubmitting = false;
+          this.dialogRef.close(response)},
+        error: (err) => {
+          this.projectService.hideLoading();
+          this.isSubmitting = false;
+          console.error('Error:', err)}
       });
     }
   }
@@ -236,6 +261,7 @@ export class ProjectModalComponent implements OnInit {
   }
 
   onCancel() {
+    this.projectService.hideLoading();
     this.dialogRef.close();
   }
 }
