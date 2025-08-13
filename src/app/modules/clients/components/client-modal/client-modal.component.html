@@ -47,6 +47,12 @@
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
           <input matInput formControlName="identificationNumber" placeholder="Número de Identificación">
+          <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('duplicate')">
+            ¡Este número de identificación ya está registrado!
+          </mat-error>
+          <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('pattern')">
+            Solo se permiten números
+          </mat-error>
         </mat-form-field>
       </div>
 

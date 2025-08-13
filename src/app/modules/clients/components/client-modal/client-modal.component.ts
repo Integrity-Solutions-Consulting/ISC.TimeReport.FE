@@ -23,6 +23,8 @@ import { Observable, map, startWith } from 'rxjs';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ClientService } from '../../services/client.service';
+import { ErrorHandlerService } from '../../../../shared/services/errorhandler.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-customer-edit-modal',
@@ -79,13 +81,17 @@ export class ClientModalComponent implements OnInit {
     public dialogRef: MatDialogRef<ClientModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private fb: FormBuilder,
-    private personService: PersonService
+    private snackBar: MatSnackBar,
+    private personService: PersonService,
+    private errorHandler: ErrorHandlerService
   ) {
     const customerData = data?.customer || {};
     this.customerId = customerData.id || null;
     this.isEditMode = !!customerData.id;
 
     this.initializeForm(customerData);
+    this.dialogRef.close({ success: true });
+    this.showSuccessSnackbar('Cliente guardado exitosamente');
   }
 
   ngOnInit(): void {
@@ -372,14 +378,13 @@ export class ClientModalComponent implements OnInit {
       return;
     }
 
-    const formValue = this.clientForm?.getRawValue(); // Usa getRawValue() para incluir campos deshabilitados
+    const formValue = this.clientForm?.getRawValue();
 
     if (formValue.person?.birthDate) {
       formValue.person.birthDate = formatDate(formValue.person.birthDate, 'yyyy-MM-dd', 'en-US');
     }
 
     if (this.isEditMode) {
-
       const clientData = {
         tradeName: formValue.tradeName,
         legalName: formValue.legalName || formValue.tradeName,
@@ -393,11 +398,10 @@ export class ClientModalComponent implements OnInit {
           this.dialogRef.close({ success: true });
         },
         error: (err) => {
-          console.error('Error updating client:', err);
+          this.handleApiError(err);
         }
       });
     } else if (this.useExistingPerson) {
-      // Lógica para persona existente
       const clientData = {
         personID: formValue.existingPerson,
         company: formValue.company || 'ISC',
@@ -406,15 +410,57 @@ export class ClientModalComponent implements OnInit {
       };
       this.dialogRef.close({ type: 'withPersonID', data: clientData });
     } else {
-      // Lógica para nueva persona
       const clientData = {
         tradeName: formValue.tradeName,
         legalName: formValue.legalName || formValue.tradeName,
         company: formValue.company || 'ISC',
-        person: formValue.person // Ahora viene en la estructura correcta
+        person: formValue.person,
+        status: true
       };
-      this.dialogRef.close({ type: 'withPerson', data: clientData });
+
+      this.clientService.createClientWithPerson(clientData).subscribe({
+        next: () => {
+          this.dialogRef.close({ success: true });
+        },
+        error: (err) => {
+          this.handleApiError(err);
+        }
+      });
     }
+  }
+
+  private handleApiError(err: any): void {
+    console.error('Error en la operación:', err);
+
+    let errorMessage = 'Ocurrió un error al procesar la solicitud';
+
+    if (err.error?.Message?.includes('Ya existe un cliente con ese numero de Identificacion')) {
+      const identificationNumber = this.clientForm.get('person.identificationNumber')?.value;
+      errorMessage = `¡Error! Ya existe un cliente con el número: ${identificationNumber}`;
+      this.clientForm.get('person.identificationNumber')?.setErrors({ duplicate: true });
+    } else if (err.error?.Message) {
+      errorMessage = err.error.Message;
+    }
+
+    //this.showErrorSnackbar(errorMessage);
+  }
+
+  private showErrorSnackbar(message: string): void {
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 5000, // 5 segundos
+      panelClass: ['error-snackbar'],
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
+    });
+  }
+
+  private showSuccessSnackbar(message: string): void {
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 3000,
+      panelClass: ['success-snackbar'],
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
+    });
   }
 
   private markFormGroupTouched(formGroup: FormGroup) {
