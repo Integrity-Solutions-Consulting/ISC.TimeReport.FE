@@ -33,6 +33,8 @@ export class MenuComponent implements OnInit {
   public menuItems: MenuItem[] = [];
   public isAdmin = false;
   public isCollaboratorOnly = false;
+  public hasSettingsAccess = false;
+  public hasUsersAccess = false;
 
   ngOnInit(): void {
     const rawMenus = localStorage.getItem('modules');
@@ -42,8 +44,6 @@ export class MenuComponent implements OnInit {
     if (rawRoles) {
       const roles = JSON.parse(rawRoles);
       this.isAdmin = roles.some((role: any) => role.roleName === 'Administrador');
-
-      // Verificar si es SOLO Colaborador (sin otros roles)
       this.isCollaboratorOnly = roles.length === 1 &&
                               roles.some((role: any) => role.roleName === 'Colaborador');
     }
@@ -62,13 +62,13 @@ export class MenuComponent implements OnInit {
       return;
     }
 
-    // Para otros casos (Administrador, Gerente, Líder, o Colaborador con otros roles)
+    // Para otros casos
     const parsedMenus = rawMenus ? JSON.parse(rawMenus) : [];
 
     // Ordenar los módulos según displayOrder
     parsedMenus.sort((a: any, b: any) => a.displayOrder - b.displayOrder);
 
-    // Construir la estructura del menú en el orden deseado
+    // Construir la estructura del menú basada en los módulos asignados
     this.menuItems = parsedMenus
       .filter((item: any) => item.modulePath)
       .map((item: any) => {
@@ -76,7 +76,7 @@ export class MenuComponent implements OnInit {
           ? item.modulePath
           : `/menu/${item.modulePath.replace(/^\/+/, '')}`;
 
-        // Para módulos normales
+        // Para módulos normales (excepto los que van en expansion panels)
         if (item.modulePath !== '/activities' &&
             item.modulePath !== '/activities/tracking' &&
             item.modulePath !== '/settings' &&
@@ -93,56 +93,66 @@ export class MenuComponent implements OnInit {
       })
       .filter((item: MenuItem | null) => item !== null);
 
-    // Insertar el panel de Actividades después de Proyectos (posición 1)
-    if (this.isAdmin) {
+    // Verificar si tiene módulos de Actividades/Seguimiento para crear el expansion panel
+    const hasActivities = parsedMenus.some((item: any) => item.modulePath === '/activities');
+    const hasTracking = parsedMenus.some((item: any) => item.modulePath === '/activities/tracking');
+
+    if (hasActivities || hasTracking) {
       const activitiesModule = parsedMenus.find((item: any) => item.modulePath === '/activities');
       const trackingModule = parsedMenus.find((item: any) => item.modulePath === '/activities/tracking');
 
       const activitiesPanel: MenuItem = {
         type: 'expansion',
-        moduleName: 'Actividades',
-        icon: 'work',
+        moduleName: 'Time Report',
+        icon: 'alarm',
         expanded: false,
         options: [
-          {
+          ...(hasActivities ? [{
             moduleName: activitiesModule?.moduleName || 'Actividades',
             modulePath: activitiesModule?.modulePath ? `/menu/${activitiesModule.modulePath.replace(/^\/+/, '')}` : '/menu/activities',
             icon: activitiesModule?.icon || 'work'
-          },
-          {
+          }] : []),
+          ...(hasTracking ? [{
             moduleName: trackingModule?.moduleName || 'Seguimiento',
-            modulePath: trackingModule?.modulePath ? `/menu/${trackingModule.modulePath.replace(/^\/+/, '')}` : '/menu/activities/collaborators',
+            modulePath: trackingModule?.modulePath ? `/menu/${trackingModule.modulePath.replace(/^\/+/, '')}` : '/menu/activities/tracking',
             icon: trackingModule?.icon || 'construction'
-          }
+          }] : [])
         ]
       };
 
-      this.menuItems.splice(2, 0, activitiesPanel); // Insertar después de Proyectos (índice 1)
+      // Insertar después de Proyectos (índice 1) o al inicio si no hay Proyectos
+      const insertPosition = this.menuItems.length > 1 ? 1 : 0;
+      this.menuItems.splice(insertPosition, 0, activitiesPanel);
     }
 
-    // Insertar el panel de Configuración al final
-    const settingsModule = parsedMenus.find((item: any) => item.modulePath === '/settings');
-    const usersModule = parsedMenus.find((item: any) => item.modulePath === '/users');
+    // Verificar si tiene módulos de Configuración/Usuarios para crear el expansion panel
+    const hasSettings = parsedMenus.some((item: any) => item.modulePath === '/settings');
+    const hasUsers = parsedMenus.some((item: any) => item.modulePath === '/users');
 
-    const settingsPanel: MenuItem = {
-      type: 'expansion',
-      moduleName: 'Configuración',
-      icon: 'settings',
-      expanded: false,
-      options: [
-        {
-          moduleName: settingsModule?.moduleName || 'Configuración',
-          modulePath: settingsModule?.modulePath ? `/menu/${settingsModule.modulePath.replace(/^\/+/, '')}` : '/menu/settings',
-          icon: settingsModule?.icon || 'settings'
-        },
-        {
-          moduleName: usersModule?.moduleName || 'Usuarios',
-          modulePath: usersModule?.modulePath ? `/menu/${usersModule.modulePath.replace(/^\/+/, '')}` : '/menu/users',
-          icon: usersModule?.icon || 'person'
-        }
-      ]
-    };
+    if (hasSettings || hasUsers) {
+      const settingsModule = parsedMenus.find((item: any) => item.modulePath === '/settings');
+      const usersModule = parsedMenus.find((item: any) => item.modulePath === '/users');
 
-    this.menuItems.push(settingsPanel);
+      const settingsPanel: MenuItem = {
+        type: 'expansion',
+        moduleName: 'Configuración',
+        icon: 'settings',
+        expanded: false,
+        options: [
+          ...(hasSettings ? [{
+            moduleName: settingsModule?.moduleName || 'Configuración',
+            modulePath: settingsModule?.modulePath ? `/menu/${settingsModule.modulePath.replace(/^\/+/, '')}` : '/menu/settings',
+            icon: settingsModule?.icon || 'settings'
+          }] : []),
+          ...(hasUsers ? [{
+            moduleName: usersModule?.moduleName || 'Usuarios',
+            modulePath: usersModule?.modulePath ? `/menu/${usersModule.modulePath.replace(/^\/+/, '')}` : '/menu/users',
+            icon: usersModule?.icon || 'person'
+          }] : [])
+        ]
+      };
+
+      this.menuItems.push(settingsPanel);
+    }
   }
 }
