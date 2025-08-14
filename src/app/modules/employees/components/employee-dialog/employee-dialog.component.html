@@ -50,6 +50,7 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field-half">
+        <mat-label style="font-family: 'Poppins';">Categoría</mat-label>
         <mat-select formControlName="employeeCategoryID" placeholder="Categoría">
           @for (category of employeeCategories; track category) {
             <mat-option [value]="category.id">{{category.name}}</mat-option>
@@ -194,6 +195,7 @@
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins';">Salario</mat-label>
           <input matInput type="number" formControlName="salary" placeholder="Salario (*)" required>
           <mat-error *ngIf="employeeForm.get('salary')?.hasError('required')">
             Este campo es requerido

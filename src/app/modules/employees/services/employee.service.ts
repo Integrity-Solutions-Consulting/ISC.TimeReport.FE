@@ -117,7 +117,7 @@ export class EmployeeService {
 
   getWorkModes(): Observable<{ id:number, name: string }[]> {
     return this.http.get<any[]>(`${this.urlBase}/api/Catalog/work-mode`).pipe(
-      map(items => items.map(item => ({ id: item.id, name: item.workMode })))
+      map(items => items.map(item => ({ id: item.id, name: item.name })))
     );
   }
 
