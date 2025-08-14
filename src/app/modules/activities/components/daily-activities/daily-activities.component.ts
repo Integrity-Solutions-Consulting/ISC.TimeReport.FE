@@ -613,7 +613,8 @@ export class DailyActivitiesComponent implements AfterViewInit {
         },
         isEdit: true,
         projects: this.projectList,
-        activityTypes: this.activityColors
+        activityTypes: this.activityColors,
+        currentCalendarEvents: this.currentEvents()
       }
     });
 
@@ -623,7 +624,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
           projectID: result.projectId,
           activityTypeID: result.activityTypeID,
           hoursQuantity: result.fullDay ? 8 : result.hours, // Mapea fullDay a hoursQuantity
-          activityDate: this.formatDate(result.activityDate),
+          activityDate: result.activityDate,
           activityDescription: result.activityDescription,
           notes: result.details,
           requirementCode: result.requirementCode

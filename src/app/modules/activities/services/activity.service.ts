@@ -40,29 +40,63 @@ export class ActivityService {
   }
 
   createActivity(activityData: any): Observable<any> {
-    console.log('Datos recibidos en servicio:', JSON.parse(JSON.stringify(activityData)));
-
+    // 1. Validación de campos requeridos
     if (!activityData.activityDate || activityData.hoursQuantity === undefined) {
-      console.error('Datos faltantes:', {
-        date: activityData.activityDate,
-        hours: activityData.hoursQuantity
-      });
-      return throwError(() => new Error('Datos incompletos'));
+      console.error('Datos faltantes:', activityData);
+      return throwError(() => new Error('Datos incompletos en la actividad'));
     }
 
-    return this.http.post(`${this.urlBase}/api/DailyActivity/CreateActivity`, activityData);
+    // 2. Preparar el payload con la estructura exacta que espera el backend
+    const payload = {
+      projectID: activityData.projectId, // Notar mayúscula en ID
+      activityTypeID: activityData.activityTypeID,
+      requirementCode: activityData.requirementCode || '',
+      hoursQuantity: Number(activityData.hoursQuantity),
+      activityDate: this.formatDate(activityData.activityDate), // Formato YYYY-MM-DD
+      activityDescription: activityData.activityDescription,
+      notes: activityData.notes || ''
+    };
+
+    console.log('Payload enviado al backend:', payload);
+
+    // 3. Configurar headers con el token de autenticación
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    // 4. Realizar la petición POST
+    return this.http.post(`${this.urlBase}/api/DailyActivity/CreateActivity`, payload, { headers }).pipe(
+      catchError(error => {
+        console.error('Error en createActivity:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   updateActivity(id: number, activityData: any): Observable<any> {
       const token = localStorage.getItem('token');
       console.log(activityData);
 
+      const formattedData = {
+        ...activityData,
+        activityDate: this.formatDate(activityData.activityDate)
+      };
+
       const headers = new HttpHeaders({
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       });
 
-    return this.http.put(`${this.urlBase}/api/DailyActivity/UpdateActivity/${id}`, activityData, { headers });
+    return this.http.put(`${this.urlBase}/api/DailyActivity/UpdateActivity/${id}`, formattedData, { headers });
+  }
+
+  private formatDate(date: any): string {
+    if (!date) return new Date().toISOString().split('T')[0];
+    if (typeof date === 'string') return date.split('T')[0];
+    if (date instanceof Date) return date.toISOString().split('T')[0];
+    return new Date(date).toISOString().split('T')[0];
   }
 
   exportExcel(params: HttpParams): Observable<Blob> {
