@@ -374,6 +374,7 @@ export class EmployeeDialogComponent implements OnInit {
     }
 
     const employeeData = {
+      id: this.isEditMode ? this.employeeId : undefined, // Asegúrate de incluir el ID si es edición
       positionID: formValue.positionID,
       workModeID: formValue.workModeID,
       employeeCode: formValue.employeeCode,
@@ -385,7 +386,10 @@ export class EmployeeDialogComponent implements OnInit {
       companyCatalogID: formValue.companyCatalogID,
       hireDate: formValue.hireDate,
       terminationDate: formValue.terminationDate,
-      person: formValue.person,
+      person: {
+        ...formValue.person,
+        id: this.isEditMode ? this.data.employee.person?.id : undefined // Incluye el ID de persona si es edición
+      },
       status: this.originalStatus,
     };
 
