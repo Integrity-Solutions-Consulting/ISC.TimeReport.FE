@@ -25,7 +25,6 @@ export class HeaderComponent {
   ngOnInit() {
     this.username = this.authService.getUsername();
     this.authService.username$.subscribe(name => {
-      console.log('Nombre recibido:', name);
       this.username = name;
     });
   }

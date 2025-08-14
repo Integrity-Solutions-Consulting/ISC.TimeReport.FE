@@ -85,12 +85,9 @@ export class AuthService {
   isAdmin(): boolean {
     try {
       const roles = JSON.parse(localStorage.getItem('roles') || '[]');
-      console.log('Roles encontrados:', roles); // Debug
       const isAdmin = roles.some((role: any) => role.id === 1 && role.roleName === "Administrador");
-      console.log('¿Es admin?', isAdmin); // Debug
       return isAdmin;
     } catch (error) {
-      console.error('Error checking admin status:', error);
       return false;
     }
   }
@@ -160,7 +157,6 @@ export class AuthService {
       tap(menus => {
         this._userMenus.set(menus);
         localStorage.setItem('menus', JSON.stringify(menus));
-        console.log('menus', menus)
       }),
       catchError(error => {
         console.error('Error loading user menus:', error);
