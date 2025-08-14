@@ -27,6 +27,9 @@ export interface Employee {
 
 export interface EmployeeWithPerson {
   positionID: number;
+  workModeID: number;
+  employeeCategoryID: number;
+  companyCatalogID: number;
   employeeCode: string;
   contractType: boolean;
   departmentID: number;

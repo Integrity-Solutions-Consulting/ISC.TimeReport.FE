@@ -133,8 +133,6 @@ export class LoginPage implements OnInit {
       localStorage.removeItem("rememberedEmail")
     }
 
-    console.log(credentials)
-
     this.authService.login(credentials).subscribe({
       next: (response) => {
         const { token, roles, modules, employeeID } = response.data

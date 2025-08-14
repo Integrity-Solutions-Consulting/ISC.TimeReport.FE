@@ -42,17 +42,7 @@ export const MY_DATE_FORMATS = {
       useClass: MomentDateAdapter,
       deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS],
     },
-    { provide: MAT_DATE_FORMATS, useValue: {
-      parse: {
-        dateInput: 'DD/MM/YYYY',
-      },
-      display: {
-        dateInput: 'DD/MM/YYYY',
-        monthYearLabel: 'MMMM YYYY',
-        dateA11yLabel: 'LL',
-        monthYearA11yLabel: 'MMMM YYYY'
-      },
-    }}
+    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS }
   ],
   imports: [
     CommonModule,
@@ -76,6 +66,8 @@ export class EmployeeDialogComponent implements OnInit {
   personControl = new FormControl();
   personsList: Person[] = [];
   originalStatus: boolean = true;
+  loading = true;
+  error: string | null = null;
 
   personTypes = [
     { id: 'NATURAL', name: 'Persona Natural' },
@@ -87,8 +79,19 @@ export class EmployeeDialogComponent implements OnInit {
   nationalities: { id: number, name: string }[] = [];
   positions: { id: number, name: string }[] = [];
   departments: { id: number, name: string }[] = [];
-  loading = true;
-  error: string | null = null;
+  workModes: { id: number, name: string }[] = [];
+  employeeCategories = [
+    { id: 1, name: 'Junior' },
+    { id: 2, name: 'Semi-Senior' },
+    { id: 3, name: 'Senior' },
+    { id: 4, name: 'Especialista' },
+    { id: 5, name: 'Ninguno' }
+  ];
+  companies = [
+    { id: 1, name: 'ISC' },
+    { id: 2, name: 'RPS' },
+    { id: 3, name: 'ISC y RPS' }
+  ];
 
   contractTypes = [
     { value: true, viewValue: 'Indefinido' },
@@ -131,71 +134,73 @@ export class EmployeeDialogComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Error loading client data:', err);
+        console.error('Error loading employee data:', err);
       }
     });
   }
 
   private initializeForm(employeeData: any): void {
+    const hireDateValue = employeeData.hireDate
+      ? formatDate(employeeData.hireDate, 'yyyy-MM-dd', 'en-US')
+      : '';
 
-      const hireDateValue = employeeData.hireDate
-        ? formatDate(employeeData.hireDate, 'yyyy-MM-dd', 'en-US')
-        : '';
-
-      const terminationDateValue = employeeData.terminationDate
+    const terminationDateValue = employeeData.terminationDate
       ? formatDate(employeeData.terminationDate, 'yyyy-MM-dd', 'en-US')
       : '';
 
-      const birthDateValue = employeeData.person?.birthDate
+    const birthDateValue = employeeData.person?.birthDate
       ? formatDate(employeeData.person.birthDate, 'yyyy-MM-dd', 'en-US')
       : '';
 
-      this.employeeForm = this.fb.group({
-        // Controles principales
-        personOption: ['new'],
-        existingPerson: [null],
-        positionID: [employeeData.positionID || null, Validators.required],
-        workModeID: [employeeData.workModeID || 1],
-        employeeCode: [employeeData.employeeCode || ''],
-        departmentID: [employeeData.departmentID || null],
-        corporateEmail: [employeeData.corporateEmail || null, [Validators.required, Validators.email]],
-        salary: [employeeData.salary || 0],
-        hireDate: [hireDateValue],
-        terminationDate: [terminationDateValue],
-        category: [employeeData.category || 'JUNIOR'],
-        companies: [employeeData.companies || []],
-        // Grupo anidado para 'person'
-        person: this.fb.group({
-          personType: [employeeData.person?.personType || 'NATURAL', Validators.required],
-          identificationTypeId: [employeeData.person?.identificationTypeId || 1, Validators.required],
-          identificationNumber: [employeeData.person?.identificationNumber || '', [Validators.required, this.identificationNumberValidator.bind(this)]],
-          firstName: [employeeData.person?.firstName || null, Validators.required],
-          lastName: [employeeData.person?.lastName || null, Validators.required],
-          birthDate: [birthDateValue],
-          email: [employeeData.person?.email || null, [Validators.required, Validators.email]],
-          phone: [employeeData.person?.phone || null, [Validators.pattern(/^\d{1,10}$/)]],
-          address: [employeeData.person?.address || null],
-          genderID: [employeeData.person?.genderId || 1],
-          nationalityId: [employeeData.person?.nationalityId || 5]
-        })
-      });
+    this.employeeForm = this.fb.group({
+      // Main controls
+      personOption: ['new'],
+      existingPerson: [null],
+      positionID: [employeeData.positionID || null, Validators.required],
+      workModeID: [employeeData.workModeID || null, Validators.required],
+      employeeCode: [employeeData.employeeCode || '', Validators.required],
+      departmentID: [employeeData.departmentID || null, Validators.required],
+      corporateEmail: [employeeData.corporateEmail || null, [Validators.required, Validators.email]],
+      salary: [employeeData.salary || 0, Validators.required],
+      hireDate: [hireDateValue],
+      terminationDate: [terminationDateValue],
+      employeeCategoryID: [employeeData.employeeCategoryID || 5, Validators.required],
+      companyCatalogID: [employeeData.companyCatalogID || null, Validators.required],
+      contractType: [employeeData.contractType || true, Validators.required],
 
-      this.employeeForm.get('person.personType')?.valueChanges.subscribe(personType => {
-        this.updateIdentificationValidators(personType);
-      });
+      // Nested group for 'person'
+      person: this.fb.group({
+        personType: [employeeData.person?.personType || 'NATURAL', Validators.required],
+        identificationTypeId: [employeeData.person?.identificationTypeId || 1, Validators.required],
+        identificationNumber: [employeeData.person?.identificationNumber || '',
+          [Validators.required, this.identificationNumberValidator.bind(this)]],
+        firstName: [employeeData.person?.firstName || null, Validators.required],
+        lastName: [employeeData.person?.lastName || null, Validators.required],
+        birthDate: [birthDateValue],
+        email: [employeeData.person?.email || null, [Validators.required, Validators.email]],
+        phone: [employeeData.person?.phone || null, [Validators.pattern(/^\d{1,10}$/)]],
+        address: [employeeData.person?.address || null],
+        genderID: [employeeData.person?.genderID || 1],
+        nationalityId: [employeeData.person?.nationalityId || 5]
+      })
+    });
 
-      this.employeeForm.get('person.identificationTypeId')?.valueChanges.subscribe(() => {
-        const personType = this.employeeForm.get('person.personType')?.value;
-        this.updateIdentificationValidators(personType);
-      });
+    this.employeeForm.get('person.personType')?.valueChanges.subscribe(personType => {
+      this.updateIdentificationValidators(personType);
+    });
 
-      this.employeeForm.get('personOption')?.valueChanges.subscribe(value => {
-        this.useExistingPerson = value === 'existing';
-        this.togglePersonFields();
-      });
+    this.employeeForm.get('person.identificationTypeId')?.valueChanges.subscribe(() => {
+      const personType = this.employeeForm.get('person.personType')?.value;
+      this.updateIdentificationValidators(personType);
+    });
 
-      const initialPersonType = this.employeeForm.get('person.personType')?.value;
-      this.updateIdentificationValidators(initialPersonType);
+    this.employeeForm.get('personOption')?.valueChanges.subscribe(value => {
+      this.useExistingPerson = value === 'existing';
+      this.togglePersonFields();
+    });
+
+    const initialPersonType = this.employeeForm.get('person.personType')?.value;
+    this.updateIdentificationValidators(initialPersonType);
   }
 
   loadCatalogs(): void {
@@ -206,7 +211,18 @@ export class EmployeeDialogComponent implements OnInit {
         this.nationalities = data.nationalities;
         this.positions = data.positions;
         this.departments = data.departments;
-        this.loading = false;
+
+        // Load work modes from separate endpoint
+        this.employeeService.getWorkModes().subscribe({
+          next: (workModes) => {
+            this.workModes = workModes;
+            this.loading = false;
+          },
+          error: (err) => {
+            console.error('Error loading work modes:', err);
+            this.loading = false;
+          }
+        });
       },
       error: (err) => {
         this.error = 'Error al cargar los catálogos';
@@ -224,7 +240,7 @@ export class EmployeeDialogComponent implements OnInit {
     if (!value) return null;
 
     // Validación para persona jurídica
-    if (personType === 'Legal') {
+    if (personType === 'JURIDICA') {
       if (identificationTypeId !== 2) { // 2 = RUC
         return { invalidIdentificationType: 'Persona jurídica debe usar RUC' };
       }
@@ -234,13 +250,12 @@ export class EmployeeDialogComponent implements OnInit {
     }
 
     // Validación para persona natural
-    if (personType === 'Natural') {
+    if (personType === 'NATURAL') {
       if (identificationTypeId === 1) { // 1 = Cédula
         if (!/^\d{1,10}$/.test(value)) {
           return { invalidCedulaLength: 'La cédula debe tener máximo 10 dígitos' };
         }
       }
-      // Para pasaporte (id: 3) no aplicamos validación de formato específico
     }
 
     return null;
@@ -251,21 +266,17 @@ export class EmployeeDialogComponent implements OnInit {
     const identificationNumberControl = this.employeeForm.get('person.identificationNumber');
 
     if (personType === 'JURIDICA') {
-      // Persona jurídica solo puede tener RUC (id: 2)
       identificationTypeControl?.setValue(2, { emitEvent: false });
       identificationTypeControl?.disable();
 
-      // Actualizar validación del número de identificación
       identificationNumberControl?.setValidators([
         Validators.required,
         Validators.pattern(/^\d{13}$/),
         this.identificationNumberValidator.bind(this)
       ]);
     } else {
-      // Persona natural puede tener cédula (1) o pasaporte (3)
       identificationTypeControl?.enable();
 
-      // Actualizar validación del número de identificación
       identificationNumberControl?.setValidators([
         Validators.required,
         this.identificationNumberValidator.bind(this)
@@ -273,12 +284,10 @@ export class EmployeeDialogComponent implements OnInit {
     }
 
     identificationNumberControl?.updateValueAndValidity();
-
     this.employeeForm.get('person')?.updateValueAndValidity();
   }
 
   private patchFormValues(employeeData: any): void {
-    // Formatea la fecha si existe
     const hireDateValue = employeeData.hireDate
       ? formatDate(employeeData.hireDate, 'yyyy-MM-dd', 'en-US')
       : '';
@@ -293,11 +302,16 @@ export class EmployeeDialogComponent implements OnInit {
 
     this.employeeForm.patchValue({
       positionID: employeeData.positionID,
+      workModeID: employeeData.workModeID,
       employeeCode: employeeData.employeeCode,
       contractType: employeeData.contractType,
       departmentID: employeeData.departmentID,
       corporateEmail: employeeData.corporateEmail,
       salary: employeeData.salary || 0,
+      employeeCategoryID: employeeData.employeeCategoryID || 5,
+      companyCatalogID: employeeData.companyCatalogID || null,
+      hireDate: hireDateValue,
+      terminationDate: terminationDateValue,
       person: {
         personType: employeeData.person?.personType,
         identificationTypeId: employeeData.person?.identificationTypeId,
@@ -308,12 +322,11 @@ export class EmployeeDialogComponent implements OnInit {
         email: employeeData.person?.email,
         phone: employeeData.person?.phone,
         address: employeeData.person?.address,
-        genderId: employeeData.person?.genderId || 0,
+        genderID: employeeData.person?.genderID || 0,
         nationalityId: employeeData.person?.nationalityId
       }
     });
 
-    // Si estamos editando, deshabilitamos la opción de cambiar persona
     this.employeeForm.get('personOption')?.disable();
   }
 
@@ -333,60 +346,50 @@ export class EmployeeDialogComponent implements OnInit {
     const personGroup = this.employeeForm?.get('person') as FormGroup;
 
     if (this.useExistingPerson) {
-      personGroup.disable(); // Deshabilita pero mantiene los valores
+      personGroup.disable();
     } else {
       personGroup.enable();
     }
   }
 
   onSubmit(): void {
-
-    if (this.employeeForm?.invalid) return;
-
-    this.markFormGroupTouched(this.employeeForm);
-
-    if (this.employeeForm.invalid) {
-      console.log('Formulario inválido', this.employeeForm.errors);
+    if (this.employeeForm?.invalid) {
+      this.markFormGroupTouched(this.employeeForm);
       return;
     }
 
     this.employeeService.showLoading();
 
-    const formValue = this.employeeForm?.getRawValue(); // Usa getRawValue() para incluir campos deshabilitados
+    const formValue = this.employeeForm?.getRawValue();
 
-    let companyValue = 0;
-    if (formValue.companies) {
-      if (formValue.companies.includes('1') && formValue.companies.includes('2')) {
-        companyValue = 3; // Ambas empresas
-      } else if (formValue.companies.includes('1')) {
-        companyValue = 1; // Solo ISC
-      } else if (formValue.companies.includes('2')) {
-        companyValue = 2; // Solo RPS
-      }
+    // Format dates
+    if (formValue.hireDate) {
+      formValue.hireDate = formatDate(formValue.hireDate, 'yyyy-MM-dd', 'en-US');
     }
-
+    if (formValue.terminationDate) {
+      formValue.terminationDate = formatDate(formValue.terminationDate, 'yyyy-MM-dd', 'en-US');
+    }
     if (formValue.person?.birthDate) {
       formValue.person.birthDate = formatDate(formValue.person.birthDate, 'yyyy-MM-dd', 'en-US');
     }
 
+    const employeeData = {
+      positionID: formValue.positionID,
+      workModeID: formValue.workModeID,
+      employeeCode: formValue.employeeCode,
+      contractType: formValue.contractType,
+      departmentID: formValue.departmentID,
+      corporateEmail: formValue.corporateEmail,
+      salary: formValue.salary,
+      employeeCategoryID: formValue.employeeCategoryID,
+      companyCatalogID: formValue.companyCatalogID,
+      hireDate: formValue.hireDate,
+      terminationDate: formValue.terminationDate,
+      person: formValue.person,
+      status: this.originalStatus,
+    };
+
     if (this.isEditMode) {
-
-      const employeeData = {
-        positionID: formValue.positionID,
-        workModeID: formValue.workModeID,
-        employeeCode: formValue.employeeCode,
-        contractType: formValue.contractType,
-        departmentID: formValue.departmentID,
-        corporateEmail: formValue.corporateEmail,
-        salary: formValue.salary,
-        person: formValue.person,
-        status: this.originalStatus,
-        hireDate: formValue.hireDate ? formatDate(formValue.hireDate, 'yyyy-MM-dd', 'en-US') : null,
-        terminationDate: formValue.terminationDate ? formatDate(formValue.terminationDate, 'yyyy-MM-dd', 'en-US') : null,
-        category: formValue.category,
-        company: companyValue,
-      };
-
       this.employeeService.updateEmployeeWithPerson(this.employeeId, employeeData).subscribe({
         next: () => {
           this.employeeService.hideLoading();
@@ -394,37 +397,13 @@ export class EmployeeDialogComponent implements OnInit {
         },
         error: (err) => {
           this.employeeService.hideLoading();
-          console.error('Error updating client:', err);
+          console.error('Error updating employee:', err);
         }
       });
     } else if (this.useExistingPerson) {
-      // Lógica para persona existente
-      const employeeData = {
-        positionID: formValue.positionID,
-        workModeID: formValue.workModeID,
-        employeeCode: formValue.employeeCode,
-        contractType: formValue.contractType,
-        departmentID: formValue.departmentID,
-        corporateEmail: formValue.corporateEmail,
-        salary: formValue.salary,
-        person: formValue.person,
-        status: this.originalStatus
-      };
       this.employeeService.hideLoading();
       this.dialogRef.close({ type: 'withPersonID', data: employeeData });
     } else {
-      // Lógica para nueva persona
-      const employeeData = {
-        positionID: formValue.positionID,
-        workModeID: formValue.workModeID,
-        employeeCode: formValue.employeeCode,
-        contractType: formValue.contractType,
-        departmentID: formValue.departmentID,
-        corporateEmail: formValue.corporateEmail,
-        salary: formValue.salary,
-        person: formValue.person,
-        status: this.originalStatus
-      };
       this.employeeService.hideLoading();
       this.dialogRef.close({ type: 'withPerson', data: employeeData });
     }
