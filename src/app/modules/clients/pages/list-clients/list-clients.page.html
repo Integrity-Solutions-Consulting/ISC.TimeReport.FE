@@ -8,3 +8,8 @@
     <customer-list></customer-list>
   </mat-card-content>
 </mat-card>
+<app-loading
+  *ngIf="isLoading"
+  title="Guardando datos del cliente"
+  subtitle="Estamos procesando tu solicitud, por favor espere...">
+</app-loading>

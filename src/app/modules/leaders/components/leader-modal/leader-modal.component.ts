@@ -439,6 +439,8 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
       return;
     }
 
+    this.leaderService.showLoading();
+
     const formValue = this.leaderForm?.getRawValue(); // Usa getRawValue() para incluir campos deshabilitados
 
     if (formValue.person?.birthDate) {
@@ -472,9 +474,11 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
       this.leaderService.updateLeaderWithPerson(this.leaderId, leaderData).subscribe({
         next: () => {
           this.dialogRef.close({ success: true });
+          this.leaderService.hideLoading();
         },
         error: (err) => {
-          console.error('Error updating leader:', err); // Corregido el mensaje
+          console.error('Error updating leader:', err);
+          this.leaderService.hideLoading();
         }
       });
     } else if (this.useExistingPerson) {
@@ -488,6 +492,7 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
         responsibilities: formValue.responsibilities
       };
       this.dialogRef.close({ type: 'withPersonID', data: leaderData });
+      this.leaderService.hideLoading();
     } else {
       // Lógica para nueva persona
       const leaderData = {
@@ -499,6 +504,7 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
         person: formValue.person // Ahora viene en la estructura correcta
       };
       this.dialogRef.close({ type: 'withPerson', data: leaderData });
+      this.leaderService.hideLoading();
     }
   }
 

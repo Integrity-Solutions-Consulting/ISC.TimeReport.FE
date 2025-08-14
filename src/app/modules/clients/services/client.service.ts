@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { environment } from "../../../../environments/environment";
-import { catchError, forkJoin, map, Observable, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, finalize, forkJoin, map, Observable, tap, throwError } from "rxjs";
 import { SuccessResponse } from "../../../shared/interfaces/response.interface";
 import { ApiResponse, Client, ClientRequest, ClientWithPerson, ClientWithPersonID, Person } from "../interfaces/client.interface";
 
@@ -11,6 +11,17 @@ import { ApiResponse, Client, ClientRequest, ClientWithPerson, ClientWithPersonI
 export class ClientService{
     private http = inject(HttpClient);
     urlBase: string = environment.URL_BASE;
+
+    private loadingSubject = new BehaviorSubject<boolean>(false);
+    loadingState$ = this.loadingSubject.asObservable();
+
+    showLoading() {
+      this.loadingSubject.next(true);
+    }
+
+    hideLoading() {
+      this.loadingSubject.next(false);
+    }
 
     getClients(pageNumber: number, pageSize: number, search: string = ''): Observable<ApiResponse> {
       let params = new HttpParams()
@@ -46,18 +57,28 @@ export class ClientService{
     }
 
     createClientWithPerson(clientWithPersonRequest: ClientWithPerson): Observable<SuccessResponse<Client>> {
-      return this.http.post<SuccessResponse<Client>>(`${this.urlBase}/api/Client/CreateClientWithPerson`, clientWithPersonRequest);
+      this.showLoading();
+      return this.http.post<SuccessResponse<Client>>(`${this.urlBase}/api/Client/CreateClientWithPerson`, clientWithPersonRequest).pipe(
+        finalize(() => this.hideLoading())
+      );
     }
 
     createClientWithPersonID(clientWithPersonIDRequest: ClientWithPersonID): Observable<SuccessResponse<Client>> {
-      return this.http.post<SuccessResponse<Client>>(`${this.urlBase}/api/Client/CreateClientWithPersonID`, clientWithPersonIDRequest);
+      this.showLoading();
+      return this.http.post<SuccessResponse<Client>>(`${this.urlBase}/api/Client/CreateClientWithPersonID`, clientWithPersonIDRequest).pipe(
+        finalize(() => this.hideLoading())
+      );
     }
 
     updateClientWithPerson(id: number, updateWithPersonRequest: ClientWithPerson): Observable<SuccessResponse<Client>> {
-      return this.http.put<SuccessResponse<Client>>(`${this.urlBase}/api/Client/UpdateClientWithPerson/${id}`, updateWithPersonRequest);
+      this.showLoading();
+      return this.http.put<SuccessResponse<Client>>(`${this.urlBase}/api/Client/UpdateClientWithPerson/${id}`, updateWithPersonRequest).pipe(
+        finalize(() => this.hideLoading())
+      );
     }
 
     updateClient(id: number, updateClientRequest: ClientRequest): Observable<SuccessResponse<Client>> {
+      this.showLoading();
       if (id === undefined || id === null || isNaN(id)) {
         throw new Error('ID de cliente no válido: ' + id);
       };
@@ -65,7 +86,9 @@ export class ClientService{
         id: Number(id),
         ...updateClientRequest
       };
-      return this.http.put<SuccessResponse<Client>>(`${this.urlBase}/api/Client/UpdateClientWithPerson/${id}`, requestBody);
+      return this.http.put<SuccessResponse<Client>>(`${this.urlBase}/api/Client/UpdateClientWithPerson/${id}`, requestBody).pipe(
+        finalize(() => this.hideLoading())
+      );
     }
 
     inactivateClient(id: number, data: any): Observable<any> {
