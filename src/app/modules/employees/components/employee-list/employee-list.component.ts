@@ -118,48 +118,7 @@ export class EmployeeListComponent implements AfterViewInit {
     3: 'Pasaporte',
   };
 
-  readonly positionsMap: {[key: number]: string} = {
-    1: '	Gerente General',
-    2: '	Asistente General',
-    3: '	Jefa Administrativa',
-    4: '	Asistente Administrativa',
-    5: '	Asistente Contable',
-    6: '	Pasante Contable',
-    7: '	Coordinadora de Talento Humano',
-    8: '	Asistente de Talento Humano',
-    9: '	Gerente de Proyecto y Producto',
-    10: '	Líder Software',
-    11: '	Tester QA',
-    12: '	Desarrollador Fullstack',
-    13: '	Desarrollador Fullstack/Senior',
-    14: '	Desarrollador Fullstack/Semi Senior',
-    15: '	Desarrollador Cobol',
-    16: '	Arquitectura',
-    17: '	Analista QA',
-    18: '	Ingeniero de Soluciones',
-    19: '	Ingeniero de Procesos',
-    20: '	Asistente Administrativo',
-    21: '	Ingeniero de Seguridad de la Información',
-    22: '	Ingeniero DBA',
-    23: '	Arquitecto de Cyber Seguridad',
-    24: '	Analista en Middleware',
-    25: '	Desarrollador PHP',
-    26: '	Pasante QA',
-    27: '	Pasante de DevOps',
-    28: '	Pasante de Desarrollo',
-    29: '	Pasante DBA',
-    30: '	Pasante Contable',
-    31: '	Líder de Seguridad e Informática',
-    32: '	Ingeniero en Soporte Técnico Semi Senior',
-    33: '	Analista de Auditoria y Seguridad e Informática/Junior',
-    34: '	Pasante de Soporte Técnico/Auditoria',
-    35: '	Ingeniero de Procesos Senior',
-    36: '	Ingeniero de Procesos Junior',
-    37: '	Gerente Comercial',
-    38: '	Asistente de Marketing',
-    39: '	Ejecutivo Comercial',
-    40: '	Asistente Comercial',
-  };
+  positionsMap: {[key: number]: string} = {};
 
   totalItems: number = 0;
   pageSize: number = 10;
@@ -167,6 +126,7 @@ export class EmployeeListComponent implements AfterViewInit {
   currentSearch: string = '';
 
   ngOnInit(): void {
+    this.loadPositions();
     this.loadEmployees(this.currentPage + 1, this.pageSize, this.currentSearch);
 
     // Suscribirse a los cambios del campo de búsqueda con debounce
@@ -227,6 +187,22 @@ export class EmployeeListComponent implements AfterViewInit {
       error: (err) => {
         console.error('Error al cargar empleados:', err);
         this.dataSource = new MatTableDataSource<Employee>([]);
+      }
+    });
+  }
+
+  loadPositions(): void {
+    this.employeeService.getPositions().subscribe({
+      next: (positions) => {
+        // Convertir el array de cargos a un mapa {id: nombre}
+        this.positionsMap = positions.reduce((acc, position) => {
+          acc[position.id] = position.name;
+          return acc;
+        }, {} as {[key: number]: string});
+      },
+      error: (err) => {
+        console.error('Error al cargar cargos:', err);
+        this.positionsMap = {}; // Mapa vacío si hay error
       }
     });
   }

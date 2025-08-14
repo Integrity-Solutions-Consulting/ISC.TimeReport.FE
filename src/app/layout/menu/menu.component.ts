@@ -32,17 +32,37 @@ interface MenuItem {
 export class MenuComponent implements OnInit {
   public menuItems: MenuItem[] = [];
   public isAdmin = false;
+  public isCollaboratorOnly = false;
 
   ngOnInit(): void {
     const rawMenus = localStorage.getItem('modules');
     const rawRoles = localStorage.getItem('roles');
 
-    // Verificar si es administrador
+    // Verificar roles
     if (rawRoles) {
       const roles = JSON.parse(rawRoles);
       this.isAdmin = roles.some((role: any) => role.roleName === 'Administrador');
+
+      // Verificar si es SOLO Colaborador (sin otros roles)
+      this.isCollaboratorOnly = roles.length === 1 &&
+                              roles.some((role: any) => role.roleName === 'Colaborador');
     }
 
+    // Si es SOLO Colaborador (sin otros roles), mostrar solo Actividades
+    if (this.isCollaboratorOnly) {
+      const parsedMenus = rawMenus ? JSON.parse(rawMenus) : [];
+      const activitiesModule = parsedMenus.find((item: any) => item.modulePath === '/activities');
+
+      this.menuItems = [{
+        type: 'item',
+        moduleName: activitiesModule?.moduleName || 'Actividades',
+        modulePath: activitiesModule?.modulePath ? `/menu/${activitiesModule.modulePath.replace(/^\/+/, '')}` : '/menu/activities',
+        icon: activitiesModule?.icon || 'work'
+      }];
+      return;
+    }
+
+    // Para otros casos (Administrador, Gerente, Líder, o Colaborador con otros roles)
     const parsedMenus = rawMenus ? JSON.parse(rawMenus) : [];
 
     // Ordenar los módulos según displayOrder
