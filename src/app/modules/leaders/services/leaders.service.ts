@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { Leader, LeaderWithPerson, LeaderWithPersonID, ApiResponse } from '../interfaces/leader.interface';
-import { catchError, forkJoin, map, Observable, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, finalize, forkJoin, map, Observable, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 
 @Injectable({
@@ -12,6 +12,20 @@ export class LeadersService {
 
   private http = inject(HttpClient);
   urlBase: string = environment.URL_BASE;
+
+  // Subject para controlar el estado de carga
+  private loadingSubject = new BehaviorSubject<boolean>(false);
+  loadingState$ = this.loadingSubject.asObservable();
+
+  // Método para mostrar el spinner
+  showLoading() {
+    this.loadingSubject.next(true);
+  }
+
+  // Método para ocultar el spinner
+  hideLoading() {
+    this.loadingSubject.next(false);
+  }
 
   getLeaders(pageNumber: number, pageSize: number, search: string = ''):Observable<ApiResponse>{
       let params = new HttpParams()
@@ -45,16 +59,24 @@ export class LeadersService {
   }
 
   createLeaderWithPerson(leaderWithPersonRequest: LeaderWithPerson): Observable<SuccessResponse<Leader>> {
-    console.log(leaderWithPersonRequest)
-    return this.http.post<SuccessResponse<Leader>>(`${this.urlBase}/api/Leader/CreateLeaderWithPerson`, leaderWithPersonRequest);
+    this.showLoading();
+    return this.http.post<SuccessResponse<Leader>>(`${this.urlBase}/api/Leader/CreateLeaderWithPerson`, leaderWithPersonRequest).pipe(
+      finalize(() => this.hideLoading())
+    );
   }
 
   createLeaderWithPersonID(leaderWithPersonIDRequest: LeaderWithPersonID): Observable<SuccessResponse<Leader>> {
-    return this.http.post<SuccessResponse<Leader>>(`${this.urlBase}/api/Leader/CreateLeaderWithPersonID`, leaderWithPersonIDRequest);
+    this.showLoading();
+    return this.http.post<SuccessResponse<Leader>>(`${this.urlBase}/api/Leader/CreateLeaderWithPersonID`, leaderWithPersonIDRequest).pipe(
+      finalize(() => this.hideLoading())
+    );
   }
 
   updateLeaderWithPerson(id: number, updateWithPersonRequest: LeaderWithPerson): Observable<SuccessResponse<Leader>> {
-    return this.http.put<SuccessResponse<Leader>>(`${this.urlBase}/api/Leader/UpdateLeaderWithPerson/${id}`, updateWithPersonRequest);
+    this.showLoading();
+    return this.http.put<SuccessResponse<Leader>>(`${this.urlBase}/api/Leader/UpdateLeaderWithPerson/${id}`, updateWithPersonRequest).pipe(
+      finalize(() => this.hideLoading())
+    );
   }
 
   inactivateLeader(id: number, data: any): Observable<any> {

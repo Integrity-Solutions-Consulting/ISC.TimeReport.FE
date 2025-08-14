@@ -16,6 +16,7 @@ import { ClientService } from '../../../clients/services/client.service';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Observable, take } from 'rxjs';
 import { SuccessResponse } from '../../../../shared/interfaces/response.interface';
+import { LoadingComponent } from '../../../auth/components/login-loading/login-loading.component';
 
 export const MY_DATE_FORMATS = {
   parse: {
@@ -41,7 +42,8 @@ export const MY_DATE_FORMATS = {
     MatProgressBarModule,
     MomentDateModule,
     ReactiveFormsModule,
-    MatButtonModule
+    MatButtonModule,
+    LoadingComponent
   ],
   providers: [
     { provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
@@ -74,6 +76,7 @@ export class ProjectModalComponent implements OnInit {
   clients: Client[] = [];
   isLoadingClients = false;
   isSubmitting = false;
+  isLoading = false;
 
   constructor(
     private fb: FormBuilder,

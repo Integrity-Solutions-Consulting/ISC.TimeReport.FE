@@ -13,7 +13,7 @@
 
     <div class="form-row" *ngIf="useExistingPerson">
       <mat-form-field appearance="outline" class="full-width">
-        <mat-select formControlName="existingPerson" (selectionChange)="onPersonSelected($event)" placeholder="Proyecto">
+        <mat-select formControlName="existingPerson" (selectionChange)="onPersonSelected($event)" placeholder="Persona">
           <mat-option *ngIf="isLoadingPersons" disabled>
             <div style="display: flex; align-items: center;">
               <mat-spinner diameter="20"></mat-spinner>
