@@ -163,7 +163,7 @@ export class EmployeeDialogComponent implements OnInit {
       corporateEmail: [employeeData.corporateEmail || null, [Validators.required, Validators.email]],
       salary: [employeeData.salary || 0, Validators.required],
       hireDate: [hireDateValue],
-      terminationDate: [terminationDateValue],
+      terminationDate: [terminationDateValue || null],
       employeeCategoryID: [employeeData.employeeCategoryID || 5, Validators.required],
       companyCatalogID: [employeeData.companyCatalogID || null, Validators.required],
       contractType: [employeeData.contractType || true, Validators.required],
@@ -311,7 +311,7 @@ export class EmployeeDialogComponent implements OnInit {
       employeeCategoryID: employeeData.employeeCategoryID || 5,
       companyCatalogID: employeeData.companyCatalogID || null,
       hireDate: hireDateValue,
-      terminationDate: terminationDateValue,
+      terminationDate: terminationDateValue || null,
       person: {
         personType: employeeData.person?.personType,
         identificationTypeId: employeeData.person?.identificationTypeId,
@@ -353,65 +353,65 @@ export class EmployeeDialogComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.employeeForm?.invalid) {
-      this.markFormGroupTouched(this.employeeForm);
-      return;
-    }
-
-    this.employeeService.showLoading();
-
-    const formValue = this.employeeForm?.getRawValue();
-
-    // Format dates
-    if (formValue.hireDate) {
-      formValue.hireDate = formatDate(formValue.hireDate, 'yyyy-MM-dd', 'en-US');
-    }
-    if (formValue.terminationDate) {
-      formValue.terminationDate = formatDate(formValue.terminationDate, 'yyyy-MM-dd', 'en-US');
-    }
-    if (formValue.person?.birthDate) {
-      formValue.person.birthDate = formatDate(formValue.person.birthDate, 'yyyy-MM-dd', 'en-US');
-    }
-
-    const employeeData = {
-      id: this.isEditMode ? this.employeeId : undefined, // Asegúrate de incluir el ID si es edición
-      positionID: formValue.positionID,
-      workModeID: formValue.workModeID,
-      employeeCode: formValue.employeeCode,
-      contractType: formValue.contractType,
-      departmentID: formValue.departmentID,
-      corporateEmail: formValue.corporateEmail,
-      salary: formValue.salary,
-      employeeCategoryID: formValue.employeeCategoryID,
-      companyCatalogID: formValue.companyCatalogID,
-      hireDate: formValue.hireDate,
-      terminationDate: formValue.terminationDate,
-      person: {
-        ...formValue.person,
-        id: this.isEditMode ? this.data.employee.person?.id : undefined // Incluye el ID de persona si es edición
-      },
-      status: this.originalStatus,
-    };
-
-    if (this.isEditMode) {
-      this.employeeService.updateEmployeeWithPerson(this.employeeId, employeeData).subscribe({
-        next: () => {
-          this.employeeService.hideLoading();
-          this.dialogRef.close({ success: true });
-        },
-        error: (err) => {
-          this.employeeService.hideLoading();
-          console.error('Error updating employee:', err);
-        }
-      });
-    } else if (this.useExistingPerson) {
-      this.employeeService.hideLoading();
-      this.dialogRef.close({ type: 'withPersonID', data: employeeData });
-    } else {
-      this.employeeService.hideLoading();
-      this.dialogRef.close({ type: 'withPerson', data: employeeData });
-    }
+  if (this.employeeForm?.invalid) {
+    this.markFormGroupTouched(this.employeeForm);
+    return;
   }
+
+  this.employeeService.showLoading();
+
+  const formValue = this.employeeForm?.getRawValue();
+
+  // Format dates
+  if (formValue.hireDate) {
+    formValue.hireDate = formatDate(formValue.hireDate, 'yyyy-MM-dd', 'en-US');
+  }
+  if (formValue.terminationDate) {
+    formValue.terminationDate = formatDate(formValue.terminationDate, 'yyyy-MM-dd', 'en-US');
+  }
+  if (formValue.person?.birthDate) {
+    formValue.person.birthDate = formatDate(formValue.person.birthDate, 'yyyy-MM-dd', 'en-US');
+  }
+
+  const employeeData = {
+    id: this.isEditMode ? this.employeeId : undefined, // Asegúrate de incluir el ID si es edición
+    positionID: formValue.positionID,
+    workModeID: formValue.workModeID,
+    employeeCode: formValue.employeeCode,
+    contractType: formValue.contractType,
+    departmentID: formValue.departmentID,
+    corporateEmail: formValue.corporateEmail,
+    salary: formValue.salary,
+    employeeCategoryID: formValue.employeeCategoryID,
+    companyCatalogID: formValue.companyCatalogID,
+    hireDate: formValue.hireDate,
+    terminationDate: formValue.terminationDate,
+    person: {
+      ...formValue.person,
+      id: this.isEditMode ? this.data.employee.person?.id : undefined // Incluye el ID de persona si es edición
+    },
+    status: this.originalStatus,
+  };
+
+  if (this.isEditMode) {
+    this.employeeService.updateEmployeeWithPerson(this.employeeId, employeeData).subscribe({
+      next: () => {
+        this.employeeService.hideLoading();
+        this.dialogRef.close({ success: true });
+      },
+      error: (err) => {
+        this.employeeService.hideLoading();
+        console.error('Error updating employee:', err);
+      }
+    });
+  } else if (this.useExistingPerson) {
+    this.employeeService.hideLoading();
+    this.dialogRef.close({ type: 'withPersonID', data: employeeData });
+  } else {
+    this.employeeService.hideLoading();
+    this.dialogRef.close({ type: 'withPerson', data: employeeData });
+  }
+}
 
   onCancel(): void {
     this.employeeService.hideLoading();
