@@ -88,8 +88,14 @@ export class MenuComponent implements OnInit {
   private createStandardMenu(modules: any[]): any[] {
     const menuItems: any[] = [];
 
-    // Primero agregamos los ítems que van antes del Time Report
-    const preTimeReportModules = modules.filter(m =>
+    // Primero procesamos todos los módulos para agregar el prefijo /menu/
+    const processedModules = modules.map(module => ({
+      ...module,
+      modulePath: `/menu${module.modulePath}`
+    }));
+
+    // Ítems antes del Time Report
+    const preTimeReportModules = processedModules.filter(m =>
       m.moduleName === 'Dashboard' ||
       m.moduleName === 'Proyectos'
     );
@@ -101,8 +107,8 @@ export class MenuComponent implements OnInit {
       });
     });
 
-    // Agregamos el panel de Time Report
-    const timeReportModules = modules.filter(m =>
+    // Panel Time Report
+    const timeReportModules = processedModules.filter(m =>
       m.moduleName === 'Actividades' ||
       m.moduleName === 'Seguimiento'
     );
@@ -113,13 +119,16 @@ export class MenuComponent implements OnInit {
         moduleName: 'Time Report',
         icon: 'alarm',
         expanded: false,
-        options: timeReportModules,
-        displayOrder: 3 // Entre Proyectos (2) y Colaboradores (5)
+        options: timeReportModules.map(option => ({
+          ...option,
+          modulePath: `/menu${option.modulePath}` // Aseguramos el prefijo aquí también
+        })),
+        displayOrder: 3
       });
     }
 
-    // Luego agregamos los ítems que van después del Time Report
-    const postTimeReportModules = modules.filter(m =>
+    // Ítems después del Time Report
+    const postTimeReportModules = processedModules.filter(m =>
       m.moduleName === 'Colaboradores' ||
       m.moduleName === 'Clientes' ||
       m.moduleName === 'Líderes'
@@ -132,8 +141,8 @@ export class MenuComponent implements OnInit {
       });
     });
 
-    // Finalmente el panel de Configuración
-    const configModules = modules.filter(m =>
+    // Panel Configuración
+    const configModules = processedModules.filter(m =>
       m.moduleName === 'Roles' ||
       m.moduleName === 'Users'
     );
@@ -144,12 +153,14 @@ export class MenuComponent implements OnInit {
         moduleName: 'Configuración',
         icon: 'settings',
         expanded: false,
-        options: configModules,
-        displayOrder: 8 // Después de Líderes (7)
+        options: configModules.map(option => ({
+          ...option,
+          modulePath: `/menu${option.modulePath}` // Aseguramos el prefijo aquí también
+        })),
+        displayOrder: 8
       });
     }
 
-    // Ordenamos todos los ítems por displayOrder
     return menuItems.sort((a, b) => a.displayOrder - b.displayOrder);
   }
 }
