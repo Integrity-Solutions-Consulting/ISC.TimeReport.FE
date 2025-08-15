@@ -637,7 +637,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
         const updateData = {
           projectID: result.projectID,
           activityTypeID: result.activityTypeID,
-          hoursQuantity: result.fullDay ? 8 : result.hours, // Mapea fullDay a hoursQuantity
+          hoursQuantity: result.hoursQuantity, // Mapea fullDay a hoursQuantity
           activityDate: result.activityDate,
           activityDescription: result.activityDescription,
           notes: result.details,
