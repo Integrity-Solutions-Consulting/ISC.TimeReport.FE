@@ -87,7 +87,7 @@ export class EventDialogComponent implements OnInit{
 
   event: any = {
     activityType: 'Desarrollo',
-    projectId: null,
+    projectID: null,
     details: '',
     activityDescription: '',
     activityDate: new Date(),
@@ -214,12 +214,13 @@ export class EventDialogComponent implements OnInit{
       isFullDay: this.isFullDay,
       eventHours: this.event.hours,
       activityTypeID: this.event.activityTypeID,
-      projectId: this.event.projectId
+      projectID: this.event.projectID,
+      selectedProject: this.projects.find(p => p.id === this.event.projectID)
     });
 
     const payload = {
       id: this.data.isEdit ? this.event.id : undefined,
-      projectId: this.event.projectId,
+      projectID: Number(this.event.projectID),
       activityTypeID: this.event.activityTypeID,
       hoursQuantity: this.isFullDay ? 8 : Number(this.event.hours || 4),
       activityDate: this.event.activityDate,
@@ -285,39 +286,40 @@ export class EventDialogComponent implements OnInit{
   }
 
   isFormValid(): boolean {
-    const basicValid = !!this.event.activityTypeID &&
-      !!this.event.projectId &&
-      !!this.event.activityDescription &&
-      !!this.event.activityDate;
+    // Validación básica de campos requeridos
+    if (!this.event.activityTypeID ||
+        !this.event.projectID ||
+        !this.event.activityDescription ||
+        !this.event.activityDate) {
+      return false;
+    }
 
-    if (!basicValid) return false;
-
+    // Validación de horas si no es día completo
     if (!this.isFullDay) {
-      // Validar si las horas son válidas (entre 1 y 8)
-      const hoursValid = this.event.hours !== undefined &&
-        this.event.hours !== null &&
-        this.event.hours >= 1 &&
-        this.event.hours <= 8;
-
-      if (!hoursValid) return false;
+      const hours = Number(this.event.hours);
+      if (isNaN(hours) || hours < 1 || hours > 8) {
+        return false;
+      }
     }
 
-    let currentHoursForDay = 0;
-    const selectedDate = this.formatDate(this.event.activityDate);
+    // Validación de horas máximas por día (solo para nuevas actividades)
+    if (!this.data.isEdit) {
+      let currentHoursForDay = 0;
+      const selectedDate = this.formatDate(this.event.activityDate);
 
-    if (this.data.currentCalendarEvents) {
-      this.data.currentCalendarEvents.forEach((event: any) => {
-        const eventStartDate = this.formatDate(event.start);
-        // Si el evento no es el que estamos editando y es del mismo día
-        if (eventStartDate === selectedDate && (this.data.isEdit ? event.id !== this.event.id : true)) {
-          currentHoursForDay += event.extendedProps?.hoursQuantity || 0;
-        }
-      });
-    }
+      if (this.data.currentCalendarEvents) {
+        this.data.currentCalendarEvents.forEach((event: any) => {
+          const eventStartDate = this.formatDate(event.start);
+          if (eventStartDate === selectedDate) {
+            currentHoursForDay += event.extendedProps?.hoursQuantity || 0;
+          }
+        });
+      }
 
-    const proposedHours = this.isFullDay ? 8 : this.event.hours;
-    if ((currentHoursForDay + proposedHours) > 8) {
-      return false; // Excede el máximo de 8 horas
+      const proposedHours = this.isFullDay ? 8 : Number(this.event.hours);
+      if ((currentHoursForDay + proposedHours) > 8) {
+        return false;
+      }
     }
 
     return true;
