@@ -75,15 +75,7 @@ export class EventDialogComponent implements OnInit{
 
   isFullDay = true;
 
-  activityTypes = [
-    { id: 1, value: 'Desarrollo' },
-    { id: 2, value: 'Reunión' },
-    { id: 3, value: 'Análisis' },
-    { id: 4, value: 'Testing' },
-    { id: 5, value: 'Documentación' },
-    { id: 6, value: 'Soporte' },
-    { id: 7, value: 'Capacitación' },
-  ];
+  activityTypes: any = [];
 
   event: any = {
     activityType: 'Desarrollo',
@@ -95,14 +87,7 @@ export class EventDialogComponent implements OnInit{
     fullDay: 'full'
   };
 
-  availableColors = [
-    { name: 'Azul', value: '#4285F4' },
-    { name: 'Rojo', value: '#EA4335' },
-    { name: 'Amarillo', value: '#FBBC05' },
-    { name: 'Verde', value: '#34A853' },
-    { name: 'Morado', value: '#9C27B0' },
-    { name: 'Naranja', value: '#FF9800' }
-  ];
+  availableColors: any = [];
 
   currentEmployeeId: number | null = null;
 
@@ -133,6 +118,7 @@ export class EventDialogComponent implements OnInit{
 
   ngOnInit(): void {
     // Cargar proyectos si no se pasaron al diálogo (aunque ya se pasan desde el padre)
+    this.loadActivityTypes();
     if (this.data.projects) {
       this.projects = this.data.projects;
     } else {
@@ -172,6 +158,50 @@ export class EventDialogComponent implements OnInit{
     this.projectService.getProjects().subscribe(projects => {
       this.projects = projects.items;
     });
+  }
+
+  private loadActivityTypes(): void {
+    this.activityService.getActivityTypes().subscribe({
+      next: (types) => {
+        // Mapear los activityTypes a availableColors
+        this.availableColors = types.map(type => ({
+          name: type.name,
+          value: type.colorCode // Usamos el colorCode del endpoint
+        }));
+
+        // Mapear los activityTypes para el select
+        this.activityTypes = types.map(type => ({
+          id: type.id,
+          value: type.name,
+          description: type.description,
+          colorCode: type.colorCode // Usamos el mismo colorCode
+        }));
+      },
+      error: (err) => {
+        console.error('Error al cargar tipos de actividad', err);
+        // Valores por defecto usando los colores originales
+        this.setDefaultColorsAndTypes();
+      }
+    });
+  }
+
+  private setDefaultColorsAndTypes(): void {
+    this.availableColors = [
+      { name: 'Desarrollo', value: '#2E8B57' },
+      { name: 'Reunión', value: '#4169E1' },
+      { name: 'Análisis', value: '#FF6347' },
+      { name: 'Testing', value: '#9370DB' },
+      { name: 'Documentación', value: '#DAA520' },
+      { name: 'Soporte', value: '#DC143C' },
+      { name: 'Capacitación', value: '#008B8B' }
+    ];
+
+    this.activityTypes = this.availableColors.map((color: { name: any; value: any; }, index: number) => ({
+      id: index + 1,
+      value: color.name,
+      description: '', // Descripción vacía por defecto
+      colorCode: color.value
+    }));
   }
 
   private loadProjectsBasedOnRole(): void {
