@@ -446,10 +446,6 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
     formValue.person.birthDate = formValue.person?.birthDate
       ? formatDate(formValue.person.birthDate, 'yyyy-MM-dd', 'en-US')
       : null;
-    
-    formValue.person.nationalityId = formValue.person?.nationalityId
-      ? 0
-      : null;
 
     if (formValue.startDate) {
       formValue.startDate = formatDate(formValue.startDate, 'yyyy-MM-dd', 'en-US');

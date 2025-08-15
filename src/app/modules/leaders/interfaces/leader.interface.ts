@@ -1,8 +1,8 @@
 export interface LeaderWithPerson {
   projectID: number;
   leadershipType: boolean;
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | null;
+  endDate: Date | null;
   responsibilities: string;
   status: boolean;
   person: {
