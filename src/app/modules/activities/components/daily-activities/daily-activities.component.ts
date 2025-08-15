@@ -350,7 +350,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
               fullDay: true,
               hours: 8,
               activityTypeID: 1,
-              projectId: null,
+              projectID: null,
               activityDescription: '',
               details: null,
               requirementCode: ''
@@ -363,8 +363,11 @@ export class DailyActivitiesComponent implements AfterViewInit {
 
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
-            selectInfo.view.calendar.unselect();
-            this.createActivity(result);
+            this.createActivity({
+              ...result,
+              projectID: result.projectID,
+              employeeID: this.currentEmployeeId
+            });
           }
         });
       },
@@ -392,7 +395,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
               fullDay: true,
               hours: 8,
               activityTypeID: 1,
-              projectId: null,
+              projectID: null,
               activityDescription: '',
               details: '',
               requirementCode: ''
@@ -405,7 +408,11 @@ export class DailyActivitiesComponent implements AfterViewInit {
 
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
-            this.createActivity(result);
+            this.createActivity({
+              ...result,
+              projectID: result.projectID,
+              employeeID: this.currentEmployeeId // Asegúrate de incluir esto
+            });
           }
         });
       },
@@ -441,7 +448,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
     const activityDate = this.ensureDateObject(eventData.activityDate);
 
     const activityPayload = {
-      projectID: eventData.projectId,
+      projectID: eventData.projectID,
       activityTypeID: eventData.activityTypeID,
       hoursQuantity: eventData.hoursQuantity,
       activityDate: eventData.activityDate,
@@ -493,7 +500,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
     const activityDate = this.ensureDateObject(eventData.activityDate);
     // Mapea los datos del formulario al formato del endpoint
     const activityPayload = {
-      projectID: eventData.projectId, // Necesitarás implementar esta función
+      projectID: eventData.projectID, // Necesitarás implementar esta función
       activityTypeID: this.getActivityTypeId(eventData.activityTypeID), // Necesitarás implementar esta función
       hoursQuantity: eventData.fullDay === 'full' ? 8 : eventData.hours, // Asume 8 horas para día completo
       activityDate: activityDate.toISOString().split('T')[0], // Formato YYYY-MM-DD
@@ -596,13 +603,20 @@ export class DailyActivitiesComponent implements AfterViewInit {
   handleEventClick(clickInfo: EventClickArg) {
     const extendedProps = clickInfo.event.extendedProps;
 
+      console.log('Datos del evento al editar:', {
+        id: clickInfo.event.id,
+        projectID: extendedProps['projectID'],
+        projectList: this.projectList,
+        matchingProject: this.projectList.find(p => p.id === extendedProps['projectID'])
+      });
+
     const dialogRef = this.dialog.open(EventDialogComponent, {
       width: '800px',
       data: {
         event: {
           id: clickInfo.event.id,
           activityTypeID: extendedProps['activityTypeID'],
-          projectId: extendedProps['projectID'],
+          projectID: extendedProps['projectID'],
           activityDescription: extendedProps['activityDescription'],
           details: extendedProps['notes'],
           activityDate: clickInfo.event.start || new Date(), // Usar la fecha de inicio del evento
@@ -621,7 +635,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         const updateData = {
-          projectID: result.projectId,
+          projectID: result.projectID,
           activityTypeID: result.activityTypeID,
           hoursQuantity: result.fullDay ? 8 : result.hours, // Mapea fullDay a hoursQuantity
           activityDate: result.activityDate,

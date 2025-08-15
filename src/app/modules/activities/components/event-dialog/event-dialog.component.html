@@ -12,11 +12,11 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-        <mat-select [(ngModel)]="event.projectId"
+        <mat-select [(ngModel)]="event.projectID"
                     (ngModelChange)="onProjectChange($event)"
                     required
                     placeholder="Proyecto"
-                    name="project">
+                    name="projectID">
             @if (projects.length > 0) {
                 @for (project of projects; track project.id) {
                     <mat-option [value]="project.id">{{project.name}}</mat-option>

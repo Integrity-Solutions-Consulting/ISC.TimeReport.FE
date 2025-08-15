@@ -40,21 +40,22 @@ export class ActivityService {
   }
 
   createActivity(activityData: any): Observable<any> {
-    // 1. Validación de campos requeridos
-    if (!activityData.activityDate || activityData.hoursQuantity === undefined) {
-      console.error('Datos faltantes:', activityData);
-      return throwError(() => new Error('Datos incompletos en la actividad'));
+    // 1. Validación de campos requeridos (incluyendo projectID)
+    if (!activityData?.projectID) {
+      console.error('ProjectID faltante. Datos completos:', activityData);
+      return throwError(() => new Error('Debes seleccionar un proyecto'));
     }
 
     // 2. Preparar el payload con la estructura exacta que espera el backend
     const payload = {
-      projectID: activityData.projectId, // Notar mayúscula en ID
-      activityTypeID: activityData.activityTypeID,
+      projectID: Number(activityData.projectID), // Asegurar que es número
+      activityTypeID: Number(activityData.activityTypeID),
       requirementCode: activityData.requirementCode || '',
       hoursQuantity: Number(activityData.hoursQuantity),
       activityDate: this.formatDate(activityData.activityDate), // Formato YYYY-MM-DD
       activityDescription: activityData.activityDescription,
-      notes: activityData.notes || ''
+      notes: activityData.notes || '',
+      employeeID: Number(activityData.employeeID) // Añadir si es necesario
     };
 
     console.log('Payload enviado al backend:', payload);
