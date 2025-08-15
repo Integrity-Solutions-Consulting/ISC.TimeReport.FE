@@ -1,148 +1,155 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterLink, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { MatExpansionModule } from '@angular/material/expansion';
-
-interface MenuItem {
-  type: 'item' | 'expansion';
-  moduleName?: string;
-  modulePath?: string;
-  icon?: string;
-  expanded?: boolean;
-  options?: any[];
-  visible?: boolean;
-}
+import { RouterModule } from '@angular/router';
+import { OrderByPipe } from '../menu/order-by-pipe'
 
 @Component({
-  selector: 'menu-timereport',
+  selector: 'app-sidebar',
   standalone: true,
-  imports: [
-    RouterLink,
-    CommonModule,
-    RouterModule,
-    MatListModule,
-    MatIconModule,
-    MatExpansionModule
-  ],
+  imports: [CommonModule, MatExpansionModule, MatListModule, MatIconModule, RouterModule, OrderByPipe],
   templateUrl: './menu.component.html',
-  styleUrl: './menu.component.scss'
+  styleUrls: ['./menu.component.scss']
 })
 export class MenuComponent implements OnInit {
-  public menuItems: MenuItem[] = [];
-  public isAdmin = false;
-  public isCollaboratorOnly = false;
+  menuItems: any[] = [];
+  userRoles: string[] = [];
+  isAdmin: boolean = false;
+  isManager: boolean = false;
+  isLeader: boolean = false;
+  isCollaborator: boolean = false;
 
   ngOnInit(): void {
-    const rawMenus = localStorage.getItem('modules');
-    const rawRoles = localStorage.getItem('roles');
+    this.loadUserData();
+    this.generateMenu();
+  }
 
-    // Verificar roles
-    if (rawRoles) {
-      const roles = JSON.parse(rawRoles);
-      this.isAdmin = roles.some((role: any) => role.roleName === 'Administrador');
+  private loadUserData(): void {
+    const roles = JSON.parse(localStorage.getItem('roles') || '[]');
+    this.userRoles = roles.map((role: any) => role.roleName);
 
-      // Verificar si es SOLO Colaborador (sin otros roles)
-      this.isCollaboratorOnly = roles.length === 1 &&
-                              roles.some((role: any) => role.roleName === 'Colaborador');
-    }
+    this.isAdmin = this.userRoles.includes('Administrador');
+    this.isManager = this.userRoles.includes('Gerente');
+    this.isLeader = this.userRoles.includes('Lider');
+    this.isCollaborator = this.userRoles.includes('Colaborador');
+  }
 
-    // Si es SOLO Colaborador (sin otros roles), mostrar solo Actividades
-    if (this.isCollaboratorOnly) {
-      const parsedMenus = rawMenus ? JSON.parse(rawMenus) : [];
-      const activitiesModule = parsedMenus.find((item: any) => item.modulePath === '/activities');
+  private generateMenu(): void {
+    const modules = JSON.parse(localStorage.getItem('modules') || '[]');
+    const filteredModules = this.filterModules(modules);
 
-      this.menuItems = [{
-        type: 'item',
-        moduleName: activitiesModule?.moduleName || 'Actividades',
-        modulePath: activitiesModule?.modulePath ? `/menu/${activitiesModule.modulePath.replace(/^\/+/, '')}` : '/menu/activities',
-        icon: activitiesModule?.icon || 'work'
-      }];
+    // Ordenar módulos por displayOrder
+    filteredModules.sort((a: any, b: any) => a.displayOrder - b.displayOrder);
+
+    // Caso especial para Colaborador que no es también Líder, Gerente o Admin
+    if (this.isCollaborator && !this.isLeader && !this.isManager && !this.isAdmin) {
+      this.menuItems = this.createCollaboratorMenu(filteredModules);
       return;
     }
 
-    // Para otros casos (Administrador, Gerente, Líder, o Colaborador con otros roles)
-    const parsedMenus = rawMenus ? JSON.parse(rawMenus) : [];
+    this.menuItems = this.createStandardMenu(filteredModules);
+  }
 
-    // Ordenar los módulos según displayOrder
-    parsedMenus.sort((a: any, b: any) => a.displayOrder - b.displayOrder);
-
-    // Construir la estructura del menú en el orden deseado
-    this.menuItems = parsedMenus
-      .filter((item: any) => item.modulePath)
-      .map((item: any) => {
-        const ruta = item.modulePath.startsWith('/menu/')
-          ? item.modulePath
-          : `/menu/${item.modulePath.replace(/^\/+/, '')}`;
-
-        // Para módulos normales
-        if (item.modulePath !== '/activities' &&
-            item.modulePath !== '/activities/tracking' &&
-            item.modulePath !== '/settings' &&
-            item.modulePath !== '/users') {
-          return {
-            type: 'item',
-            moduleName: item.moduleName,
-            modulePath: ruta,
-            icon: item.icon
-          };
-        }
-
-        return null;
-      })
-      .filter((item: MenuItem | null) => item !== null);
-
-    // Insertar el panel de Actividades después de Proyectos (posición 1)
+  private filterModules(modules: any[]): any[] {
     if (this.isAdmin) {
-      const activitiesModule = parsedMenus.find((item: any) => item.modulePath === '/activities');
-      const trackingModule = parsedMenus.find((item: any) => item.modulePath === '/activities/tracking');
-
-      const activitiesPanel: MenuItem = {
-        type: 'expansion',
-        moduleName: 'Actividades',
-        icon: 'work',
-        expanded: false,
-        options: [
-          {
-            moduleName: activitiesModule?.moduleName || 'Actividades',
-            modulePath: activitiesModule?.modulePath ? `/menu/${activitiesModule.modulePath.replace(/^\/+/, '')}` : '/menu/activities',
-            icon: activitiesModule?.icon || 'work'
-          },
-          {
-            moduleName: trackingModule?.moduleName || 'Seguimiento',
-            modulePath: trackingModule?.modulePath ? `/menu/${trackingModule.modulePath.replace(/^\/+/, '')}` : '/menu/activities/collaborators',
-            icon: trackingModule?.icon || 'construction'
-          }
-        ]
-      };
-
-      this.menuItems.splice(2, 0, activitiesPanel); // Insertar después de Proyectos (índice 1)
+      return modules; // Admin ve todo
     }
 
-    // Insertar el panel de Configuración al final
-    const settingsModule = parsedMenus.find((item: any) => item.modulePath === '/settings');
-    const usersModule = parsedMenus.find((item: any) => item.modulePath === '/users');
+    const allowedModules: number[] = [];
 
-    const settingsPanel: MenuItem = {
-      type: 'expansion',
-      moduleName: 'Configuración',
-      icon: 'settings',
-      expanded: false,
-      options: [
-        {
-          moduleName: settingsModule?.moduleName || 'Configuración',
-          modulePath: settingsModule?.modulePath ? `/menu/${settingsModule.modulePath.replace(/^\/+/, '')}` : '/menu/settings',
-          icon: settingsModule?.icon || 'settings'
-        },
-        {
-          moduleName: usersModule?.moduleName || 'Usuarios',
-          modulePath: usersModule?.modulePath ? `/menu/${usersModule.modulePath.replace(/^\/+/, '')}` : '/menu/users',
-          icon: usersModule?.icon || 'person'
-        }
-      ]
-    };
+    // Módulos base para todos los roles excepto Colaborador puro
+    if (this.isManager || this.isLeader || this.isCollaborator) {
+      allowedModules.push(2, 3, 4); // Proyectos, Actividades, Seguimiento
+    }
 
-    this.menuItems.push(settingsPanel);
+    if (this.isManager) {
+      allowedModules.push(6, 7); // Clientes, Líderes
+    }
+
+    if (this.isAdmin) {
+      allowedModules.push(1, 5, 8, 9); // Dashboard, Colaboradores, Roles, Users
+    }
+
+    return modules.filter((module: any) => allowedModules.includes(module.id));
+  }
+
+  private createCollaboratorMenu(modules: any[]): any[] {
+    const actividades = modules.find((m: any) => m.id === 3); // Actividades
+    if (!actividades) return [];
+
+    return [{
+      type: 'item',
+      ...actividades
+    }];
+  }
+
+  private createStandardMenu(modules: any[]): any[] {
+    const menuItems: any[] = [];
+
+    // Primero agregamos los ítems que van antes del Time Report
+    const preTimeReportModules = modules.filter(m =>
+      m.moduleName === 'Dashboard' ||
+      m.moduleName === 'Proyectos'
+    );
+
+    preTimeReportModules.forEach(module => {
+      menuItems.push({
+        type: 'item',
+        ...module
+      });
+    });
+
+    // Agregamos el panel de Time Report
+    const timeReportModules = modules.filter(m =>
+      m.moduleName === 'Actividades' ||
+      m.moduleName === 'Seguimiento'
+    );
+
+    if (timeReportModules.length > 0) {
+      menuItems.push({
+        type: 'expansion',
+        moduleName: 'Time Report',
+        icon: 'alarm',
+        expanded: false,
+        options: timeReportModules,
+        displayOrder: 3 // Entre Proyectos (2) y Colaboradores (5)
+      });
+    }
+
+    // Luego agregamos los ítems que van después del Time Report
+    const postTimeReportModules = modules.filter(m =>
+      m.moduleName === 'Colaboradores' ||
+      m.moduleName === 'Clientes' ||
+      m.moduleName === 'Líderes'
+    );
+
+    postTimeReportModules.forEach(module => {
+      menuItems.push({
+        type: 'item',
+        ...module
+      });
+    });
+
+    // Finalmente el panel de Configuración
+    const configModules = modules.filter(m =>
+      m.moduleName === 'Roles' ||
+      m.moduleName === 'Users'
+    );
+
+    if (configModules.length > 0) {
+      menuItems.push({
+        type: 'expansion',
+        moduleName: 'Configuración',
+        icon: 'settings',
+        expanded: false,
+        options: configModules,
+        displayOrder: 8 // Después de Líderes (7)
+      });
+    }
+
+    // Ordenamos todos los ítems por displayOrder
+    return menuItems.sort((a, b) => a.displayOrder - b.displayOrder);
   }
 }
