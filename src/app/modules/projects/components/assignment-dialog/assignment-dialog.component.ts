@@ -176,15 +176,28 @@ export class AssignmentDialogComponent {
     }
   }
 
-  getResourceName(resource: EmployeeProject): string {
-    if (resource.employeeID) {
+  getResourceName(resource: any): string {
+    // Para recursos existentes (EmployeeProject)
+    if ('employeeID' in resource) {
       if (this.data.employeesPersonInfo) {
         const employee = this.data.employeesPersonInfo.find(e => e.id === resource.employeeID);
         if (employee) return `${employee.firstName} ${employee.lastName}`;
       }
       const employee = this.employees.find(e => e.id === resource.employeeID);
       return employee ? `${employee.person.firstName} ${employee.person.lastName}` : 'Empleado no encontrado';
-    } else if (resource.supplierID) {
+    }
+    // Para proveedores existentes
+    else if ('supplierID' in resource) {
+      const provider = this.providers.find(p => p.id === resource.supplierID);
+      return provider ? provider.businessName : 'Proveedor no encontrado';
+    }
+    // Para recursos nuevos (EmployeeProjectMiddle)
+    else if ('employeeId' in resource) {
+      const employee = this.employees.find(e => e.id === resource.employeeId);
+      return employee ? `${employee.person.firstName} ${employee.person.lastName}` : 'Empleado no encontrado';
+    }
+    // Para proveedores nuevos
+    else if ('supplierID' in resource) {
       const provider = this.providers.find(p => p.id === resource.supplierID);
       return provider ? provider.businessName : 'Proveedor no encontrado';
     }
