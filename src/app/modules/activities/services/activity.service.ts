@@ -4,7 +4,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { catchError, forkJoin, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
-import { Activity, ApiResponse,} from '../interfaces/activity.interface';
+import { Activity, ActivityType, ApiResponse,} from '../interfaces/activity.interface';
 import { AuthService } from '../../auth/services/auth.service';
 import { ProjectService } from '../../projects/services/project.service';
 
@@ -91,6 +91,10 @@ export class ActivityService {
       });
 
     return this.http.put(`${this.urlBase}/api/DailyActivity/UpdateActivity/${id}`, formattedData, { headers });
+  }
+
+  getActivityTypes(): Observable<ActivityType[]>{
+    return this.http.get<ActivityType[]>(`${this.urlBase}/api/Catalog/activity-types`);
   }
 
   private formatDate(date: any): string {

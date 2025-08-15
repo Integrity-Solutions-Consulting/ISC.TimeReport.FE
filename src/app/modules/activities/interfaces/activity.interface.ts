@@ -53,3 +53,9 @@ export interface Collaborator {
   estado: string;
 }
 
+export interface ActivityType {
+  id: number;
+  name: string;
+  description: string;
+  colorCode: string;
+}
