@@ -81,7 +81,7 @@ export class LeaderListComponent implements OnInit{
   ) {}
 
   leaders: Leader[] = [];
-  projects: ProjectWithID[] = [];
+  projects: any[] = [];
 
   selection = new SelectionModel<any>(true, []);
 
@@ -147,13 +147,16 @@ export class LeaderListComponent implements OnInit{
     this.loadLeaders(this.currentPage, this.pageSize, this.currentSearch);
   }
 
-  loadProjects(): void {
-    this.projectService.getProjects().subscribe({
+  private loadProjects() {
+
+    // Usamos valores grandes para pageSize para obtener todos los proyectos
+    this.projectService.getProjectsForTables(1, 1000).subscribe({
       next: (response) => {
-        this.projects = response.items;
+        this.projects = response.items || []
       },
       error: (error) => {
         console.error('Error loading projects:', error);
+        this.projects = [];
       }
     });
   }
