@@ -2,6 +2,12 @@
     <app-header (toggleMenu)="sidenav.toggle()"/>
   </header>
 
+<app-loading
+  *ngIf="isLoading"
+  title="Procesando"
+  subtitle="Por favor espere...">
+</app-loading>
+
 <main class="main-container">
   <mat-sidenav-container>
     <mat-sidenav #sidenav

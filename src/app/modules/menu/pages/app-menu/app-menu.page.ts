@@ -6,6 +6,7 @@ import { MenuComponent } from '../../../../layout/menu/menu.component';
 import { CommonModule } from '@angular/common';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { AuthService } from '../../../auth/services/auth.service';
+import { LoadingComponent } from '../../../auth/components/login-loading/login-loading.component';
 
 @Component({
   selector: 'app-menu',
@@ -16,7 +17,8 @@ import { AuthService } from '../../../auth/services/auth.service';
     FooterComponent,
     HeaderComponent,
     CommonModule,
-    MatSidenavModule
+    MatSidenavModule,
+    LoadingComponent
   ],
   templateUrl: './app-menu.page.html',
   styleUrl: './app-menu.page.scss'
@@ -25,6 +27,7 @@ export class AppMenuPage implements OnInit{
 
   @ViewChild('sidenav') sidenav!: MatSidenav;
   isMobile = false;
+  isLoading = false;
   menuOpen = true;
   mobileHeaderHeight = 56; // Altura típica de header móvil
 
