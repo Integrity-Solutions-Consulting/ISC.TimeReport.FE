@@ -16,7 +16,8 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field-half">
-        <input matInput formControlName="employeeCode" placeholder="Código del Empleado (*)" required>
+        <input matInput formControlName="employeeCode" placeholder="Código del Empleado (*)" required
+              [disabled]="isEditMode">
       </mat-form-field>
     </div>
 

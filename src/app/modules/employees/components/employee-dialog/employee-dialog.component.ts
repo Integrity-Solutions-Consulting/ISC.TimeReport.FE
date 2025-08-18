@@ -129,7 +129,13 @@ export class EmployeeDialogComponent implements OnInit {
     this.employeeService.getEmployeeByID(employeeId).subscribe({
       next: (response) => {
         if (response) {
-          this.patchFormValues(response);
+          // Esperar a que los catálogos estén cargados
+          if (this.genders.length > 0) {
+            this.patchFormValues(response);
+          } else {
+            // Si los catálogos no están cargados, esperar un momento
+            setTimeout(() => this.patchFormValues(response), 100);
+          }
           this.originalStatus = response.status;
         }
       },
@@ -201,6 +207,10 @@ export class EmployeeDialogComponent implements OnInit {
 
     const initialPersonType = this.employeeForm.get('person.personType')?.value;
     this.updateIdentificationValidators(initialPersonType);
+
+    if (this.isEditMode) {
+      this.employeeForm.get('employeeCode')?.disable();
+    }
   }
 
   loadCatalogs(): void {
@@ -322,7 +332,7 @@ export class EmployeeDialogComponent implements OnInit {
         email: employeeData.person?.email,
         phone: employeeData.person?.phone,
         address: employeeData.person?.address,
-        genderID: employeeData.person?.genderID || 0,
+        genderID: employeeData.person?.genderID || 1,
         nationalityId: employeeData.person?.nationalityId
       }
     });
@@ -359,6 +369,10 @@ export class EmployeeDialogComponent implements OnInit {
   }
 
   this.employeeService.showLoading();
+
+  if (this.isEditMode && this.employeeForm.get('employeeCode')?.disabled) {
+    this.employeeForm.get('employeeCode')?.enable();
+  }
 
   const formValue = this.employeeForm?.getRawValue();
 
