@@ -21,9 +21,9 @@ export const MY_DATE_FORMATS = {
     dateInput: 'DD/MM/YYYY',
   },
   display: {
-    dateInput: 'dd/MM/yyyy',
+    dateInput: 'DD/MM/YYYY',
     monthYearLabel: 'MMMM yyyy',
-    dateA11yLabel: 'dd/MM/yyyy',
+    dateA11yLabel: 'LL',
     monthYearA11yLabel: 'MMMM yyyy'
   },
 };
@@ -55,6 +55,8 @@ export const MY_DATE_FORMATS = {
     MatSelectModule,
     MatButtonModule,
     MatDatepickerModule,
+    MatNativeDateModule,
+    MomentDateModule,
     LoadingComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -129,7 +131,13 @@ export class EmployeeDialogComponent implements OnInit {
     this.employeeService.getEmployeeByID(employeeId).subscribe({
       next: (response) => {
         if (response) {
-          this.patchFormValues(response);
+          // Esperar a que los catálogos estén cargados
+          if (this.genders.length > 0) {
+            this.patchFormValues(response);
+          } else {
+            // Si los catálogos no están cargados, esperar un momento
+            setTimeout(() => this.patchFormValues(response), 100);
+          }
           this.originalStatus = response.status;
         }
       },
@@ -180,7 +188,7 @@ export class EmployeeDialogComponent implements OnInit {
         email: [employeeData.person?.email || null, [Validators.required, Validators.email]],
         phone: [employeeData.person?.phone || null, [Validators.pattern(/^\d{1,10}$/)]],
         address: [employeeData.person?.address || null],
-        genderID: [employeeData.person?.genderID || 1],
+        genderId: [employeeData.person?.genderId || 1],
         nationalityId: [employeeData.person?.nationalityId || 5]
       })
     });
@@ -201,6 +209,10 @@ export class EmployeeDialogComponent implements OnInit {
 
     const initialPersonType = this.employeeForm.get('person.personType')?.value;
     this.updateIdentificationValidators(initialPersonType);
+
+    if (this.isEditMode) {
+      this.employeeForm.get('employeeCode')?.disable();
+    }
   }
 
   loadCatalogs(): void {
@@ -322,7 +334,7 @@ export class EmployeeDialogComponent implements OnInit {
         email: employeeData.person?.email,
         phone: employeeData.person?.phone,
         address: employeeData.person?.address,
-        genderID: employeeData.person?.genderID || 0,
+        genderId: employeeData.person?.genderId || 1,
         nationalityId: employeeData.person?.nationalityId
       }
     });
@@ -359,6 +371,10 @@ export class EmployeeDialogComponent implements OnInit {
   }
 
   this.employeeService.showLoading();
+
+  if (this.isEditMode && this.employeeForm.get('employeeCode')?.disabled) {
+    this.employeeForm.get('employeeCode')?.enable();
+  }
 
   const formValue = this.employeeForm?.getRawValue();
 
