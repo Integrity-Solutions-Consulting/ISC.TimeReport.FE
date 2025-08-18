@@ -77,6 +77,9 @@ export class ProjectModalComponent implements OnInit {
   isLoadingClients = false;
   isSubmitting = false;
   isLoading = false;
+  projectTypes: any[] = [];
+  projectSubTypes: any[] = [];
+  showSubTypeSelect = false;
 
   constructor(
     private fb: FormBuilder,
@@ -111,6 +114,7 @@ export class ProjectModalComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.loadClients();
+    this.loadProjectTypes();
 
     if (this.data?.project) {
       this.isEditMode = true;
@@ -139,6 +143,8 @@ export class ProjectModalComponent implements OnInit {
     this.projectForm = this.fb.group({
       clientId: ['', Validators.required],
       projectStatusId: ['', Validators.required],
+      projectTypeId: ['', Validators.required], // Nuevo control para el tipo de proyecto
+      projectSubType: [null], // Nuevo control para el subtipo
       code: ['', [Validators.required, Validators.maxLength(50)]],
       name: ['', [Validators.required, Validators.maxLength(150)]],
       description: [''],
@@ -149,6 +155,13 @@ export class ProjectModalComponent implements OnInit {
       budget: [0, [Validators.required, Validators.min(0)]],
       hours: [0, [Validators.min(0)]]
     }, { validator: this.dateRangeValidator() });
+
+    this.projectForm.get('projectTypeId')?.valueChanges.subscribe((value) => {
+      this.showSubTypeSelect = value === 1; // Mostrar solo si es Facturable (id: 1)
+      if (!this.showSubTypeSelect) {
+        this.projectForm.get('projectSubType')?.setValue(null);
+      }
+    });
   }
 
   private loadClients(): void {
@@ -172,11 +185,42 @@ export class ProjectModalComponent implements OnInit {
     });
   }
 
+  private loadProjectTypes(): void {
+    this.projectService.getProjectTypes().subscribe({
+      next: (types) => {
+        this.projectTypes = types;
+        // Configurar el listener después de cargar los tipos
+        this.setupTypeListener();
+      },
+      error: (err) => console.error('Error loading project types:', err)
+    });
+  }
+
+  private setupTypeListener(): void {
+    this.projectForm.get('projectTypeId')?.valueChanges.subscribe((typeId) => {
+      this.showSubTypeSelect = typeId === 1; // Mostrar solo para Facturable (id: 1)
+
+      // Resetear el subtipo si no es Facturable
+      if (!this.showSubTypeSelect) {
+        this.projectForm.get('projectSubType')?.reset();
+      }
+    });
+  }
+
+  private loadSubTypes(): void {
+    this.projectSubTypes = [
+      { id: 1, name: 'Outsourcing', subType: true },
+      { id: 2, name: 'Llave en Mano', subType: false }
+    ];
+  }
+
   private patchFormValues(project: ProjectWithID): void {
     const {id, ...projectData } = project;
     this.projectForm.patchValue({
       clientId: project.clientID,
       projectStatusId: project.projectStatusID,
+      projectTypeId: project.projectTypeID, // Nuevo campo
+      projectSubType: project.projectSubType,
       code: project.code,
       name: project.name,
       description: project.description,
@@ -187,6 +231,10 @@ export class ProjectModalComponent implements OnInit {
       budget: project.budget,
       hours: project.hours
     });
+
+    if (project.projectTypeID === 1) {
+      this.showSubTypeSelect = true;
+    }
   }
 
   private strictFormatDate(date: Date | string): string {
@@ -211,10 +259,17 @@ export class ProjectModalComponent implements OnInit {
     this.projectService.showLoading();
 
     const formValue = this.projectForm.getRawValue();
+
+    let projectSubType: boolean | undefined;
+      if (formValue.projectTypeId === 1) {
+        projectSubType = formValue.projectSubTypeId === 1;
+      }
+
     const projectData: Project = {
       clientID: formValue.clientId,
       projectStatusID: Number(formValue.projectStatusId),
-      projectTypeID: formValue.projectTypeId ? Number(formValue.projectTypeId) : null,
+      projectTypeID: formValue.projectTypeId,
+      projectSubType: formValue.projectTypeId === 1 ? formValue.projectSubType : null,
       code: formValue.code,
       name: formValue.name,
       description: formValue.description || '',
@@ -224,7 +279,7 @@ export class ProjectModalComponent implements OnInit {
       actualEndDate: formValue.actualEndDate ? new Date(formValue.actualEndDate).toISOString() : null,
       budget: Number(formValue.budget) || 0,
       hours: Number(formValue.hours) || 0,
-      status: true
+      status: true,
     };
 
 

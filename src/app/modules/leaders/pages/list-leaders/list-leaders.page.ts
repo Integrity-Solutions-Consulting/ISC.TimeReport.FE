@@ -5,6 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { LoadingComponent } from '../../../auth/components/login-loading/login-loading.component';
 import { Subscription } from 'rxjs';
 import { LeadersService } from '../../services/leaders.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'list-leaders',
@@ -13,6 +14,7 @@ import { LeadersService } from '../../services/leaders.service';
     LeaderListComponent,
     LoadingComponent,
     MatCardModule,
+    CommonModule
   ],
   templateUrl: './list-leaders.page.html',
   styleUrl: './list-leaders.page.scss'

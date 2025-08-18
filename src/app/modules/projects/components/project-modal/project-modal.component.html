@@ -47,6 +47,33 @@
     </div>
 
     <div class="form-row">
+      <!-- Selector de tipo de proyecto -->
+      <mat-form-field class="form-field-half" appearance="outline">
+        <mat-label>Tipo de proyecto</mat-label>
+        <mat-select formControlName="projectTypeId">
+          <mat-option *ngFor="let type of projectTypes" [value]="type.id">
+            {{ type.typeName }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="projectForm.get('projectTypeId')?.hasError('required')">
+          Este campo es requerido
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Selector de subtipo (solo para Facturable) -->
+      <mat-form-field class="form-field-half" appearance="outline" *ngIf="showSubTypeSelect">
+        <mat-label>Subtipo de proyecto</mat-label>
+        <mat-select formControlName="projectSubType" required>
+          <mat-option [value]="true">Outsourcing</mat-option>
+          <mat-option [value]="false">Llave en Mano</mat-option>
+        </mat-select>
+        <mat-error *ngIf="projectForm.get('projectSubTypeId')?.hasError('required')">
+          Este campo es requerido
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
       <mat-form-field class="form-field-half" appearance="outline">
         <input matInput [matDatepicker]="picker1" formControlName="startDate" placeholder="Fecha de Inicio">
         <mat-hint>DD/MM/YYYY</mat-hint>
