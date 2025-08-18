@@ -156,6 +156,9 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
 
     this.leaderForm.get('leadershipType')?.valueChanges.subscribe(value => {
       this.updateIdentificationRequiredStatus(value);
+      // También actualiza los validadores del número de identificación
+      const personType = this.leaderForm.get('person.personType')?.value;
+      this.updateIdentificationValidators(personType);
     });
 
     this.updateIdentificationRequiredStatus(this.leaderForm.get('leadershipType')?.value);
@@ -269,12 +272,25 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
   }
 
   private updateIdentificationRequiredStatus(isIntegrityLeader: boolean): void {
-    const identificationNumberControl = this.leaderForm.get('person.identificationNumber');
+    const personGroup = this.leaderForm.get('person') as FormGroup;
+    const identificationNumberControl = personGroup.get('identificationNumber');
+    const personTypeControl = personGroup.get('personType');
+    const identificationTypeControl = personGroup.get('identificationTypeId');
 
     if (!isIntegrityLeader) { // Externo
+      // Deshabilitar y limpiar validadores
+      identificationNumberControl?.disable();
+      personTypeControl?.disable();
+      identificationTypeControl?.disable();
+
       identificationNumberControl?.clearValidators();
       identificationNumberControl?.setErrors(null);
     } else { // Integrity
+      // Habilitar y restaurar validadores
+      identificationNumberControl?.enable();
+      personTypeControl?.enable();
+      identificationTypeControl?.enable();
+
       identificationNumberControl?.setValidators([
         Validators.required,
         this.identificationNumberValidator.bind(this)
@@ -430,6 +446,16 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
   }
 
   onSubmit(): void {
+
+    const isIntegrityLeader = this.leaderForm.get('leadershipType')?.value;
+
+    if (!isIntegrityLeader) {
+      // Para líderes externos, limpiar errores de validación en los campos deshabilitados
+      const personGroup = this.leaderForm.get('person') as FormGroup;
+      personGroup.get('personType')?.setErrors(null);
+      personGroup.get('identificationTypeId')?.setErrors(null);
+      personGroup.get('identificationNumber')?.setErrors(null);
+    }
 
     if (this.leaderForm.get('leadershipType')?.value === false) {
       this.leaderForm.get('person.identificationNumber')?.setErrors(null);
