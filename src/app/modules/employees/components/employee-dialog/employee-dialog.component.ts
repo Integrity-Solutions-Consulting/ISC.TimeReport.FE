@@ -21,9 +21,9 @@ export const MY_DATE_FORMATS = {
     dateInput: 'DD/MM/YYYY',
   },
   display: {
-    dateInput: 'dd/MM/yyyy',
+    dateInput: 'DD/MM/YYYY',
     monthYearLabel: 'MMMM yyyy',
-    dateA11yLabel: 'dd/MM/yyyy',
+    dateA11yLabel: 'LL',
     monthYearA11yLabel: 'MMMM yyyy'
   },
 };
@@ -55,6 +55,8 @@ export const MY_DATE_FORMATS = {
     MatSelectModule,
     MatButtonModule,
     MatDatepickerModule,
+    MatNativeDateModule,
+    MomentDateModule,
     LoadingComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
