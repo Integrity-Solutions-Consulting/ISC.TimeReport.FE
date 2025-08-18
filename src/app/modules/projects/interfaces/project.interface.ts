@@ -2,6 +2,7 @@ export interface Project {
   clientID: number;
   projectStatusID: number;
   projectTypeID: number | null;
+  projectSubType?: boolean;
   code: string;
   name: string;
   description: string;
@@ -21,6 +22,7 @@ export interface ProjectWithID {
   clientID: number;
   projectStatusID: number;
   projectTypeID: number | null;
+  projectSubType?: boolean;
   code: string;
   name: string;
   description: string;

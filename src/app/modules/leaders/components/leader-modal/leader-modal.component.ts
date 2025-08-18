@@ -45,7 +45,7 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
 
   leaderForm!: FormGroup;
   personsList: Person[] = [];
-  projectsList: ProjectWithID[] = [];
+  projectsList: any[] = [];
   useExistingPerson: boolean = false;
   isLoadingPersons = false;
   isLoadingProjects = false;
@@ -410,14 +410,17 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
 
   private loadProjects() {
     this.isLoadingProjects = true;
-    this.projectService.getProjects().subscribe({
+
+    // Usamos valores grandes para pageSize para obtener todos los proyectos
+    this.projectService.getProjectsForTables(1, 1000).subscribe({
       next: (response) => {
-        this.projectsList = response.items;
+        this.projectsList = response.items || [];
         this.isLoadingProjects = false;
       },
       error: (error) => {
         console.error('Error loading projects:', error);
         this.isLoadingProjects = false;
+        this.projectsList = [];
       }
     });
   }

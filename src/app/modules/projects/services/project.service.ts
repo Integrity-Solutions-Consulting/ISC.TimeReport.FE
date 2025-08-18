@@ -162,6 +162,10 @@ export class ProjectService {
       );
     }
 
+    getProjectTypes(): Observable<any[]> {
+      return this.http.get<any[]>(`${this.urlBase}/api/Catalog/project-type`);
+    }
+
     // Helper function to create a default ProjectDetail object
     private createDefaultProjectDetail(id: number): ProjectDetail {
       return {
