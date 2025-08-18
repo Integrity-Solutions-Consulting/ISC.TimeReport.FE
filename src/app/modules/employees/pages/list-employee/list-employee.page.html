@@ -1,3 +1,8 @@
+<app-loading
+  *ngIf="isLoading"
+  title="Guardando datos del empleado"
+  subtitle="Estamos procesando tu solicitud, por favor espere...">
+</app-loading>
 <mat-card>
   <mat-card-header>
     <mat-card-title>
@@ -8,8 +13,4 @@
     <employee-list></employee-list>
   </mat-card-content>
 </mat-card>
-<app-loading
-  *ngIf="isLoading"
-  title="Guardando datos del empleado"
-  subtitle="Estamos procesando tu solicitud, por favor espere...">
-</app-loading>
+

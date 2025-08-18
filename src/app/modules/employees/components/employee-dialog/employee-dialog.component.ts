@@ -169,7 +169,7 @@ export class EmployeeDialogComponent implements OnInit {
       employeeCode: [employeeData.employeeCode || '', Validators.required],
       departmentID: [employeeData.departmentID || null, Validators.required],
       corporateEmail: [employeeData.corporateEmail || null, [Validators.required, Validators.email]],
-      salary: [employeeData.salary || 0, Validators.required],
+      salary: [employeeData.salary || 1, [Validators.required, Validators.min(1), Validators.max(99999)]],
       hireDate: [hireDateValue],
       terminationDate: [terminationDateValue || null],
       employeeCategoryID: [employeeData.employeeCategoryID || 5, Validators.required],

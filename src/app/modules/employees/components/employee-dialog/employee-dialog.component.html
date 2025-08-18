@@ -201,6 +201,12 @@
           <mat-error *ngIf="employeeForm.get('salary')?.hasError('required')">
             Este campo es requerido
           </mat-error>
+          <mat-error *ngIf="employeeForm.get('salary')?.hasError('min')">
+            El salario mínimo es $1
+          </mat-error>
+          <mat-error *ngIf="employeeForm.get('salary')?.hasError('max')">
+            El salario máximo es $99,999
+          </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">
