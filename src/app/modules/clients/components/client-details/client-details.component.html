@@ -34,7 +34,15 @@
       <div class="client-grid">
         <!-- Columna izquierda - Datos personales -->
         <div class="client-section personal-data">
-          <h3 class="section-title">DATOS PERSONALES</h3>
+          <h3 class="section-title">DATOS DE LA EMPRESA</h3>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">category</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Tipo de Persona</span>
+              <span class="info-value">{{client.person?.personType || 'No especificado'}}</span>
+            </div>
+          </div>
 
           <div class="info-item">
             <mat-icon class="info-icon">fingerprint</mat-icon>
@@ -44,22 +52,6 @@
                 {{client.person?.identificationNumber}}
                 ({{getIdentificationType(client.person?.identificationTypeId)}})
               </span>
-            </div>
-          </div>
-
-          <div class="info-item">
-            <mat-icon class="info-icon">cake</mat-icon>
-            <div class="info-content">
-              <span class="info-label">Fecha Nacimiento</span>
-              <span class="info-value">{{formatDate(client.person?.birthDate)}}</span>
-            </div>
-          </div>
-
-          <div class="info-item">
-            <mat-icon class="info-icon">wc</mat-icon>
-            <div class="info-content">
-              <span class="info-label">Género</span>
-              <span class="info-value">{{getGender(client.person?.genderId)}}</span>
             </div>
           </div>
 
@@ -100,13 +92,6 @@
             </div>
           </div>
 
-          <div class="info-item">
-            <mat-icon class="info-icon">category</mat-icon>
-            <div class="info-content">
-              <span class="info-label">Tipo de Persona</span>
-              <span class="info-value">{{client.person?.personType || 'No especificado'}}</span>
-            </div>
-          </div>
         </div>
       </div>
     </mat-card-content>
