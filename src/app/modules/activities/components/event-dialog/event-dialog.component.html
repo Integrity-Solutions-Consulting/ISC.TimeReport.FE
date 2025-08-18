@@ -36,7 +36,22 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <input matInput [(ngModel)]="event.activityDescription" rows="3" placeholder="Descripción" required name="description">
+        <textarea matInput
+          [(ngModel)]="event.activityDescription"
+          rows="3"
+          placeholder="Descripción"
+          required
+          name="description"
+          matInputMaxlength="200"
+          cdkTextareaAutosize
+          #descInput="ngModel"
+          cdkAutosizeMinRows="3"
+          cdkAutosizeMaxRows="5"> <!-- Ajusta estos valores según necesites -->
+    </textarea>
+      <mat-hint align="end">{{event.activityDescription?.length || 0}}/200</mat-hint>
+      <mat-error *ngIf="descInput.errors?.['maxlength']">
+        La descripción no puede exceder los 200 caracteres
+      </mat-error>
     </mat-form-field>
 
     <!--<mat-form-field appearance="outline" class="full-width">

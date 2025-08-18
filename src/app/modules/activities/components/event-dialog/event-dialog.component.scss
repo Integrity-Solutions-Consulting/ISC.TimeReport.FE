@@ -1,50 +1,77 @@
-.form-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.duration-container {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 16px 0;
-
-  span {
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.6);
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
-}
 
-.row {
-  display: flex;
-  gap: 16px;
+  .duration-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 16px 0;
 
-  .half-width {
-    flex: 1;
+    span {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.6);
+    }
   }
-}
 
-.full-width {
+  .row {
+    display: flex;
+    gap: 16px;
+
+    .half-width {
+      flex: 1;
+    }
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  .color-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .color-demo {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+  }
+
+  .color-preview {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    margin-left: 8px;
+  }
+/* En tu archivo de estilos */
+.textarea-container {
+  /* Asegura que el textarea ocupe todo el espacio disponible */
   width: 100%;
-}
 
-.color-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+  /* Estilos específicos para el textarea */
+  .mat-mdc-text-field-wrapper {
+    align-items: flex-start !important; /* Alinea el contenido arriba */
+    padding-top: 8px; /* Espacio adicional arriba */
+  }
 
-.color-demo {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-}
+  textarea {
+    resize: vertical;
+    min-height: 80px; /* Altura mínima inicial */
+    overflow: auto !important; /* Permite scroll cuando sea necesario */
+  }
 
-.color-preview {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  margin-left: 8px;
+  /* Ajusta el área de texto para que no quede pegada a los bordes */
+  .mdc-text-field__input {
+    padding: 8px 0 !important;
+  }
+
+  /* Ajusta el notch (el borde flotante) */
+  .mat-mdc-form-field-flex {
+    min-height: 100px; /* Altura mínima para el contenedor */
+  }
 }

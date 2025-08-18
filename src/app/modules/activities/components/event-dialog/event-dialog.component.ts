@@ -15,6 +15,7 @@ import { ProjectService } from '../../../projects/services/project.service';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivityService } from '../../services/activity.service';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
+import { TextFieldModule } from '@angular/cdk/text-field';
 
 export const MY_DATE_FORMATS = {
   parse: {
@@ -43,7 +44,7 @@ export const MY_DATE_FORMATS = {
     MatSelectModule,
     MatSlideToggleModule,
     MatDividerModule,
-    FormsModule
+    FormsModule,
   ],
   providers: [
     provideNativeDateAdapter(),
@@ -330,6 +331,10 @@ export class EventDialogComponent implements OnInit{
       if (isNaN(hours) || hours < 1 || hours > 8) {
         return false;
       }
+    }
+
+    if (this.event.activityDescription.length > 200) {
+      return false;
     }
 
     // Validación de horas máximas por día (solo para nuevas actividades)

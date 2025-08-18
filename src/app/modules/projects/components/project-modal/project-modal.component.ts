@@ -78,8 +78,7 @@ export class ProjectModalComponent implements OnInit {
   isSubmitting = false;
   isLoading = false;
   projectTypes: any[] = [];
-  projectSubTypes: any[] = [];
-  showSubTypeSelect = false;
+  formattedProjectTypes: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -143,8 +142,7 @@ export class ProjectModalComponent implements OnInit {
     this.projectForm = this.fb.group({
       clientId: ['', Validators.required],
       projectStatusId: ['', Validators.required],
-      projectTypeId: ['', Validators.required], // Nuevo control para el tipo de proyecto
-      projectSubType: [null], // Nuevo control para el subtipo
+      projectTypeId: ['', Validators.required],
       code: ['', [Validators.required, Validators.maxLength(50)]],
       name: ['', [Validators.required, Validators.maxLength(150)]],
       description: [''],
@@ -155,13 +153,6 @@ export class ProjectModalComponent implements OnInit {
       budget: [0, [Validators.required, Validators.min(0)]],
       hours: [0, [Validators.min(0)]]
     }, { validator: this.dateRangeValidator() });
-
-    this.projectForm.get('projectTypeId')?.valueChanges.subscribe((value) => {
-      this.showSubTypeSelect = value === 1; // Mostrar solo si es Facturable (id: 1)
-      if (!this.showSubTypeSelect) {
-        this.projectForm.get('projectSubType')?.setValue(null);
-      }
-    });
   }
 
   private loadClients(): void {
@@ -189,29 +180,27 @@ export class ProjectModalComponent implements OnInit {
     this.projectService.getProjectTypes().subscribe({
       next: (types) => {
         this.projectTypes = types;
-        // Configurar el listener después de cargar los tipos
-        this.setupTypeListener();
+        this.formatTypeNames();
       },
       error: (err) => console.error('Error loading project types:', err)
     });
   }
 
-  private setupTypeListener(): void {
-    this.projectForm.get('projectTypeId')?.valueChanges.subscribe((typeId) => {
-      this.showSubTypeSelect = typeId === 1; // Mostrar solo para Facturable (id: 1)
-
-      // Resetear el subtipo si no es Facturable
-      if (!this.showSubTypeSelect) {
-        this.projectForm.get('projectSubType')?.reset();
+  private formatTypeNames(): void {
+    this.formattedProjectTypes = this.projectTypes.map(type => {
+      if (type.typeName === 'Facturable') {
+        return {
+          ...type,
+          displayName: type.subType ?
+            'Facturable (Outsourcing)' :
+            'Facturable (Llave en Mano)'
+        };
       }
+      return {
+        ...type,
+        displayName: type.typeName
+      };
     });
-  }
-
-  private loadSubTypes(): void {
-    this.projectSubTypes = [
-      { id: 1, name: 'Outsourcing', subType: true },
-      { id: 2, name: 'Llave en Mano', subType: false }
-    ];
   }
 
   private patchFormValues(project: ProjectWithID): void {
@@ -219,8 +208,7 @@ export class ProjectModalComponent implements OnInit {
     this.projectForm.patchValue({
       clientId: project.clientID,
       projectStatusId: project.projectStatusID,
-      projectTypeId: project.projectTypeID, // Nuevo campo
-      projectSubType: project.projectSubType,
+      projectTypeId: project.projectTypeID,
       code: project.code,
       name: project.name,
       description: project.description,
@@ -231,10 +219,6 @@ export class ProjectModalComponent implements OnInit {
       budget: project.budget,
       hours: project.hours
     });
-
-    if (project.projectTypeID === 1) {
-      this.showSubTypeSelect = true;
-    }
   }
 
   private strictFormatDate(date: Date | string): string {
@@ -259,6 +243,7 @@ export class ProjectModalComponent implements OnInit {
     this.projectService.showLoading();
 
     const formValue = this.projectForm.getRawValue();
+    const selectedType = this.projectTypes.find(t => t.id === formValue.projectTypeId);
 
     let projectSubType: boolean | undefined;
       if (formValue.projectTypeId === 1) {
@@ -269,7 +254,7 @@ export class ProjectModalComponent implements OnInit {
       clientID: formValue.clientId,
       projectStatusID: Number(formValue.projectStatusId),
       projectTypeID: formValue.projectTypeId,
-      projectSubType: formValue.projectTypeId === 1 ? formValue.projectSubType : null,
+      projectSubType: selectedType?.subType,
       code: formValue.code,
       name: formValue.name,
       description: formValue.description || '',

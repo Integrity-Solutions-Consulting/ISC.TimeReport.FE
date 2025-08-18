@@ -50,26 +50,11 @@
       <!-- Selector de tipo de proyecto -->
       <mat-form-field class="form-field-half" appearance="outline">
         <mat-label>Tipo de proyecto</mat-label>
-        <mat-select formControlName="projectTypeId">
-          <mat-option *ngFor="let type of projectTypes" [value]="type.id">
-            {{ type.typeName }}
+        <mat-select formControlName="projectTypeId" required>
+          <mat-option *ngFor="let type of formattedProjectTypes" [value]="type.id">
+            {{ type.displayName }}
           </mat-option>
         </mat-select>
-        <mat-error *ngIf="projectForm.get('projectTypeId')?.hasError('required')">
-          Este campo es requerido
-        </mat-error>
-      </mat-form-field>
-
-      <!-- Selector de subtipo (solo para Facturable) -->
-      <mat-form-field class="form-field-half" appearance="outline" *ngIf="showSubTypeSelect">
-        <mat-label>Subtipo de proyecto</mat-label>
-        <mat-select formControlName="projectSubType" required>
-          <mat-option [value]="true">Outsourcing</mat-option>
-          <mat-option [value]="false">Llave en Mano</mat-option>
-        </mat-select>
-        <mat-error *ngIf="projectForm.get('projectSubTypeId')?.hasError('required')">
-          Este campo es requerido
-        </mat-error>
       </mat-form-field>
     </div>
 
