@@ -152,7 +152,7 @@
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field-half">
           <mat-label style="font-family: 'Poppins';">Género</mat-label>
-          <mat-select formControlName="genderID">
+          <mat-select formControlName="genderId">
             @for (gender of genders; track gender) {
               <mat-option [value]="gender.id">{{gender.name}}</mat-option>
             }

@@ -186,7 +186,7 @@ export class EmployeeDialogComponent implements OnInit {
         email: [employeeData.person?.email || null, [Validators.required, Validators.email]],
         phone: [employeeData.person?.phone || null, [Validators.pattern(/^\d{1,10}$/)]],
         address: [employeeData.person?.address || null],
-        genderID: [employeeData.person?.genderID || 1],
+        genderId: [employeeData.person?.genderId || 1],
         nationalityId: [employeeData.person?.nationalityId || 5]
       })
     });
@@ -332,7 +332,7 @@ export class EmployeeDialogComponent implements OnInit {
         email: employeeData.person?.email,
         phone: employeeData.person?.phone,
         address: employeeData.person?.address,
-        genderID: employeeData.person?.genderID || 1,
+        genderId: employeeData.person?.genderId || 1,
         nationalityId: employeeData.person?.nationalityId
       }
     });
