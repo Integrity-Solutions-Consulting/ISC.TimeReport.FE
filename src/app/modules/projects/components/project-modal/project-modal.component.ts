@@ -142,7 +142,7 @@ export class ProjectModalComponent implements OnInit {
     this.projectForm = this.fb.group({
       clientId: ['', Validators.required],
       projectStatusId: ['', Validators.required],
-      projectTypeId: ['', Validators.required],
+      projectTypeId: [null, Validators.required],
       code: ['', [Validators.required, Validators.maxLength(50)]],
       name: ['', [Validators.required, Validators.maxLength(150)]],
       description: [''],
@@ -181,6 +181,11 @@ export class ProjectModalComponent implements OnInit {
       next: (types) => {
         this.projectTypes = types;
         this.formatTypeNames();
+
+        // Seleccionar automáticamente el primer tipo
+        if (this.formattedProjectTypes.length > 0 && !this.isEditMode) {
+          this.projectForm.get('projectTypeId')?.setValue(this.formattedProjectTypes[0].id);
+        }
       },
       error: (err) => console.error('Error loading project types:', err)
     });
