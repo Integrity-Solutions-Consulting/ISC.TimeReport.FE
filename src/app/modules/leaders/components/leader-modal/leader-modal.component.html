@@ -4,13 +4,6 @@
 <mat-dialog-content>
   <form [formGroup]="leaderForm" (ngSubmit)="onSubmit()" class="customer-form" style="margin-top: 6px;">
 
-    <div class="form-row">
-      <mat-radio-group formControlName="personOption" class="radio-group full-width">
-        <mat-radio-button value="new" style="font-family: var(--font-subtitle);">Crear nueva persona</mat-radio-button>
-        <mat-radio-button value="existing" style="font-family: var(--font-subtitle);">Usar persona existente</mat-radio-button>
-      </mat-radio-group>
-    </div>
-
     <div class="form-row" *ngIf="useExistingPerson">
       <mat-form-field appearance="outline" class="full-width">
         <mat-select formControlName="existingPerson" (selectionChange)="onPersonSelected($event)" placeholder="Persona">
