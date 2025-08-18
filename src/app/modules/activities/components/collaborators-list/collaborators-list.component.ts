@@ -352,15 +352,16 @@ export class CollaboratorsListComponent implements OnInit{
         leaders: this.http.get<any>(`${this.urlBase}/api/Leader/GetAllLeaders`).pipe(
           catchError(() => of({ items: [] }))
         )
-        // Eliminamos la obtención de todos los clientes ya que no funciona como esperábamos
       }).subscribe({
         next: ({ activities, leaders }) => {
           // 3. Creamos mapas para relaciones
           const employeeActivitiesMap = new Map<number, any[]>();
           const projectLeadersMap = new Map<number, any>();
 
-          // Mapeamos actividades por empleado
+          // Mapeamos actividades por empleado (filtrando actividades sin projectID)
           activities.data.forEach((activity: any) => {
+            if (!activity.projectID) return; // Skip activities without projectID
+
             if (!employeeActivitiesMap.has(activity.employeeID)) {
               employeeActivitiesMap.set(activity.employeeID, []);
             }
@@ -369,7 +370,9 @@ export class CollaboratorsListComponent implements OnInit{
 
           // Mapeamos líderes por proyecto
           leaders.items.forEach((leader: any) => {
-            projectLeadersMap.set(leader.projectID, leader);
+            if (leader.projectID) {
+              projectLeadersMap.set(leader.projectID, leader);
+            }
           });
 
           // 4. Procesamos cada empleado
@@ -387,6 +390,17 @@ export class CollaboratorsListComponent implements OnInit{
             }
 
             const firstActivity = empActivities[0];
+
+            // Skip if projectID is null or undefined
+            if (!firstActivity.projectID) {
+              return of({
+                employee: emp,
+                project: null,
+                client: null,
+                leader: null,
+                totalHours: empActivities.reduce((sum, act) => sum + act.hoursQuantity, 0)
+              });
+            }
 
             // 5. Obtenemos el proyecto
             return this.http.get<any>(`${this.urlBase}/api/Project/GetProjectByID/${firstActivity.projectID}`).pipe(
