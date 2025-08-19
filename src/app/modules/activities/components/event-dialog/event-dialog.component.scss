@@ -61,8 +61,9 @@
 
   textarea {
     resize: vertical;
-    min-height: 80px; /* Altura mínima inicial */
-    overflow: auto !important; /* Permite scroll cuando sea necesario */
+    height: auto !important;
+    max-height: none !important;
+    overflow: auto !important;
   }
 
   /* Ajusta el área de texto para que no quede pegada a los bordes */
@@ -74,4 +75,15 @@
   .mat-mdc-form-field-flex {
     min-height: 100px; /* Altura mínima para el contenedor */
   }
+
+  mat-dialog-content .mat-form-field-wrapper {
+    height: auto;
+  }
+}
+
+mat-dialog-content .mat-form-field-wrapper .mat-form-field-flex .mat-form-field-infix textarea.mat-input-element {
+  resize: vertical;
+  height: auto !important;
+  max-height: none !important;
+  overflow: auto !important;
 }

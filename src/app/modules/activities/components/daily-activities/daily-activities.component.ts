@@ -134,11 +134,9 @@ export class DailyActivitiesComponent implements AfterViewInit {
   ) {
     const userData = this.getUserData();
     this.currentEmployeeId = this.getEmployeeId();
-    console.log('EmployeeID en constructor:', this.currentEmployeeId);
   }
 
   ngAfterViewInit(): void {
-    console.log('EmployeeID logueado:', this.currentEmployeeId); // Agrega esto para verificar
     this.loadProjects().pipe(take(1)).subscribe(() => {
       this.loadInitialData();
     });
@@ -207,11 +205,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
     try {
       const response: ApiResponse | undefined = await this.activityService.getActivities().toPromise();
 
-      console.log('Respuesta completa del servidor:', response); // Debug
-
       if (response?.data) {
-        console.log('Current EmployeeID:', this.currentEmployeeId);
-        console.log('Activities received:', response.data);
 
         // Filtrar actividades solo para el empleado logueado
         const filteredActivities = response.data.filter((activity: Activity) => {
@@ -221,8 +215,6 @@ export class DailyActivitiesComponent implements AfterViewInit {
           }
           return activity.employeeID === this.currentEmployeeId;
         });
-
-        console.log('Actividades filtradas:', filteredActivities); // Debug
 
         if (this.calendarComponent && this.calendarComponent.getApi()) {
           this.mapActivitiesToEvents(filteredActivities);
@@ -245,7 +237,6 @@ export class DailyActivitiesComponent implements AfterViewInit {
   }
 
   private mapActivitiesToEvents(activities: Activity[]): void {
-    console.log('Mapeando actividades a eventos:', activities); // Debug
     const calendarApi = this.calendarComponent.getApi();
     calendarApi.removeAllEvents();
 
@@ -296,7 +287,6 @@ export class DailyActivitiesComponent implements AfterViewInit {
         };
 
         const addedEvent = calendarApi.addEvent(eventData);
-        console.log('Evento añadido al calendario:', addedEvent); // Debug
       } catch (error) {
         console.error(`Error procesando actividad ${activity.id}:`, activity, error);
       }
@@ -305,7 +295,6 @@ export class DailyActivitiesComponent implements AfterViewInit {
   }
 
   private parseActivityDate(dateInput: string | Date): Date {
-    console.log('Parseando fecha:', dateInput); // Debug
     if (dateInput instanceof Date) {
       return dateInput;
     }
@@ -602,13 +591,6 @@ export class DailyActivitiesComponent implements AfterViewInit {
   // --- Manejo del click en un evento existente para editar ---
   handleEventClick(clickInfo: EventClickArg) {
     const extendedProps = clickInfo.event.extendedProps;
-
-      console.log('Datos del evento al editar:', {
-        id: clickInfo.event.id,
-        projectID: extendedProps['projectID'],
-        projectList: this.projectList,
-        matchingProject: this.projectList.find(p => p.id === extendedProps['projectID'])
-      });
 
     const dialogRef = this.dialog.open(EventDialogComponent, {
       width: '800px',
