@@ -81,11 +81,15 @@ export class RolesListComponent implements OnInit, AfterViewInit {
       data: { role, modules: this.allModules }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.roleService.updateRole(role.id, result).subscribe(() => {
-          this.loadRoles();
-        });
+    dialogRef.afterClosed().subscribe(updatedRole => {
+      if (updatedRole) {
+        // Actualizamos directamente el datasource con el rol modificado
+        const data = this.dataSource.data;
+        const index = data.findIndex(r => r.id === role.id);
+        if (index !== -1) {
+          data[index] = updatedRole;
+          this.dataSource.data = data;
+        }
       }
     });
   }
@@ -109,9 +113,15 @@ export class RolesListComponent implements OnInit, AfterViewInit {
       data: { role }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadRoles(); // Recargar lista de roles
+    dialogRef.afterClosed().subscribe(updatedRole => {
+      if (updatedRole) {
+        // Actualizamos directamente el datasource con el rol modificado
+        const data = this.dataSource.data;
+        const index = data.findIndex(r => r.id === role.id);
+        if (index !== -1) {
+          data[index] = updatedRole;
+          this.dataSource.data = data;
+        }
       }
     });
   }
