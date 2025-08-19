@@ -117,8 +117,8 @@ export class LeaderListComponent implements OnInit{
 
   readonly identificationTypesMap: {[key: number]: string} = {
     1: 'Cédula',
-    2: 'RUC',
-    3: 'Pasaporte',
+    2: 'Pasaporte',
+    3: 'RUC',
   };
 
   getProjectName(projectID: number): string {
