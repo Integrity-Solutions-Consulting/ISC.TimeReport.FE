@@ -1,0 +1,72 @@
+.card-row-container {
+  display: flex; /* Makes the container a flex container */
+  gap: 10px; /* Optional: Adds some space between the cards */
+  margin-top: 4px;
+}
+
+.card-40-width {
+  flex: 2; /* This makes it take up 60% of the available space */
+  /* You could also use: width: 60%; */
+}
+
+.card-60-width {
+  flex: 3; /* This makes it take up 60% of the available space */
+  /* You could also use: width: 60%; */
+}
+
+.card-header-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Tres columnas iguales */
+  align-items: center;
+  width: 100%;
+}
+
+.card-title {
+  grid-column: 1; /* Título en primera columna */
+}
+
+.date-field {
+  grid-column: 2; /* Selector de fecha en tercera columna */
+  justify-self: end; /* Alinear a la derecha */
+  width: 200px;
+}
+
+.search-field {
+  width: 50%;
+}
+
+.chart-container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  h2 {
+    margin-bottom: 20px;
+  }
+
+  mat-form-field {
+    width: 200px;
+    margin-bottom: 20px;
+  }
+}
+
+.filter-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Tres columnas de igual ancho */
+  gap: 16px; /* Espacio entre columnas */
+  align-items: center; /* Centrar verticalmente los elementos */
+}
+
+.filter-select {
+  grid-column: 1; /* Ocupa la primera columna */
+}
+
+.filter-input {
+  grid-column: 3; /* Ocupa la tercera columna */
+}
+
+/* Opcional: ajustar el ancho de los campos */
+.search-field {
+  width: 100%;
+}

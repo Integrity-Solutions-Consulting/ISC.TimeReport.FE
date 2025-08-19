@@ -1,0 +1,91 @@
+<div class="main-class">
+
+  <div class="top-items">
+    <mat-form-field appearance="outline" class="search-field">
+      <input matInput
+            (keyup)="applyFilter($event)"
+            placeholder="Buscar por nombres, número de identificación..."
+            [formControl]="searchControl"
+            #input>
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <button mat-flat-button class="add-button" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Agregar Nuevo
+    </button>
+  </div>
+
+  <table mat-table [dataSource]="dataSource" matSort style="border-radius: 8px 8px 0 0; overflow: hidden;">
+
+    <ng-container matColumnDef="idtype">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Tipo </th>
+      <td mat-cell *matCellDef="let element">{{element.person?.identificationTypeId ? getIdentificationTypeName(element.person.identificationTypeId) : 'No especificado'}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="idnumber">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Identificación </th>
+      <td mat-cell *matCellDef="let element">{{element.person?.identificationNumber}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="commercialname">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre Comercial </th>
+      <td mat-cell *matCellDef="let element">{{element.tradeName}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="phone">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Teléfono Móvil </th>
+      <td mat-cell *matCellDef="let element">{{element.person?.phone}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Correo Electrónico </th>
+      <td mat-cell *matCellDef="let element">{{element.person?.email}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+      <td mat-cell *matCellDef="let element">
+        <div class="status-container" [ngClass]="{'active': element.status, 'inactive': !element.status}">
+          <div class="status-dot"></div>
+          <div class="status-text">{{element.status ? 'Activo' : 'Inactivo'}}</div>
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="options">
+      <th mat-header-cell *matHeaderCellDef> Acciones </th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-icon-button [matMenuTriggerFor]="clientMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #clientMenu="matMenu">
+          <button mat-menu-item (click)="openEditDialog(element)">
+            <mat-icon>edit</mat-icon>
+            <span>Editar</span>
+          </button>
+          <button mat-menu-item (click)="viewClientDetails(element.id)">
+            <mat-icon>visibility</mat-icon>
+            <span>Visualizar</span>
+          </button>
+          <button mat-menu-item (click)="toggleClientStatus(element)">
+            <mat-icon>{{element.status ? 'delete' : 'check_circle'}}</mat-icon>
+            <span>{{element.status ? 'Desactivar' : 'Activar'}}</span>
+          </button>
+        </mat-menu>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <mat-paginator
+    [length]="totalItems"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[5, 10, 25, 100]"
+    (page)="onPageChange($event)"
+    aria-label="Select page of clients">
+  </mat-paginator>
+
+</div>

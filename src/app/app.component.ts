@@ -1,18 +1,17 @@
 import { Component, effect, inject } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
-import { HeaderComponent } from './layout/header/header.component';
-import { MenuComponent } from './layout/menu/menu.component';
-import { FooterComponent } from './layout/footer/footer.component';
+import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import { InterceptorService } from './shared/services/interceptor.service';
+import { CommonModule } from '@angular/common';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
+    CommonModule,
+    RouterModule,
     RouterOutlet,
-    HeaderComponent,
-    MenuComponent,
-    FooterComponent
+    NgbModule,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
@@ -25,7 +24,7 @@ export class AppComponent {
   constructor(private router: Router) {
     effect(() => {
       const payload = this._interceptorService.payload();
-      
+
       if(payload.message == 'logout'){
         this.router.navigate(['/auth/login'])
       }

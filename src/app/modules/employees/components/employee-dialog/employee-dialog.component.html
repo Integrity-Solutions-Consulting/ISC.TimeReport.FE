@@ -1,0 +1,248 @@
+<app-loading *ngIf="isLoading"></app-loading>
+<h4 mat-dialog-title style="margin: 10px; font-family: 'Poppins'">
+  {{ isEditMode ? 'Editar Empleado' : 'Crear Nuevo Empleado' }}
+</h4>
+<mat-dialog-content>
+  <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()">
+
+    <div class="section-title" style="font-family: 'Poppins';">Detalles del Empleado</div>
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-select formControlName="positionID" placeholder="Cargo">
+          @for (position of positions; track position) {
+            <mat-option [value]="position.id">{{position.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field-half">
+        <input matInput formControlName="employeeCode" placeholder="Código del Empleado (*)" required
+              [disabled]="isEditMode">
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-select formControlName="workModeID" placeholder="Modo de Trabajo">
+          @for (mode of workModes; track mode) {
+            <mat-option [value]="mode.id">{{mode.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-select formControlName="departmentID" placeholder="Departamento">
+          @for (dept of departments; track dept) {
+            <mat-option [value]="dept.id">{{dept.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field-half">
+        <input matInput formControlName="corporateEmail" type="email" placeholder="Correo Corporativo (*)" required>
+        <mat-error *ngIf="employeeForm.get('corporateEmail')?.hasError('email')">
+          Formato de email inválido
+        </mat-error>
+        <mat-error *ngIf="employeeForm.get('corporateEmail')?.hasError('required')">
+          Este campo es requerido
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-label style="font-family: 'Poppins';">Categoría</mat-label>
+        <mat-select formControlName="employeeCategoryID" placeholder="Categoría">
+          @for (category of employeeCategories; track category) {
+            <mat-option [value]="category.id">{{category.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div formGroupName="person" *ngIf="!useExistingPerson">
+      <div class="section-title" style="font-family: 'Poppins';">Datos de Contacto</div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins';">Tipo de Persona</mat-label>
+          <mat-select formControlName="personType">
+            @for (type of personTypes; track type) {
+              <mat-option [value]="type.id">{{type.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins';">Tipo de Identificación</mat-label>
+          <mat-select formControlName="identificationTypeId">
+            @for (type of identificationTypes; track type) {
+              <mat-option [value]="type.id">{{type.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <input matInput formControlName="identificationNumber" placeholder="Número de Identificación (*)" required>
+          <mat-error *ngIf="employeeForm.get('person.identificationNumber')?.hasError('required')">
+            Este campo es requerido
+          </mat-error>
+          <mat-error *ngIf="employeeForm.get('person.identificationNumber')?.hasError('invalidRucLength')">
+            El RUC debe tener exactamente 13 dígitos
+          </mat-error>
+          <mat-error *ngIf="employeeForm.get('person.identificationNumber')?.hasError('invalidCedulaLength')">
+            La cédula debe tener máximo 10 dígitos
+          </mat-error>
+          <mat-error *ngIf="employeeForm.get('person.identificationNumber')?.hasError('invalidIdentificationType')">
+            Persona jurídica debe usar RUC
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="firstName" placeholder="Nombres (*)" required>
+          <mat-error *ngIf="employeeForm.get('person.firstName')?.hasError('required')">
+            Este campo es requerido
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="lastName" placeholder="Apellidos (*)" required>
+          <mat-error *ngIf="employeeForm.get('person.lastName')?.hasError('required')">
+            Este campo es requerido
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput [matDatepicker]="picker3" formControlName="birthDate" placeholder="Fecha de Nacimiento">
+          <mat-hint>DD/MM/YYYY</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="picker3"></mat-datepicker-toggle>
+          <mat-datepicker #picker3></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="email" type="email" placeholder="Correo Electrónico (*)" required>
+          <mat-error *ngIf="employeeForm.get('person.email')?.hasError('email')">
+            Formato de email inválido
+          </mat-error>
+          <mat-error *ngIf="employeeForm.get('person.email')?.hasError('required')">
+            Este campo es requerido
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="phone" placeholder="Teléfono">
+          <mat-error *ngIf="employeeForm.get('person.phone')?.hasError('pattern')">
+            El teléfono debe contener solo números (máximo 10 dígitos)
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="address" placeholder="Dirección">
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins';">Género</mat-label>
+          <mat-select formControlName="genderId">
+            @for (gender of genders; track gender) {
+              <mat-option [value]="gender.id">{{gender.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins';">Nacionalidad</mat-label>
+          <mat-select formControlName="nationalityId">
+            @for (nation of nationalities; track nation) {
+              <mat-option [value]="nation.id">{{nation.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="section-title" style="font-family: 'Poppins';">Datos de Contrato</div>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title style="font-family: 'Poppins'">
+          Información Adicional del Empleado
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput [matDatepicker]="picker1" formControlName="hireDate" placeholder="Fecha de Ingreso">
+          <mat-hint>DD/MM/YYYY</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
+          <mat-datepicker #picker1></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput [matDatepicker]="picker2" formControlName="terminationDate" placeholder="Fecha de Terminación">
+          <mat-hint>DD/MM/YYYY</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
+          <mat-datepicker #picker2></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins';">Salario</mat-label>
+          <input matInput type="number" formControlName="salary" placeholder="Salario (*)" required>
+          <mat-error *ngIf="employeeForm.get('salary')?.hasError('required')">
+            Este campo es requerido
+          </mat-error>
+          <mat-error *ngIf="employeeForm.get('salary')?.hasError('min')">
+            El salario mínimo es $1
+          </mat-error>
+          <mat-error *ngIf="employeeForm.get('salary')?.hasError('max')">
+            El salario máximo es $99,999
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-select formControlName="companyCatalogID" placeholder="Empresa (*)" required>
+            @for (company of companies; track company) {
+              <mat-option [value]="company.id">{{company.name}}</mat-option>
+            }
+          </mat-select>
+          <mat-error *ngIf="employeeForm.get('companyCatalogID')?.hasError('required')">
+            Este campo es requerido
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-select formControlName="contractType" placeholder="Tipo de Contrato (*)" required>
+            @for (type of contractTypes; track type) {
+              <mat-option [value]="type.value">{{type.viewValue}}</mat-option>
+            }
+          </mat-select>
+          <mat-error *ngIf="employeeForm.get('contractType')?.hasError('required')">
+            Este campo es requerido
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </mat-expansion-panel>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-raised-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button
+          style="background-color: var(--itg-primary); color: var(--itg-bg)"
+          (click)="onSubmit()"
+          [disabled]="employeeForm.invalid || employeeForm.pending"
+          [class.disabled-button]="employeeForm.invalid">
+    {{ isEditMode ? 'Actualizar' : 'Guardar' }}
+  </button>
+</mat-dialog-actions>

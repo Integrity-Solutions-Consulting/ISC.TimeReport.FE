@@ -1,0 +1,142 @@
+.list-container {
+  padding: 20px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 10px; // This margin applies to full-width fields when not in a row layout
+}
+
+// New styles for the two-column layout
+.form-row {
+  display: flex;
+  justify-content: space-between; // Distributes space between items
+  gap: 20px; // Adds space between form fields in a row
+  margin-bottom: 15px; // Space between rows
+
+  // Specific styles for fields that should take half width
+  .form-field-half {
+    flex: 1; // Allows fields to grow and shrink
+    min-width: calc(50% - 10px); // Ensures roughly half the width, accounting for gap
+  }
+
+  // Ensure full-width fields within a form-row take up all available space
+  .full-width {
+    width: 100%;
+    margin-bottom: 0; // Reset margin for full-width fields when inside a row
+  }
+}
+
+/* Estilos para el textarea */
+mat-form-field {
+  &.mat-form-field-appearance-outline {
+    textarea.mat-input-element {
+      resize: vertical;
+      min-height: 80px;
+      padding: 0.75em 0; /* Mejor alineación vertical */
+      line-height: 1.5; /* Mejor espaciado entre líneas */
+
+      /* Placeholder alineado */
+      &::placeholder {
+        opacity: 1;
+        color: rgba(0, 0, 0, 0.54);
+        transition: all 0.2s;
+      }
+
+      &:focus::placeholder {
+        opacity: 0.5;
+      }
+    }
+
+    /* Ajuste específico para la alineación del label */
+    .mat-form-field-label {
+      top: 2.1em; /* Ajuste fino para alinear con inputs */
+      margin-top: 0.2em;
+    }
+
+    /* Cuando está enfocado o con valor */
+    &.mat-form-field-can-float.mat-form-field-should-float .mat-form-field-label,
+    &.mat-form-field-can-float .mat-input-server:focus + .mat-form-field-label-wrapper .mat-form-field-label {
+      transform: translateY(-1.1em) scale(0.75);
+    }
+  }
+}
+
+/* Asegurar consistencia con los inputs normales */
+mat-form-field input.mat-input-element,
+mat-form-field textarea.mat-input-element {
+  font: inherit;
+  vertical-align: baseline;
+}
+
+// Optional: Adjust for smaller screens to stack fields vertically
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column; // Stacks fields vertically on small screens
+    gap: 0; // Remove gap when stacked
+  }
+
+  .form-field-half {
+    width: 100%; // Make them full width on small screens
+    min-width: 100%; // Ensure it takes full width
+  }
+}
+
+
+.mat-elevation-z8 {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.mat-column-actions {
+  width: 80px;
+  text-align: center;
+}
+
+.mat-label {
+  font-family: 'Poppins';
+}
+
+.mat-dialog-actions {
+  justify-content: flex-end;
+  padding: 16px 0;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
+
+  button {
+    background-color: var(--primary);
+    color: white;
+    margin-inline: 10px;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+
+    &.mat-button {
+      border: 1px solid #ccc;
+      background-color: transparent; // Ensure regular buttons are transparent
+      color: var(--primary); // Set text color for regular buttons
+    }
+
+    &.mat-raised-button {
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      background-color: var(--primary); // Ensure raised buttons use primary color by default
+      color: white; // Ensure raised buttons have white text
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+}
+
+// Ensure the disabled button has appropriate styling
+.disabled-button {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+

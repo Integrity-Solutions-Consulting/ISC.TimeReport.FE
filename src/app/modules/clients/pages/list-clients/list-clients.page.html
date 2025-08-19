@@ -1,0 +1,15 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>
+      <h4 style="font-family: 'Poppins'; ">Clientes</h4>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <customer-list></customer-list>
+  </mat-card-content>
+</mat-card>
+<app-loading
+  *ngIf="isLoading"
+  title="Guardando datos del cliente"
+  subtitle="Estamos procesando tu solicitud, por favor espere...">
+</app-loading>

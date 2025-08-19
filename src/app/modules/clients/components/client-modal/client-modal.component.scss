@@ -1,0 +1,169 @@
+.list-container {
+  padding: 20px;
+}
+
+// Global full-width, if used outside of .form-row
+.full-width {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+// Section title for better organization
+.section-title {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  color: var(--primary); // Or any color that fits your theme
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 5px;
+}
+
+// Styles for the two-column layout
+.form-row {
+  display: flex;
+  justify-content: space-between; // Distributes space between items
+  gap: 20px; // Adds space between form fields in a row
+  margin-bottom: 15px; // Space between rows
+
+  // Specific styles for fields that should take half width
+  .form-field-half {
+    flex: 1; // Allows fields to grow and shrink
+    min-width: calc(50% - 10px); // Ensures roughly half the width, accounting for gap
+    margin-bottom: 0; // Reset margin-bottom as the row handles it
+  }
+
+  // Override full-width behavior when it's inside a form-row
+  // This is crucial for fields like "Número de Identificación" or the radio group
+  // that need full width even within a 'form-row' to display error messages clearly
+  // or simply span the entire row.
+  .full-width {
+    width: 100%;
+    margin-bottom: 0; // Reset individual field margin-bottom if row handles it
+  }
+
+  // Style for the radio group to ensure it takes full width within its row
+  .radio-group {
+    display: flex; /* Makes the radio buttons display in a row */
+    gap: 20px; /* Adds some space between the radio buttons */
+    /* Remove full-width if you don't want it to stretch across the container */
+    /* width: 100%; */
+  }
+}
+
+// Media query for responsiveness: stack fields vertically on small screens
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column; // Stacks fields vertically on small screens
+    gap: 0; // Remove gap when stacked
+  }
+
+  .form-field-half,
+  .full-width { // Apply to both half and full width fields when stacked
+    width: 100%; // Make them full width on small screens
+    min-width: 100%; // Ensure it takes full width
+    margin-bottom: 10px; // Add back individual field margin for stacking
+  }
+
+  .radio-group {
+    flex-direction: column; // Ensure radio buttons stack vertically on small screens
+  }
+}
+
+
+.mat-elevation-z8 {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.mat-column-actions {
+  width: 80px;
+  text-align: center;
+}
+
+.mat-dialog-actions {
+  justify-content: flex-end;
+  padding: 16px 0;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
+
+  button {
+    background-color: var(--primary);
+    color: white;
+    margin-inline: 10px;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+
+    &.mat-button {
+      border: 1px solid #ccc;
+      background-color: transparent; // Ensure regular buttons are transparent
+      color: var(--primary); // Set text color for regular buttons
+    }
+
+    &.mat-raised-button {
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      background-color: var(--primary); // Ensure raised buttons use primary color by default
+      color: var(--light); // Ensure raised buttons have light text as per your current style
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+}
+
+// Styling for disabled buttons
+.disabled-button {
+  opacity: 0.6;
+  cursor: not-allowed;
+  // You might want to make the background color slightly different for disabled state
+  // background-color: #cccccc !important;
+}
+
+.mat-form-field.ng-invalid.ng-touched {
+  .mat-form-field-outline {
+    color: var(--itg-error);
+  }
+}
+
+.mat-error {
+  color: var(--itg-error);
+}
+
+.error-snackbar {
+  background-color: #f44336; /* Rojo de Material para errores */
+  color: white;
+}
+
+.success-snackbar {
+  background-color: #4caf50; /* Verde de Material para éxito */
+  color: white;
+}
+
+/* Opcional: Para que aparezca en la parte superior */
+.mat-snack-bar-container {
+  margin-top: 64px !important; /* Ajusta según tu navbar */
+}
+.page-container {
+  position: relative;
+  min-height: 100vh;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}

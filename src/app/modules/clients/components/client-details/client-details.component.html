@@ -1,0 +1,113 @@
+<div class="client-detail-container">
+  <mat-card class="client-card" *ngIf="!isLoading && client">
+    <!-- Header con información principal -->
+    <mat-card-header class="client-header">
+      <div class="client-avatar">
+        <mat-icon class="avatar-icon">business</mat-icon>
+      </div>
+
+      <div class="client-main-info">
+        <mat-card-title class="client-name">
+          {{client.person?.firstName}} {{client.person?.lastName}}
+          <span *ngIf="client.tradeName">({{client.tradeName}})</span>
+        </mat-card-title>
+
+        <mat-card-subtitle class="client-legal-name" *ngIf="client.legalName">
+          Razón Social: {{client.legalName}}
+        </mat-card-subtitle>
+
+        <div class="client-status">
+          <mat-chip class="status-chip" [ngClass]="{
+            'active': client.status,
+            'inactive': !client.status
+          }">
+            {{client.status ? 'ACTIVO' : 'INACTIVO'}}
+          </mat-chip>
+        </div>
+      </div>
+    </mat-card-header>
+
+    <mat-divider></mat-divider>
+
+    <!-- Contenido principal -->
+    <mat-card-content class="client-content">
+      <div class="client-grid">
+        <!-- Columna izquierda - Datos personales -->
+        <div class="client-section personal-data">
+          <h3 class="section-title">DATOS DE LA EMPRESA</h3>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">category</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Tipo de Persona</span>
+              <span class="info-value">{{client.person?.personType || 'No especificado'}}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">fingerprint</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Identificación</span>
+              <span class="info-value">
+                {{client.person?.identificationNumber}}
+                ({{getIdentificationType(client.person?.identificationTypeId)}})
+              </span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">flag</mat-icon>
+            <div class="info-content">
+              <span class="info-label">País</span>
+              <span class="info-value">{{getNationality(client.person?.nationalityId)}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna derecha - Datos de contacto -->
+        <div class="client-section contact-data">
+          <h3 class="section-title">DATOS DE CONTACTO</h3>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">email</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Email</span>
+              <span class="info-value">{{client.person?.email || 'No especificado'}}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">phone</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Teléfono</span>
+              <span class="info-value">{{client.person?.phone || 'No especificado'}}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">home</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Dirección</span>
+              <span class="info-value">{{client.person?.address || 'No especificada'}}</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </mat-card-content>
+
+    <!-- Acciones -->
+    <mat-card-actions class="client-actions">
+      <button mat-stroked-button color="primary" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        VOLVER
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Loader -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando detalles del cliente...</p>
+  </div>
+</div>

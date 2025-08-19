@@ -1,53 +1,37 @@
-name: ISC.TimeReport.FE-DEV-CI/CD
+name: ISC.TimeReport.FE-PROD-CI/CD
 
 on:
   pull_request:
     branches:
-      - develop
+      - main
     types:
       - closed
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
-    if: github.event.pull_request.merged == true
-    runs-on: self-hosted
-    defaults:
-      run:
-        shell: powershell
+  deploy:
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Verificar el repositorio
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v3
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.5.4
         with:
-          node-version: '18.x'
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
 
-      - name: Instalar dependencias
-        run: npm ci
+      - name: Add VPS to known_hosts
+        run: ssh-keyscan -H ${{ secrets.VPS_IP }} >> ~/.ssh/known_hosts
 
-      - name: Compilar la aplicación Angular
+      - name: Copy files to VPS
         run: |
-          npm run build -- --configuration=development --base-href /time-report.fe/
-
-      - name: Detener la aplicación en IIS
+          rsync -avz --exclude '.git' ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:${{ secrets.VPS_DEPLOY_PATH }}
+          
+      - name: Deploy Docker containers
         run: |
-          $destination = 'C:\inetpub\wwwroot\time-report.fe'
-          if (Test-Path $destination) {
-            New-Item -ItemType File -Path "$destination\app_offline.htm" -Force
-          } else {
-            New-Item -ItemType Directory -Path $destination -Force
-          }
-
-      - name: Desplegar archivos al servidor IIS
-        run: |
-          $source = "dist/isc.time-report.fe/browser"
-          $destination = "C:\inetpub\wwwroot\time-report.fe"
-          Remove-Item -Recurse -Force "$destination\*" -ErrorAction SilentlyContinue
-          Copy-Item -Path "$source\*" -Destination $destination -Recurse -Force
-
-      - name: Iniciar la aplicación en IIS
-        run: |
-          $appPath = "C:\inetpub\wwwroot\time-report.fe"
-          Remove-Item "$appPath\app_offline.htm" -Force -ErrorAction SilentlyContinue
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} << 'EOF'
+            cd ${{ secrets.VPS_DEPLOY_PATH }}
+            docker compose down || true
+            docker compose up -d --build
+          EOF

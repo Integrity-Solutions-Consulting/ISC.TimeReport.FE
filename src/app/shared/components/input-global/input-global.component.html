@@ -1,0 +1,14 @@
+<div class="input-group" [class.invalid]="hasError">
+  <label *ngIf="label">{{ label }} <span *ngIf="required">*</span></label>
+  <input
+    [type]="type"
+    [formControl]="control"
+    [placeholder]="placeholder"
+    [class.input-error]="hasError"
+  />
+
+  <div class="error-message" *ngIf="hasError">
+    <ng-container *ngIf="control.errors?.['required']">Este campo es obligatorio.</ng-container>
+    <ng-container *ngIf="control.errors?.['email']">Correo electrónico no válido.</ng-container>
+  </div>
+</div>

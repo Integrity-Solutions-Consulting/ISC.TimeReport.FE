@@ -1,0 +1,63 @@
+<h2 mat-dialog-title>Generar Reporte</h2>
+<mat-dialog-content>
+  <form [formGroup]="payloadForm" (ngSubmit)="onSubmit()">
+    <!-- Mostrar información del empleado actual -->
+    <div class="employee-info">
+      <mat-label>Empleado:</mat-label>
+      <span class="employee-name">{{ currentEmployeeName }}</span>
+    </div>
+
+    <!-- Campo de cliente con select -->
+    <div class="form-field">
+      <mat-form-field appearance="outline">
+        <mat-select formControlName="clientID" placeholder="Cliente">
+          <mat-option *ngFor="let client of clients" [value]="client.id">
+            {{ client.tradeName || client.legalName }}
+          </mat-option>
+          <mat-option *ngIf="loadingClients">
+            <mat-spinner diameter="20"></mat-spinner>
+          </mat-option>
+          <mat-option *ngIf="!loadingClients && clients.length === 0" disabled>
+            No hay clientes asociados
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Campos de fecha -->
+    <div class="form-field">
+      <mat-form-field appearance="outline">
+        <mat-label>Año</mat-label>
+        <mat-select formControlName="year" required>
+          <mat-option *ngFor="let year of years" [value]="year">
+            {{ year }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field">
+      <mat-form-field appearance="outline">
+        <mat-label>Mes</mat-label>
+        <mat-select formControlName="month" required>
+          <mat-option *ngFor="let month of months" [value]="month.value">
+            {{ month.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field">
+      <mat-slide-toggle formControlName="isFullMonth">
+        {{ payloadForm.get('isFullMonth')?.value ? 'Mes Completo' : 'Quincena' }}
+      </mat-slide-toggle>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button style="background-color: var(--itg-primary); color:var(--itg-bg);" (click)="onSubmit()" [disabled]="payloadForm.invalid || generatingReport">
+    <span *ngIf="!generatingReport">Generar</span>
+    <mat-spinner *ngIf="generatingReport" diameter="20"></mat-spinner>
+  </button>
+</mat-dialog-actions>

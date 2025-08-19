@@ -1,9 +1,42 @@
-<div id="menu-container">
-  <nav>
-    <ul>
-      @for (option of options; track option) {
-        <li> <a routerLink="{{option}}">{{ $index + 1 }}. {{ option }}</a></li>
-      }
-    </ul>
-  </nav>
+<div class="sidenav-container">
+  <div class="logo-container">
+    <img src="assets/img/logo-isc.png" alt="Logo Integrity" class="logo-img" />
+    <div class="logo-text">
+      <div class="app-name">TimeReport<span class="logo-dot">.</span></div>
+    </div>
+  </div>
+
+  <mat-nav-list>
+    <ng-container *ngIf="menuItems.length > 0">
+      <!-- Ordenamos los items por displayOrder -->
+      <ng-container *ngFor="let item of menuItems | orderBy: 'displayOrder'">
+        <!-- Ítems simples -->
+        <a *ngIf="item.type === 'item'"
+          mat-list-item
+          [routerLink]="item.modulePath"
+          routerLinkActive="active-link">
+          <mat-icon>{{item.icon}}</mat-icon>
+          {{item.moduleName}}
+        </a>
+
+        <!-- Expansion Panels -->
+        <mat-expansion-panel *ngIf="item.type === 'expansion'">
+          <mat-expansion-panel-header>
+            <mat-icon>{{item.icon}}</mat-icon>
+            {{item.moduleName}}
+          </mat-expansion-panel-header>
+
+          <mat-nav-list>
+            <a mat-list-item
+              *ngFor="let option of item.options | orderBy: 'displayOrder'"
+              [routerLink]="option.modulePath"
+              routerLinkActive="active-link">
+              <mat-icon>{{option.icon}}</mat-icon>
+              {{option.moduleName}}
+            </a>
+          </mat-nav-list>
+        </mat-expansion-panel>
+      </ng-container>
+    </ng-container>
+  </mat-nav-list>
 </div>

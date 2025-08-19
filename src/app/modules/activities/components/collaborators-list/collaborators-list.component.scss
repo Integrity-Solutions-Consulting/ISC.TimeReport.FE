@@ -1,0 +1,168 @@
+.main-class {
+  padding: 16px;
+}
+
+.top-container {
+  display: flex;
+  align-items: flex-start; // Cambiado a flex-start para mejor control
+  width: 100%;
+  gap: 16px;
+  padding: 8px 0;
+
+  // Alinear la base de todos los elementos (donde estaría el texto)
+  .search-field,
+  .month-selector,
+  .period-toggle,
+  .download-button {
+    align-self: center; // Fuerza la alineación vertical al centro
+    margin-top: 16px; // Compensa la altura de los inputs
+  }
+
+  .search-field {
+    flex: 2;
+    min-width: 250px;
+
+    // Ajuste específico para el input
+    .mat-form-field-wrapper {
+      padding-bottom: 0; // Elimina espacio extra inferior
+    }
+  }
+
+  .month-selector {
+    flex: 1;
+    min-width: 120px;
+
+    .mat-form-field-wrapper {
+      padding-bottom: 0;
+    }
+  }
+
+  .period-toggle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    min-width: 180px;
+    height: 56px; // Misma altura que los mat-form-field
+    margin-top: 0; // Ajuste fino de posición
+
+    .toggle-label {
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .mat-slide-toggle {
+      background-color: var(--itg-primary);
+      margin: 0 8px;
+    }
+  }
+
+  .download-button {
+    background-color: var(--itg-primary);
+    height: 40px; // Misma altura que los inputs
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    margin-top: 0; // Ajuste fino de posición
+
+    mat-icon {
+      margin-right: 8px;
+    }
+
+    &:disabled {
+      background-color: var(--itg-bg); // Gris claro
+      cursor: not-allowed; // Cambiar el cursor
+      opacity: 0.7; // Opcional: reducir un poco la opacidad
+    }
+  }
+
+  @media (max-width: 900px) {
+    flex-wrap: wrap;
+    align-items: center;
+
+    .search-field {
+      flex: 1 1 100%;
+      margin-top: 0;
+    }
+
+    .month-selector,
+    .period-toggle {
+      flex: 1;
+      min-width: 120px;
+      margin-top: 0;
+    }
+
+    .download-button {
+      margin-top: 0;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .month-selector,
+    .period-toggle {
+      flex: 1 1 100%;
+    }
+
+    .period-toggle {
+      justify-content: flex-start;
+      height: auto;
+      margin: 8px 0;
+    }
+
+    .download-button {
+      width: 100%;
+      margin: 4px 0;
+    }
+  }
+}
+
+.collaborator-table {
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+
+  th {
+    background-color: #f5f5f5;
+    font-weight: 500;
+  }
+
+  .download-button {
+    color: #3f51b5;
+  }
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  &.completed {
+    .status-dot {
+      background-color: #4caf50;
+    }
+    .status-text {
+      color: #4caf50;
+    }
+  }
+
+  &.pending {
+    .status-dot {
+      background-color: #f44336;
+    }
+    .status-text {
+      color: #f44336;
+    }
+  }
+}
+
+mat-paginator {
+  border-radius: 0 0 8px 8px;
+  border: 1px solid #e0e0e0;
+  border-top: none;
+}

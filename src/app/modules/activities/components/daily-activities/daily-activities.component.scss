@@ -1,0 +1,104 @@
+
+h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+ul {
+  margin: 0;
+  padding: 0 0 0 1.5em;
+}
+
+li {
+  margin: 1.5em 0;
+  padding: 0;
+}
+
+b { /* used for event dates/times */
+  margin-right: 3px;
+}
+
+.demo-app {
+  display: flex;
+  min-height: 100%;
+  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+  font-size: 14px;
+}
+
+.demo-app-sidebar {
+  width: 300px;
+  line-height: 1.5;
+  background: #eaf9ff;
+  border-right: 1px solid #d3e2e8;
+}
+
+.demo-app-sidebar-section {
+  padding: 2em;
+}
+
+.demo-app-main {
+  flex-grow: 1;
+  padding: 3em;
+}
+
+.fc { /* the calendar root */
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Fuerza la opacidad de los eventos */
+.fc-event {
+  opacity: 1 !important;
+
+  /* Estilos para el contenido del evento */
+  .fc-event-main {
+    opacity: 1 !important;
+    padding: 2px 4px;
+  }
+
+  /* Estilos para el borde */
+  .fc-event-main-frame {
+    border-left: 3px solid var(--fc-border-color) !important;
+  }
+}
+
+/* Asegura que los colores de fondo se apliquen */
+.fc-event .fc-event-main {
+  background-color: inherit !important;
+}
+
+.fc .fc-button-primary {
+  background-color: #007bff; /* Un azul de ejemplo para los botones */
+  color: white; /* Color del texto del botón */
+  border-color: #007bff; /* Color del borde */
+
+  &:hover {
+    background-color: #0056b3; // Color más oscuro al pasar el ratón
+    border-color: #0056b3;
+  }
+  &:active {
+    background-color: #004085; // Color aún más oscuro al hacer clic
+    border-color: #004085;
+  }
+}
+
+.fc-addActivity-button .fc-button .fc-button-primary{
+  background-color: #28a745 !important; /* Un verde de ejemplo */
+  color: white;
+  border-color: #28a745;
+  &:hover {
+    background-color: #218838;
+    border-color: #218838;
+  }
+  &:active {
+    background-color: #1e7e34;
+    border-color: #1e7e34;
+  }
+}
+
+::ng-deep .fc-event-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}

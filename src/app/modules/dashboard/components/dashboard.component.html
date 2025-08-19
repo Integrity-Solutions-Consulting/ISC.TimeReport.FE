@@ -1,0 +1,126 @@
+<div class="dashboard-container">
+  <h3>Dashboard</h3>
+</div>
+<ngx-charts-number-card
+  [view]="[1260,400]"
+  [scheme]="colorScheme"
+  [results]="data3"
+  [cardColor]="cardColor">
+</ngx-charts-number-card>
+<div class="card-row-container">
+    <mat-card class="card-40-width">
+        <mat-card-header class="card-header-grid">
+          <span class="card-title">Actividades/Horas</span>
+          <mat-form-field appearance="outline" class="date-field">
+            <input matInput [matDatepicker]="picker" [formControl]="dateControl">
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
+        </mat-card-header>
+        <mat-card-content style="margin-top: 100px;">
+            <ngx-charts-bar-vertical
+                [view]="[400,200]"
+                [scheme]="colorScheme"
+                [results]="chartData"
+                [gradient]="false"
+                [xAxis]="true"
+                [yAxis]="true"
+                [legend]="false"
+                [showXAxisLabel]="true"
+                [showYAxisLabel]="true"
+                xAxisLabel="Actividades"
+                yAxisLabel="Horas">
+            </ngx-charts-bar-vertical>
+        </mat-card-content>
+    </mat-card>
+    <mat-card class="card-60-width">
+        <mat-card-header>
+            <span class="card-title">Recursos Por Cliente</span>
+        </mat-card-header>
+        <mat-card-content>
+            <ngx-charts-pie-chart
+              [view]="[800, 400]"
+              [scheme]="colorScheme"
+              [results]="circleData"
+              [gradient]="gradient"
+              [legend]="showLegend"
+              [legendPosition]="legendPosition"
+              [labels]="showLabels"
+              [doughnut]="isDoughnut"
+              [tooltipDisabled]=false
+              [tooltipText]="customTooltipText"
+              >
+            </ngx-charts-pie-chart>
+        </mat-card-content>
+    </mat-card>
+</div>
+<mat-card class="card-row-container" style="margin-top: 25px">
+    <mat-card-header>
+        Proyectos
+    </mat-card-header>
+    <mat-card-content>
+        <div class="filter-container">
+          <mat-form-field appearance="outline" class="search-field filter-select">
+            <mat-label>Tipo de filtro</mat-label>
+            <mat-select [formControl]="tipoFiltroControl" (selectionChange)="changeFilterType()">
+              <mat-option value="proyecto">Proyecto</mat-option>
+              <mat-option value="cliente">Cliente</mat-option>
+              <mat-option value="colaborador">Colaborador</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="search-field filter-input">
+            <input matInput [formControl]="filterControl" placeholder="Buscar...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+        <div class="table-container">
+          <div *ngIf="loading" class="loading">
+            <mat-spinner diameter="50"></mat-spinner>
+          </div>
+
+          <table mat-table [dataSource]="dataSource" matSort>
+            <!-- Columna Proyecto -->
+            <ng-container matColumnDef="proyecto">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Proyecto</th>
+              <td mat-cell *matCellDef="let element">{{element.proyecto || '-'}}</td>
+            </ng-container>
+
+            <!-- Columna Cliente -->
+            <ng-container matColumnDef="cliente">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
+              <td mat-cell *matCellDef="let element">{{element.cliente || '-'}}</td>
+            </ng-container>
+
+            <!-- Columna Líder Técnico -->
+            <ng-container matColumnDef="lider_Tecnico">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Líder Técnico</th>
+              <td mat-cell *matCellDef="let element">{{element.lider_Tecnico || '-'}}</td>
+            </ng-container>
+
+            <!-- Columna Fecha Inicio -->
+            <ng-container matColumnDef="fecha_Inicio">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha Inicio</th>
+              <td mat-cell *matCellDef="let element">{{element.fecha_Inicio || '-'}}</td>
+            </ng-container>
+
+            <!-- Columna Fecha Finalización -->
+            <ng-container matColumnDef="fecha_Finalizacion">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha Finalización</th>
+              <td mat-cell *matCellDef="let element">{{element.fecha_Finalizacion || '-'}}</td>
+            </ng-container>
+
+            <!-- Columna Colaboradores -->
+            <ng-container matColumnDef="colaboradores">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Colaboradores</th>
+              <td mat-cell *matCellDef="let element">{{element.colaboradores || '-'}}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+
+          <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" showFirstLastButtons></mat-paginator>
+        </div>
+    </mat-card-content>
+</mat-card>

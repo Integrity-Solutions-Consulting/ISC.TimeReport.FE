@@ -1,0 +1,31 @@
+<header>
+    <app-header (toggleMenu)="sidenav.toggle()"/>
+  </header>
+
+<app-loading
+  *ngIf="isLoading"
+  title="Procesando"
+  subtitle="Por favor espere...">
+</app-loading>
+
+<main class="main-container">
+  <mat-sidenav-container>
+    <mat-sidenav #sidenav
+                 [mode]="isMobile ? 'over' : 'side'"
+                 [fixedInViewport]="isMobile"
+                 [fixedTopGap]="mobileHeaderHeight"
+                 [(opened)]="menuOpen">
+      <app-sidebar></app-sidebar>
+    </mat-sidenav>
+
+    <mat-sidenav-content>
+      <div id="content-container">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</main>
+
+  <footer>
+    <app-footer></app-footer>
+  </footer>

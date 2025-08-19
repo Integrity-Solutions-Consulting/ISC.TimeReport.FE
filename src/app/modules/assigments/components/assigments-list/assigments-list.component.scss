@@ -1,0 +1,44 @@
+.top-items {
+  display: flex;
+  align-items: center;
+  margin: 10px 0 20px 0;
+  width: 100%;
+}
+
+.search-field {
+  width: 50%;
+}
+
+@media (min-width: 768px) {
+  .top-items {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+@media (min-width: 600px) {
+  .search-field {
+    min-width: 300px;
+  }
+}
+
+// assigments-list.component.scss
+.full-width-table {
+  width: 100%;
+}
+
+.mat-chip {
+  font-size: 0.75rem;
+  height: 24px;
+}
+
+.snackbar-error {
+  background-color: #f44336;
+  color: white;
+}
+
+.mat-row:hover {
+  background-color: #f5f5f5;
+  cursor: pointer;
+}

@@ -1,0 +1,208 @@
+@use '@angular/material' as mat;
+
+.dialog-container {
+  padding: 0 !important; // Override Material padding
+  border-radius: 12px !important;
+  overflow: hidden;
+
+  .mat-dialog-container {
+    padding: 0;
+    border-radius: 12px;
+  }
+}
+
+.dialog-header {
+  padding: 20px 24px 16px;
+  background-color: var(--itg-primary);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--itg-primary);
+  }
+
+  .close-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    color: var(--itg-primary);
+  }
+}
+
+.dialog-content {
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+
+  @media (max-width: 600px) {
+    padding: 16px;
+    max-height: 60vh;
+  }
+
+  .form-field {
+    width: 100%;
+    margin-bottom: 16px;
+
+    &.dense {
+      margin-bottom: 12px;
+    }
+  }
+}
+
+.dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  button {
+    min-width: 100px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &.cancel-button {
+      color: var(--itg-primary);
+    }
+
+    &.confirm-button {
+      background-color: var(--itg-primary);
+      color: white;
+
+      &:disabled {
+        background-color: var(--itg-primary);
+      }
+    }
+  }
+}
+
+// Efecto de hover y focus
+@include mat.button-density(-2);
+
+.mat-mdc-button:not(:disabled) {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Scrollbar personalizada (opcional)
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--itg-primary);
+  border-radius: 4px;
+}
+
+/* Estilos generales del diálogo */
+.mat-dialog-container {
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Campos del formulario */
+.form-field {
+  width: 100%;
+  margin-bottom: 20px;
+
+  .mat-icon {
+    color: rgba(0, 0, 0, 0.54);
+    margin-right: 8px;
+  }
+
+  .mat-form-field-outline {
+    background-color: #f5f5f5;
+    border-radius: 4px;
+  }
+
+  .mat-form-field-outline-thicker {
+    border-width: 2px;
+  }
+
+  .mat-input-element {
+    padding: 8px 0;
+    font-size: 14px;
+  }
+
+  .mat-form-field-label {
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .mat-form-field-wrapper {
+    padding-bottom: 0;
+  }
+
+  .mat-form-field-subscript-wrapper {
+    margin-top: 4px;
+  }
+}
+
+/* Lista de módulos */
+.modules-title {
+  margin: 24px 0 16px;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.modules-list {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 8px 0;
+  max-height: 300px;
+  overflow-y: auto;
+
+  .module-name {
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .module-description {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .mat-list-option {
+    height: auto;
+    padding: 8px 16px;
+  }
+}
+
+/* Acciones del diálogo */
+.mat-dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 16px;
+
+  button {
+    min-width: 100px;
+    border-radius: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+  }
+}
+
+/* Efectos de hover y focus */
+.mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  color: var(--itg-primary);
+}
+
+.mat-form-field.mat-focused .mat-form-field-label {
+  color: var(--itg-primary);
+}
+
+.mat-list-option:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}

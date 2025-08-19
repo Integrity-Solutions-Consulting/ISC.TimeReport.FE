@@ -1,0 +1,130 @@
+.list-container {
+  padding: 20px;
+}
+
+// Global full-width, if used outside of .form-row
+.full-width {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.mat-elevation-z8 {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.mat-dialog-content {
+  margin: 6px;
+}
+
+.mat-column-actions {
+  width: 80px;
+  text-align: center;
+}
+
+// --- New Styles for Two-Column Layout and Sections ---
+.section-title {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  color: var(--primary); // Using --primary for section titles
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 5px;
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 15px; // Space between rows
+
+  .form-field-half {
+    flex: 1;
+    min-width: calc(50% - 10px); // Calc ensures proper spacing with gap
+    margin-bottom: 0; // Reset individual field margin
+  }
+
+  // Ensure full-width fields inside a form-row behave as expected
+  .full-width {
+    width: 100%;
+    margin-bottom: 0; // Reset individual field margin
+  }
+
+  // Specific style for the radio group within a form-row
+  .radio-group {
+    display: flex; /* Makes the radio buttons display in a row */
+    gap: 20px; /* Adds some space between the radio buttons */
+    /* Remove full-width if you don't want it to stretch across the container */
+    /* width: 100%; */
+    justify-content: space-between;
+    margin-left: 80px;
+    margin-right: 80px;
+  }
+}
+
+// Responsive adjustments for smaller screens
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-field-half,
+  .full-width {
+    width: 100%;
+    min-width: 100%;
+    margin-bottom: 10px; // Re-add individual field margin for stacking
+  }
+
+  .radio-group {
+    flex-direction: column; // Ensure radio buttons stack
+  }
+}
+// --- End New Styles ---
+
+
+.mat-dialog-actions {
+  justify-content: flex-end;
+  padding: 16px 0;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
+
+  button {
+    background-color: var(--primary);
+    color: white;
+    margin-inline: 10px;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+
+    &.mat-button {
+      border: 1px solid #ccc;
+      background-color: transparent; // Ensure regular buttons are transparent
+      color: var(--primary); // Set text color for regular buttons
+    }
+
+    &.mat-raised-button {
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      background-color: var(--itg-primary); // Use itg-primary for raised button background
+      color: var(--itg-bg); // Use itg-bg for raised button text color
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+}
+
+// Styling for disabled buttons
+.disabled-button {
+  opacity: 0.6;
+  cursor: not-allowed;
+  // Optional: You can make the background color slightly different for disabled state
+  // background-color: #cccccc !important;
+}

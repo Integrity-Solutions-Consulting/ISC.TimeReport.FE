@@ -1,0 +1,89 @@
+<div class="form-grid" [formGroup]="personForm">
+    <!-- Fila 1 -->
+    <div class="form-row">
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Tipo de Identificación</mat-label>
+            <mat-select formControlName="identificationType">
+                @for (type of types; track type) {
+                  <mat-option [value]="type.value">{{type.viewValue}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Número de Identificación</mat-label>
+            <input matInput formControlName="identificationNumber">
+        </mat-form-field>
+    </div>
+
+    <!-- Fila 2 -->
+    <div class="form-row">
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Género</mat-label>
+            <mat-select formControlName="gender">
+                @for (gender of genders; track gender) {
+                  <mat-option [value]="gender.value">{{gender.viewValue}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Tipo de Persona</mat-label>
+            <mat-select formControlName="personType">
+                @for (type of personType; track type) {
+                  <mat-option [value]="type.value">{{type.viewValue}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Nacionalidad</mat-label>
+            <mat-select formControlName="nationality">
+                @for (nation of nationalities; track nation) {
+                  <mat-option [value]="nation.value">{{nation.viewValue}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+    </div>
+
+    <!-- Fila 3 -->
+    <div class="form-row">
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Nombres</mat-label>
+            <input matInput type="text" formControlName="firstName">
+        </mat-form-field>
+
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Apellidos</mat-label>
+            <input matInput type="text" formControlName="lastName">
+        </mat-form-field>
+    </div>
+
+    <!-- Fila 4 -->
+    <div class="form-row">
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Fecha de Nacimiento</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="birthDate">
+            <mat-hint>MM/DD/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field class="form-field" appearance="outline">
+            <mat-label>Teléfono</mat-label>
+            <input matInput formControlName="phone">
+        </mat-form-field>
+    </div>
+
+    <!-- Campos de ancho completo -->
+    <mat-form-field class="full-width-field" appearance="outline">
+        <mat-label>Correo Electrónico</mat-label>
+        <input matInput formControlName="email">
+    </mat-form-field>
+
+    <mat-form-field class="full-width-field" appearance="outline">
+        <mat-label>Dirección</mat-label>
+        <input matInput formControlName="address">
+    </mat-form-field>
+</div>
+

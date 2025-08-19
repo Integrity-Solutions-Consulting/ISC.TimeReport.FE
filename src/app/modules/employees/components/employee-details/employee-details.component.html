@@ -1,0 +1,166 @@
+<div class="employee-detail-container">
+  <mat-card class="employee-card" *ngIf="!isLoading && employee">
+    <!-- Header con foto y datos básicos -->
+    <mat-card-header class="employee-header">
+      <div class="employee-avatar">
+        <mat-icon class="avatar-icon">account_circle</mat-icon>
+      </div>
+
+      <div class="employee-basic-info">
+        <mat-card-title class="employee-name">
+          {{employee.person.firstName}} {{employee.person.lastName}}
+        </mat-card-title>
+        <mat-card-subtitle class="employee-code">
+          Código: {{employee.employeeCode}}
+        </mat-card-subtitle>
+
+        <div class="employee-status">
+          <mat-chip class="status-chip" [ngClass]="{
+            'active': employee.status,
+            'inactive': !employee.status
+          }">
+            {{employee.status ? 'ACTIVO' : 'INACTIVO'}}
+          </mat-chip>
+
+          <mat-chip class="contract-chip" [ngClass]="{
+            'permanent': employee.contractType,
+            'temporary': !employee.contractType
+          }">
+            {{employee.contractType ? 'CONTRATO FIJO' : 'CONTRATO TEMPORAL'}}
+          </mat-chip>
+        </div>
+      </div>
+    </mat-card-header>
+
+    <mat-divider></mat-divider>
+
+    <!-- Contenido principal -->
+    <mat-card-content class="employee-content">
+      <div class="employee-grid">
+        <!-- Columna izquierda - Datos personales -->
+        <div class="employee-section personal-data">
+          <h3 class="section-title">DATOS PERSONALES</h3>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">fingerprint</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Identificación</span>
+              <span class="info-value">
+                {{employee.person.identificationNumber}}
+              </span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">cake</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Fecha Nacimiento</span>
+              <span class="info-value">{{formatDate(employee.person.birthDate)}}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">wc</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Género</span>
+              <span class="info-value">{{getGenderName(employee.person.genderId)}}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">flag</mat-icon>
+            <div class="info-content">
+              <span class="info-label">País</span>
+              <span class="info-value">{{getNationalityName(employee.person.nationalityId)}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna derecha - Datos laborales -->
+        <div class="employee-section work-data">
+          <h3 class="section-title">DATOS LABORALES</h3>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">business</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Departamento</span>
+              <span class="info-value">{{getDepartmentName(employee.departmentID)}}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">work</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Cargo</span>
+              <span class="info-value">{{getPositionName(employee.positionID)}}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">event</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Fecha Contratación</span>
+              <span class="info-value">{{formatDate(employee.hireDate)}}</span>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="employee.terminationDate">
+            <mat-icon class="info-icon">event_busy</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Fecha Terminación</span>
+              <span class="info-value">{{formatDate(employee.terminationDate)}}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">attach_money</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Salario</span>
+              <span class="info-value">{{employee.salary | currency}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección de contacto -->
+      <div class="contact-section">
+        <h3 class="section-title">CONTACTO</h3>
+        <div class="contact-grid">
+          <div class="contact-item">
+            <mat-icon class="contact-icon">email</mat-icon>
+            <span class="contact-value">{{employee.person.email}}</span>
+          </div>
+
+          <div class="contact-item">
+            <mat-icon class="contact-icon">mail</mat-icon>
+            <span class="contact-value">{{employee.corporateEmail}}</span>
+          </div>
+
+          <div class="contact-item">
+            <mat-icon class="contact-icon">phone</mat-icon>
+            <span class="contact-value">{{employee.person.phone}}</span>
+          </div>
+
+          <div class="contact-item">
+            <mat-icon class="contact-icon">home</mat-icon>
+            <span class="contact-value">{{employee.person.address}}</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <!-- Acciones -->
+    <mat-card-actions class="employee-actions">
+      <button mat-stroked-button color="primary" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        VOLVER
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Loader -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando detalles del empleado...</p>
+  </div>
+</div>

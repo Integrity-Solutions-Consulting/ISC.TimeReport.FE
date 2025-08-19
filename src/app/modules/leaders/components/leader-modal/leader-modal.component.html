@@ -1,0 +1,183 @@
+<h4 mat-dialog-title style="margin: 10px; font-family: 'Poppins'">
+  {{ isEditMode ? 'Editar Líder' : 'Crear Nuevo Líder' }}
+</h4>
+<mat-dialog-content>
+  <form [formGroup]="leaderForm" (ngSubmit)="onSubmit()" class="customer-form" style="margin-top: 6px;">
+
+    <div class="form-row" *ngIf="useExistingPerson">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-select formControlName="existingPerson" (selectionChange)="onPersonSelected($event)" placeholder="Persona">
+          <mat-option *ngIf="isLoadingPersons" disabled>
+            <div style="display: flex; align-items: center;">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span style="margin-left: 8px;">Cargando personas...</span>
+            </div>
+          </mat-option>
+          @for (person of personsList; track person) {
+            <mat-option [value]="person.id">
+              {{ person.firstName }} {{ person.lastName }} ({{ person.identificationNumber }})
+            </mat-option>
+          }
+        </mat-select>
+        <mat-error *ngIf="leaderForm.get('existingPerson')?.hasError('required') && leaderForm.get('existingPerson')?.touched">
+          Este campo es requerido
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="section-title" style="font-family: 'Poppins';">Datos del Líder</div>
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-label style="font-family: 'Poppins'; ">Tipo de Líder</mat-label>
+        <mat-select formControlName="leadershipType"> @for (type of leaderTypes; track type) {
+            <mat-option [value]="type.id">
+              {{type.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <mat-error *ngIf="leaderForm.get('leadershipType')?.hasError('required') && leaderForm.get('leadershipType')?.touched">
+          Este campo es requerido
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-select formControlName="projectID" required placeholder="Proyecto">
+          <mat-option *ngIf="isLoadingProjects" disabled>
+            <div style="display: flex; align-items: center;">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span style="margin-left: 8px;">Cargando proyectos...</span>
+            </div>
+          </mat-option>
+          @for (project of projectsList; track project) {
+            <mat-option [value]="project.id">
+              {{ project.name }} ({{ project.code }})
+            </mat-option>
+          }
+        </mat-select>
+        <mat-error *ngIf="leaderForm.get('projectID')?.hasError('required') && leaderForm.get('projectID')?.touched">
+          Este campo es requerido
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field-half">
+        <input matInput formControlName="responsibilities" placeholder="Área">
+      </mat-form-field>
+    </div>
+
+    <div formGroupName="person" *ngIf="!useExistingPerson">
+      <div class="section-title" style="font-family: 'Poppins';">Datos de Contacto</div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Tipo de Persona</mat-label>
+          <mat-select formControlName="personType" required>
+            <mat-option *ngFor="let type of personTypes" [value]="type.value">
+              {{type.viewValue}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="leaderForm.get('personType')?.hasError('required')">
+            El tipo de persona es requerido
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-select formControlName="identificationTypeId" placeholder="Tipo de Identificación">
+            @for (type of identificationTypes; track type) {
+              <mat-option [value]="type.id">{{type.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <input matInput formControlName="identificationNumber" required placeholder="Número de Identificación">
+          <mat-error *ngIf="leaderForm.get('person.identificationNumber')?.hasError('required')">
+            Este campo es requerido
+          </mat-error>
+          <mat-error *ngIf="leaderForm.get('person.identificationNumber')?.hasError('invalidRucLength')">
+            El RUC debe tener exactamente 13 dígitos
+          </mat-error>
+          <mat-error *ngIf="leaderForm.get('person.identificationNumber')?.hasError('invalidCedulaLength')">
+            La cédula debe tener máximo 10 dígitos
+          </mat-error>
+          <mat-error *ngIf="leaderForm.get('person.identificationNumber')?.hasError('invalidIdentificationType')">
+            Persona jurídica debe usar RUC
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="firstName" placeholder="Nombres">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="lastName" placeholder="Apellidos">
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput [matDatepicker]="picker3" formControlName="birthDate" placeholder="Fecha de Nacimiento">
+          <mat-hint>MM/DD/YYYY</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="picker3"></mat-datepicker-toggle>
+          <mat-datepicker #picker3></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="email" type="email" placeholder="Correo Electrónico">
+          <mat-error *ngIf="leaderForm.get('person.email')?.hasError('email')">
+            Formato de email inválido
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="phone" placeholder="Número de Teléfono">
+          <mat-error *ngIf="leaderForm.get('person.phone')?.hasError('required')">
+            Este campo es requerido
+          </mat-error>
+          <mat-error *ngIf="leaderForm.get('person.phone')?.hasError('pattern')">
+            El teléfono debe contener solo números (máximo 10 dígitos)
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="address" placeholder="Dirección">
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-select formControlName="genderID" placeholder="Género">
+            @for (gender of genders; track gender) {
+              <mat-option [value]="gender.id">{{gender.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-select formControlName="nationalityId" placeholder="País">
+            @for (nation of nationalities; track nation) {
+              <mat-option [value]="nation.id">{{nation.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-raised-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button
+          style="background-color: var(--itg-primary); color: var(--itg-bg)"
+          (click)="onSubmit()"
+          [disabled]="leaderForm.invalid || leaderForm.pending"
+          [class.disabled-button]="leaderForm.invalid">
+    Guardar
+  </button>
+</mat-dialog-actions>

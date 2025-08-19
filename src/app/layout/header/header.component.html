@@ -1,3 +1,35 @@
-<div id="header-container">
-  <h1>Time Report Header - Hola, {{username}}</h1>
-</div>
+<mat-toolbar id="header-container" color="primary">
+  <!-- Botón de menú (visible solo en móvil) -->
+  <button mat-icon-button class="menu-button" (click)="toggleMenu.emit()" aria-label="Menú">
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <!-- Logo y título -->
+  <div class="left">
+    <span class="logo">
+      <mat-icon class="time-icon">schedule</mat-icon>
+      Time Report
+    </span>
+  </div>
+
+  <!-- Área de usuario -->
+  <div class="right">
+
+    <span>Hola, {{ username }}</span>
+    <button mat-icon-button [matMenuTriggerFor]="menu">
+      <mat-icon class="user-icon" style="color: var(--itg-bg);">account_circle</mat-icon>
+    </button>
+
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item class="logout-button" (click)="navigateToChangePassword()" aria-label="Cambiar Contraseña">
+        <mat-icon>lock_reset</mat-icon>
+        <span class="logout-text">Cambiar Contraseña</span>
+      </button>
+      <button mat-menu-item class="logout-button" (click)="logout()" aria-label="Cerrar sesión">
+        <mat-icon>logout</mat-icon>
+        <span class="logout-text">Cerrar sesión</span>
+      </button>
+    </mat-menu>
+
+  </div>
+</mat-toolbar>

@@ -1,24 +1,128 @@
+<app-loading
+  *ngIf="isLoading"
+  title="Verificando Credenciales"
+  subtitle="Por favor, espere un momento..." />
+<app-alerta
+  [mensaje]="mensajeError"
+  [visible]="mostrarError"
+></app-alerta>
 
+<div class="login-container">
+  <!-- Left Panel - Login Form -->
+  <div class="login-panel">
+    <div class="login-content">
+      <!-- Logo -->
+      <div class="logo-container">
+        <img src="assets/img/logo-isc.png" alt="Integrity Solutions" class="logo">
+      </div>
 
-  <div class="login-container">
-    <div class="login-box">
+      <!-- Title -->
+      <h1 class="login-title">Iniciar Sesión</h1>
 
+      <!-- Login Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="login()" class="login-form">
 
-      <h2>Bienvenido</h2>
-
-      <img src="assets\img\logo-isc.webp" alt="Logo" class="logo">
-
-
-      <form>
-        <input class="login-fields" id="users" type="text" placeholder="Usuario" required>
-        <input class="login-fields" id="password" type="password" placeholder="Contraseña" required>
-        <button type="submit">Login</button>
-        <div class="links">
-          <a href="#">¿Perdiste tu contraseña?</a>
-          <a href="#">¿No tienes Cuenta? Regístrate</a>
+        <div class="error-message" *ngIf="formInvalid">
+          Por favor, complete todos los campos obligatorios.
         </div>
+
+        <!-- Email Field -->
+        <div class="form-group">
+          <label for="username" class="form-label">Correo electrónico</label>
+          <input
+            id="username"
+            type="email"
+            formControlName="username"
+            placeholder="email@gmail.com"
+            class="form-input"
+            [class.invalid]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched"
+          />
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="password" class="form-label">Contraseña</label>
+          <div class="password-container">
+            <input
+              id="password"
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="Contraseña"
+              class="form-input"
+              [class.invalid]="loginForm.get('Password')?.invalid && loginForm.get('Password')?.touched"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="togglePasswordVisibility()"
+            >
+              <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg *ngIf="showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember Me Checkbox -->
+        <div class="form-options">
+          <label class="checkbox-container">
+            <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe">
+            <span class="checkmark"></span>
+            Recuerda mis datos
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="login-button" [disabled]="isLoading">
+          Iniciar Sesión
+        </button>
+
       </form>
-
-
+      <div class="forgot-password">
+        <button mat-button routerLink="/auth/forgot-password">¿Olvidaste tu contraseña?</button>
+      </div>
     </div>
   </div>
+
+  <!-- Right Panel - Branding with Carousel -->
+  <div class="branding-panel">
+    <div class="branding-content">
+      <!-- Carrusel de Imágenes -->
+      <div class="carousel-container" [@slideAnimation]="currentSlide">
+        <div class="carousel-slide" *ngFor="let image of carouselImages; let i = index"
+             [class.active]="i === currentSlide">
+          <img [src]="image" alt="Integrity Solutions" class="brand-image">
+        </div>
+
+        <!-- Controles del carrusel -->
+        <button class="carousel-control prev" (click)="prevSlide()">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button class="carousel-control next" (click)="nextSlide()">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+
+        <!-- Indicadores -->
+        <div class="carousel-indicators">
+          <span *ngFor="let image of carouselImages; let i = index"
+                [class.active]="i === currentSlide"
+                (click)="goToSlide(i)"></span>
+        </div>
+      </div>
+
+      <!-- Texto debajo del carrusel -->
+      <div class="branding-text">
+        <h2 class="brand-title" style="color:#d1d5db">Integrity Solutions</h2>
+        <p class="brand-description" style="color:#d1d5db">
+          Nuestras líneas de negocios, proporcionan a nuestros clientes el respaldo apropiado en la busqueda de soluciones
+          integrales a nivel empresarial, junto con la experiencia de nuestros consultores y el compromiso de calidad brindada.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

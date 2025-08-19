@@ -1,0 +1,113 @@
+<h4 mat-dialog-title style="margin: 10px; font-family: 'Poppins'">
+  {{ isEditMode ? 'Editar Cliente' : 'Crear Nuevo Cliente' }}
+</h4>
+<mat-dialog-content>
+  <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="customer-form" style="margin-top: 6px;">
+
+    <div class="section-title" style="font-family: 'Poppins';">Datos del Cliente</div>
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field-half">
+        <input matInput formControlName="tradeName" placeholder="Empresa">
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field-half">
+        <mat-label style="font-family: 'Poppins'; ">Tipo de Compañía</mat-label>
+        <mat-select formControlName="company">
+          <mat-option value="ISC">ISC</mat-option>
+          <mat-option value="RPS">RPS</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div formGroupName="person">
+      <div class="section-title" style="font-family: 'Poppins';">Datos de Contacto</div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins';">Tipo de Persona</mat-label>
+          <mat-select formControlName="personType">
+            @for (type of personTypes; track type) {
+              <mat-option [value]="type.id">{{type.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins';">Tipo de Identificación</mat-label>
+          <mat-select formControlName="identificationTypeId">
+            @for (type of identificationTypes; track type) {
+              <mat-option [value]="type.id">{{type.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <input matInput formControlName="identificationNumber" placeholder="Número de Identificación">
+          <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('duplicate')">
+            ¡Este número de identificación ya está registrado!
+          </mat-error>
+          <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('pattern')">
+            Solo se permiten números
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="firstName" placeholder="Nombres">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="lastName" placeholder="Apellidos">
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="email" type="email" placeholder="Correo Electrónico">
+          <mat-error *ngIf="clientForm.get('person.email')?.hasError('email')">
+            Formato de email inválido
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="phone" placeholder="Teléfono">
+          <mat-error *ngIf="clientForm.get('person.phone')?.hasError('pattern')">
+            El teléfono debe contener solo números (máximo 10 dígitos)
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="address" placeholder="Dirección">
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-select formControlName="nationalityId" placeholder="País">
+            @for (nation of nationalities; track nation) {
+              <mat-option [value]="nation.id">{{nation.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-raised-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button
+          style="background-color: var(--itg-primary); color: var(--itg-bg)"
+          (click)="onSubmit()"
+          [disabled]="!clientForm.valid || clientForm.pending"
+          [class.disabled-button]="!clientForm.valid">
+    Guardar
+  </button>
+</mat-dialog-actions>

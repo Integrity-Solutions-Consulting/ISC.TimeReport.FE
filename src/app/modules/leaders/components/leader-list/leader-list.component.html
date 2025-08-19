@@ -1,0 +1,110 @@
+<div>
+
+  <div class="top-items">
+    <mat-form-field appearance="outline" class="search-field">
+      <input matInput
+            [formControl]="searchControl"
+            placeholder="Buscar por nombres, número de identificación..."
+            #input>
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <button mat-flat-button class="add-button" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Agregar Nuevo
+    </button>
+  </div>
+
+  <table mat-table [dataSource]="dataSource" matSort style="border-radius: 8px 8px 0 0; overflow: hidden;">
+
+    <!--<ng-container matColumnDef="select">
+      <th mat-header-cell *matHeaderCellDef>
+        <mat-checkbox (change)="$event ? toggleAll() : null"
+                      [checked]="selection.hasValue() && isAllSelected()"
+                      [indeterminate]="selection.hasValue() && !isAllSelected()">
+        </mat-checkbox>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <mat-checkbox (click)="$event.stopPropagation()"
+                     (change)="$event ? selection.toggle(row) : null"
+                     [checked]="selection.isSelected(row)">
+        </mat-checkbox>
+      </td>
+    </ng-container>-->
+
+    <ng-container matColumnDef="idtype">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Tipo </th>
+      <td mat-cell *matCellDef="let element">{{getIdentificationTypeName(element.person.identificationTypeId)}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="idnumber">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Identificación </th>
+      <td mat-cell *matCellDef="let element">{{element.person.identificationNumber}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="leadertype">
+      <th mat-header-cell *matHeaderCellDef> Tipo de Líder </th>
+      <td mat-cell *matCellDef="let element">{{getLeaderTypeName(element.leadershipType)}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="names">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombres </th>
+      <td mat-cell *matCellDef="let element">{{element.person.firstName}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="surnames">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Apellidos </th>
+      <td mat-cell *matCellDef="let element">{{element.person.lastName}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="project">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Proyecto </th>
+      <td mat-cell *matCellDef="let element">{{getProjectName(element.projectID)}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+      <td mat-cell *matCellDef="let element">
+        <div class="status-container" [ngClass]="{'active': element.status, 'inactive': !element.status}">
+          <div class="status-dot"></div>
+          <div class="status-text">{{element.status ? 'Activo' : 'Inactivo'}}</div>
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="options">
+      <th mat-header-cell *matHeaderCellDef> Acciones </th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-icon-button [matMenuTriggerFor]="leaderMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #leaderMenu="matMenu">
+          <button mat-menu-item (click)="openEditDialog(element)">
+            <mat-icon>edit</mat-icon>
+            <span>Editar</span>
+          </button>
+          <button mat-menu-item (click)="viewLeaderDetails(element.id)">
+            <mat-icon>visibility</mat-icon>
+            <span>Visualizar</span>
+          </button>
+          <button mat-menu-item (click)="toggleLeaderStatus(element)">
+            <mat-icon>{{element.status ? 'delete' : 'check_circle'}}</mat-icon>
+            <span>{{element.status ? 'Desactivar' : 'Activar'}}</span>
+          </button>
+        </mat-menu>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <mat-paginator
+    [length]="totalItems"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[5, 10, 25, 100]"
+    (page)="onPageChange($event)"
+    aria-label="Select page of employees">
+  </mat-paginator>
+
+</div>

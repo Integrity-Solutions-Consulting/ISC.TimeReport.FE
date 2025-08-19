@@ -1,0 +1,45 @@
+<h2 mat-dialog-title>{{isEditMode ? 'Editar Rol' : 'Crear Nuevo Rol'}}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="roleForm" *ngIf="!isLoading">
+    <mat-form-field appearance="outline" class="form-field">
+      <input matInput formControlName="roleName" required placeholder="Nombre de Rol">
+      <mat-icon matPrefix>badge</mat-icon>
+      <mat-hint>Ingrese un nombre único para el rol</mat-hint>
+      <mat-error *ngIf="roleForm.get('roleName')?.hasError('required')">
+        El nombre del rol es requerido
+      </mat-error>
+      <mat-error *ngIf="roleForm.get('roleName')?.hasError('minlength')">
+        Mínimo 3 caracteres
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Campo Description con mejor estilo -->
+    <mat-form-field appearance="outline" class="form-field">
+      <input matInput formControlName="description" placeholder="Descripción" rows="3">
+      <mat-icon matPrefix>description</mat-icon>
+      <mat-hint>Describa el propósito de este rol</mat-hint>
+    </mat-form-field>
+
+    <h3>Módulos Accesibles</h3>
+    <mat-selection-list formControlName="moduleIds">
+      <mat-list-option *ngFor="let module of allModules" [value]="module.id" checkboxPosition="before">
+
+        <div matLine>{{module.moduleName}}</div>
+
+      </mat-list-option>
+    </mat-selection-list>
+  </form>
+
+  <mat-spinner *ngIf="isLoading" diameter="40"></mat-spinner>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button style="background-color: var(--itg-primary); color: var(--itg-bg);"
+    (click)="onSave()"
+    [disabled]="roleForm.invalid || isSaving">
+    <span *ngIf="!isSaving">{{isEditMode ? 'Actualizar' : 'Crear'}}</span>
+    <mat-spinner *ngIf="isSaving" diameter="20" strokeWidth="2"></mat-spinner>
+  </button>
+</mat-dialog-actions>

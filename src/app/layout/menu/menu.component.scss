@@ -1,4 +1,109 @@
-#menu-container{
-    margin: 0%;
-    padding: 1rem;
+.sidenav-container {
+  padding: 16px;
+  /* Establece la altura del contenedor al 100% del viewport */
+  /* Usa 'min-height' y 'max-height' para mayor control si es necesario */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Importante: Asegura que el padding se incluya en la altura */
+  box-sizing: border-box;
+  /* Evita que el propio contenedor principal tenga un scrollbar */
+  overflow: hidden;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  text-align: center;
+  flex-shrink: 0; /* Prevent the logo from shrinking */
+}
+
+.logo-img {
+  width: 100px;
+  height: auto;
+  margin-bottom: 10px;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.company-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.2;
+}
+
+.app-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin-top: 4px;
+}
+
+.logo-dot {
+  color: #3f51b5;
+}
+
+mat-nav-list {
+  padding: 0;
+  flex-grow: 1; /* Allow the nav list to take up remaining space */
+  overflow-y: auto; /* This is key: allow scrolling only for the list items */
+  -webkit-overflow-scrolling: touch; /* Improves scrolling on touch devices */
+}
+
+a.mdc-list-item {
+  position: relative; /* para posicionar el pseudo-elemento */
+  padding-left: 16px; /* espacio para el borde, ajusta según necesites */
+  border-left: 4px solid transparent; /* borde invisible por defecto */
+  transition: border-color 0.3s ease;
+
+  &:hover {
+    color: var(--itg-primary) !important;
+  }
+}
+
+.menu-items {
+  display: flex;
+  justify-content: space-between;
+}
+
+.submenu-item {
+  padding-left: 5px !important;
+}
+
+.active-link {
+  color: var(--itg-primary) !important;
+
+  &:hover {
+    background-color: var(--itg-primary-bg) !important;
+  }
+}
+.menu-expansion-panel {
+  box-shadow: none !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+
+  .menu-expansion-header {
+    padding: 0 16px;
+    height: 48px;
+
+    .mat-content {
+      align-items: center;
+    }
+
+    .expansion-icon {
+      margin-left: auto;
+    }
+  }
+
+  .mat-expansion-panel-body {
+    padding: 0 !important;
+  }
 }

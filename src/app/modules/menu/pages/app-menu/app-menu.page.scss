@@ -1,0 +1,33 @@
+.main-container {
+  height: calc(100vh - 120px); // Ajusta según tu header y footer
+  overflow: auto;
+}
+
+mat-sidenav-container {
+  height: 100%;
+}
+
+mat-sidenav {
+  width: 250px;
+  background-color: #f5f5f5;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+mat-sidenav-content {
+  padding: 20px;
+  background-color: #fff;
+}
+
+#content-container {
+  min-height: 100%;
+}
+
+@media (max-width: 767px) {
+  mat-sidenav {
+    width: 80%;
+  }
+  
+  mat-sidenav-content {
+    padding: 10px;
+  }
+}
