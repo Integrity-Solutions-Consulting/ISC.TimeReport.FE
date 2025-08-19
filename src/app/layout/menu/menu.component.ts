@@ -75,86 +75,98 @@ export class MenuComponent implements OnInit {
     return modules.filter((module: any) => allowedModules.includes(module.id));
   }
 
+  /**
+   * Genera el menú para el rol de 'Colaborador' puro.
+   * La principal diferencia es que también se asegura de añadir el prefijo '/menu/'.
+   * @param modules Lista de módulos filtrados.
+   * @returns Un arreglo con los items del menú.
+   */
   private createCollaboratorMenu(modules: any[]): any[] {
     const actividades = modules.find((m: any) => m.id === 3); // Actividades
     if (!actividades) return [];
 
+    // Aplicamos el prefijo /menu/ al path del módulo antes de retornarlo
+    const processedModule = {
+      ...actividades,
+      modulePath: `/menu/${actividades.modulePath.startsWith('/') ? actividades.modulePath.substring(1) : actividades.modulePath}`
+    };
+
     return [{
       type: 'item',
-      ...actividades
+      ...processedModule
     }];
   }
 
   private createStandardMenu(modules: any[]): any[] {
-  const menuItems: any[] = [];
+    const menuItems: any[] = [];
 
-  // Procesamos todos los módulos para agregar el prefijo /menu/ solo una vez
-  const processedModules = modules.map(module => ({
-    ...module,
-    modulePath: `/menu/${module.modulePath.startsWith('/') ? module.modulePath.substring(1) : module.modulePath}`
-  }));
+    // Procesamos todos los módulos para agregar el prefijo /menu/ solo una vez
+    const processedModules = modules.map(module => ({
+      ...module,
+      modulePath: `/menu/${module.modulePath.startsWith('/') ? module.modulePath.substring(1) : module.modulePath}`
+    }));
 
-  // Ítems antes del Time Report
-  const preTimeReportModules = processedModules.filter(m =>
-    m.moduleName === 'Dashboard' ||
-    m.moduleName === 'Proyectos'
-  );
+    // Ítems antes del Time Report
+    const preTimeReportModules = processedModules.filter(m =>
+      m.moduleName === 'Dashboard' ||
+      m.moduleName === 'Proyectos'
+    );
 
-  preTimeReportModules.forEach(module => {
-    menuItems.push({
-      type: 'item',
-      ...module
+    preTimeReportModules.forEach(module => {
+      menuItems.push({
+        type: 'item',
+        ...module
+      });
     });
-  });
 
-  // Panel Time Report - Usamos los módulos ya procesados SIN volver a agregar /menu/
-  const timeReportModules = processedModules.filter(m =>
-    m.moduleName === 'Actividades' ||
-    m.moduleName === 'Seguimiento'
-  );
+    // Panel Time Report - Usamos los módulos ya procesados SIN volver a agregar /menu/
+    const timeReportModules = processedModules.filter(m =>
+      m.moduleName === 'Actividades' ||
+      m.moduleName === 'Seguimiento'
+    );
 
-  if (timeReportModules.length > 0) {
-    menuItems.push({
-      type: 'expansion',
-      moduleName: 'Time Report',
-      icon: 'alarm',
-      expanded: false,
-      options: timeReportModules, // <-- Usamos los módulos ya procesados
-      displayOrder: 3
+    if (timeReportModules.length > 0) {
+      menuItems.push({
+        type: 'expansion',
+        moduleName: 'Time Report',
+        icon: 'alarm',
+        expanded: false,
+        options: timeReportModules, // <-- Usamos los módulos ya procesados
+        displayOrder: 3
+      });
+    }
+
+    // Ítems después del Time Report
+    const postTimeReportModules = processedModules.filter(m =>
+      m.moduleName === 'Colaboradores' ||
+      m.moduleName === 'Clientes' ||
+      m.moduleName === 'Líderes'
+    );
+
+    postTimeReportModules.forEach(module => {
+      menuItems.push({
+        type: 'item',
+        ...module
+      });
     });
+
+    // Panel Configuración - Usamos los módulos ya procesados SIN volver a agregar /menu/
+    const configModules = processedModules.filter(m =>
+      m.moduleName === 'Roles' ||
+      m.moduleName === 'Users'
+    );
+
+    if (configModules.length > 0) {
+      menuItems.push({
+        type: 'expansion',
+        moduleName: 'Configuración',
+        icon: 'settings',
+        expanded: false,
+        options: configModules, // <-- Usamos los módulos ya procesados
+        displayOrder: 8
+      });
+    }
+
+    return menuItems.sort((a, b) => a.displayOrder - b.displayOrder);
   }
-
-  // Ítems después del Time Report
-  const postTimeReportModules = processedModules.filter(m =>
-    m.moduleName === 'Colaboradores' ||
-    m.moduleName === 'Clientes' ||
-    m.moduleName === 'Líderes'
-  );
-
-  postTimeReportModules.forEach(module => {
-    menuItems.push({
-      type: 'item',
-      ...module
-    });
-  });
-
-  // Panel Configuración - Usamos los módulos ya procesados SIN volver a agregar /menu/
-  const configModules = processedModules.filter(m =>
-    m.moduleName === 'Roles' ||
-    m.moduleName === 'Users'
-  );
-
-  if (configModules.length > 0) {
-    menuItems.push({
-      type: 'expansion',
-      moduleName: 'Configuración',
-      icon: 'settings',
-      expanded: false,
-      options: configModules, // <-- Usamos los módulos ya procesados
-      displayOrder: 8
-    });
-  }
-
-  return menuItems.sort((a, b) => a.displayOrder - b.displayOrder);
-}
 }
