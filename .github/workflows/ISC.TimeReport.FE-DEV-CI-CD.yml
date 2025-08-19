@@ -1,0 +1,53 @@
+name: ISC.TimeReport.FE-DEV-CI/CD
+
+on:
+  pull_request:
+    branches:
+      - develop
+    types:
+      - closed
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: self-hosted
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Verificar el repositorio
+        uses: actions/checkout@v3
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar la aplicación Angular
+        run: |
+          npm run build -- --configuration=development --base-href /time-report.fe/
+
+      - name: Detener la aplicación en IIS
+        run: |
+          $destination = 'C:\inetpub\wwwroot\time-report.fe'
+          if (Test-Path $destination) {
+            New-Item -ItemType File -Path "$destination\app_offline.htm" -Force
+          } else {
+            New-Item -ItemType Directory -Path $destination -Force
+          }
+
+      - name: Desplegar archivos al servidor IIS
+        run: |
+          $source = "dist/isc.time-report.fe/browser"
+          $destination = "C:\inetpub\wwwroot\time-report.fe"
+          Remove-Item -Recurse -Force "$destination\*" -ErrorAction SilentlyContinue
+          Copy-Item -Path "$source\*" -Destination $destination -Recurse -Force
+
+      - name: Iniciar la aplicación en IIS
+        run: |
+          $appPath = "C:\inetpub\wwwroot\time-report.fe"
+          Remove-Item "$appPath\app_offline.htm" -Force -ErrorAction SilentlyContinue
