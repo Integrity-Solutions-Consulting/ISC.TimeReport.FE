@@ -85,7 +85,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
     },
     locale: 'es',
     initialView: 'dayGridMonth', // alternatively, use the `events` setting to fetch from a feed
-    weekends: false,
+    weekends: true,
     editable: true,
     selectable: true,
     selectMirror: true,
