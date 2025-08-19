@@ -332,153 +332,136 @@ export class CollaboratorsListComponent implements OnInit{
   }
 
   loadData() {
-    // 1. Obtenemos los empleados pendientes
-    this.http.get<any[]>(`${this.urlBase}/api/TimeReport/recursos-pendientes`).pipe(
-      catchError(error => {
-        console.error('Error loading employees:', error);
-        return of([]);
-      })
-    ).subscribe(employees => {
-      if (!employees || employees.length === 0) {
-        this.dataSource.data = [];
-        return;
-      }
+    // 1. Obtenemos los empleados pendientes y las actividades
+    forkJoin({
+      employees: this.http.get<any[]>(`${this.urlBase}/api/TimeReport/recursos-pendientes`).pipe(
+        catchError(error => {
+          console.error('Error loading employees:', error);
+          return of([]);
+        })
+      ),
+      activities: this.http.get<any>(`${this.urlBase}/api/DailyActivity/GetAllActivities`).pipe(
+        catchError(() => of({ data: [] }))
+      ),
+      leaders: this.http.get<any>(`${this.urlBase}/api/Leader/GetAllLeaders`).pipe(
+        catchError(() => of({ items: [] }))
+      )
+    }).subscribe({
+      next: ({ employees, activities, leaders }) => {
+        if (!employees || employees.length === 0) {
+          this.dataSource.data = [];
+          return;
+        }
 
-      // 2. Obtenemos datos adicionales en paralelo
-      forkJoin({
-        activities: this.http.get<any>(`${this.urlBase}/api/DailyActivity/GetAllActivities`).pipe(
-          catchError(() => of({ data: [] }))
-        ),
-        leaders: this.http.get<any>(`${this.urlBase}/api/Leader/GetAllLeaders`).pipe(
-          catchError(() => of({ items: [] }))
-        )
-      }).subscribe({
-        next: ({ activities, leaders }) => {
-          // 3. Creamos mapas para relaciones
-          const employeeActivitiesMap = new Map<number, any[]>();
-          const projectLeadersMap = new Map<number, any>();
+        // 2. Filtramos las actividades que tienen un projectID válido
+        const validActivities = activities.data.filter((activity: any) => activity.projectID);
 
-          // Mapeamos actividades por empleado (filtrando actividades sin projectID)
-          activities.data.forEach((activity: any) => {
-            if (!activity.projectID) return; // Skip activities without projectID
+        // Si no hay actividades válidas, la lista de colaboradores estará vacía
+        if (validActivities.length === 0) {
+          this.dataSource.data = [];
+          return;
+        }
 
-            if (!employeeActivitiesMap.has(activity.employeeID)) {
-              employeeActivitiesMap.set(activity.employeeID, []);
-            }
-            employeeActivitiesMap.get(activity.employeeID)?.push(activity);
-          });
+        // 3. Creamos un mapa de actividades por empleado, usando solo las válidas
+        const employeeActivitiesMap = new Map<number, any[]>();
+        validActivities.forEach((activity: any) => {
+          if (!employeeActivitiesMap.has(activity.employeeID)) {
+            employeeActivitiesMap.set(activity.employeeID, []);
+          }
+          employeeActivitiesMap.get(activity.employeeID)?.push(activity);
+        });
 
-          // Mapeamos líderes por proyecto
-          leaders.items.forEach((leader: any) => {
-            if (leader.projectID) {
-              projectLeadersMap.set(leader.projectID, leader);
-            }
-          });
+        // 4. Creamos un mapa de líderes por proyecto
+        const projectLeadersMap = new Map<number, any>();
+        leaders.items.forEach((leader: any) => {
+          if (leader.projectID) {
+            projectLeadersMap.set(leader.projectID, leader);
+          }
+        });
 
-          // 4. Procesamos cada empleado
-          const requests = employees.map(emp => {
-            const empActivities = employeeActivitiesMap.get(emp.employeeID) || [];
+        // 5. Filtramos los empleados que tienen al menos un proyecto asignado
+        const employeesWithProjects = employees.filter(emp => employeeActivitiesMap.has(emp.employeeID));
 
-            if (empActivities.length === 0) {
-              return of({
-                employee: emp,
-                project: null,
-                client: null,
-                leader: null,
-                totalHours: 0
-              });
-            }
+        // 6. Procesamos cada empleado filtrado
+        const requests = employeesWithProjects.map(emp => {
+          const empActivities = employeeActivitiesMap.get(emp.employeeID) || [];
+          const firstActivity = empActivities[0];
 
-            const firstActivity = empActivities[0];
+          // Obtenemos el proyecto
+          return this.http.get<any>(`${this.urlBase}/api/Project/GetProjectByID/${firstActivity.projectID}`).pipe(
+            catchError(() => of(null)),
+            switchMap(project => {
+              if (!project || !project.clientID) {
+                return of({
+                  employee: emp,
+                  project: project,
+                  client: null,
+                  leader: null,
+                  totalHours: empActivities.reduce((sum, act) => sum + act.hoursQuantity, 0)
+                });
+              }
 
-            // Skip if projectID is null or undefined
-            if (!firstActivity.projectID) {
-              return of({
-                employee: emp,
-                project: null,
-                client: null,
-                leader: null,
-                totalHours: empActivities.reduce((sum, act) => sum + act.hoursQuantity, 0)
-              });
-            }
+              // Obtenemos el cliente
+              return this.http.get<any>(`${this.urlBase}/api/Client/GetClientByID/${project.clientID}`).pipe(
+                catchError(() => of(null)),
+                map(client => {
+                  const leader = projectLeadersMap.get(firstActivity.projectID);
+                  const totalHours = empActivities.reduce((sum, act) => sum + act.hoursQuantity, 0);
 
-            // 5. Obtenemos el proyecto
-            return this.http.get<any>(`${this.urlBase}/api/Project/GetProjectByID/${firstActivity.projectID}`).pipe(
-              catchError(() => of(null)),
-              switchMap(project => {
-                if (!project || !project.clientID) {
-                  return of({
+                  return {
                     employee: emp,
                     project: project,
-                    client: null,
-                    leader: null,
-                    totalHours: empActivities.reduce((sum, act) => sum + act.hoursQuantity, 0)
-                  });
-                }
+                    client: client,
+                    leader: leader,
+                    totalHours: totalHours
+                  };
+                })
+              );
+            })
+          );
+        });
 
-                // 6. Obtenemos el cliente específico para este proyecto
-                return this.http.get<any>(`${this.urlBase}/api/Client/GetClientByID/${project.clientID}`).pipe(
-                  catchError(() => of(null)),
-                  map(client => {
-                    // Buscamos el líder correspondiente
-                    const leader = projectLeadersMap.get(firstActivity.projectID);
-                    const totalHours = empActivities.reduce((sum, act) => sum + act.hoursQuantity, 0);
+        // 7. Procesamos todas las solicitudes y actualizamos la tabla
+        forkJoin(requests).subscribe({
+          next: (results) => {
+            const collaborators = results.map(result => {
+              const emp = result.employee;
+              const project = result.project;
+              const client = result.client;
+              const leader = result.leader;
+              const totalHours = result.totalHours;
 
-                    return {
-                      employee: emp,
-                      project: project,
-                      client: client,
-                      leader: leader,
-                      totalHours: totalHours
-                    };
-                  })
-                );
-              })
-            );
-          });
+              return {
+                employeeID: emp.employeeID,
+                nombre: emp.nombreCompletoEmpleado || `${emp.firstName} ${emp.lastName}`,
+                cedula: emp.employeeID.toString(),
+                proyecto: project?.name || 'No asignado',
+                cliente: client?.tradeName || client?.legalName || 'No asignado',
+                lider: leader ? `${leader.person.firstName} ${leader.person.lastName}` : 'No asignado',
+                horas: totalHours,
+                estado: totalHours >= 80 ? 'Completo' : 'Pendiente',
+                projectData: project,
+                clientData: client,
+                leaderData: leader
+              };
+            })
+            .filter(colaborador => colaborador.proyecto !== 'No asignado'); // Añade este filtro
 
-          // 7. Procesamos todas las solicitudes
-          forkJoin(requests).subscribe({
-            next: (results) => {
-              const collaborators = results.map(result => {
-                const emp = result.employee;
-                const project = result.project;
-                const client = result.client;
-                const leader = result.leader;
-                const totalHours = result.totalHours;
-
-                return {
-                  employeeID: emp.employeeID,
-                  nombre: emp.nombreCompletoEmpleado || `${emp.firstName} ${emp.lastName}`,
-                  cedula: emp.employeeID.toString(),
-                  proyecto: project?.name || 'No asignado',
-                  cliente: client?.tradeName || client?.legalName || 'No asignado',
-                  lider: leader ?
-                    `${leader.person.firstName} ${leader.person.lastName}` : 'No asignado',
-                  horas: totalHours,
-                  estado: totalHours >= 80 ? 'Completo' : 'Pendiente',
-                  projectData: project,
-                  clientData: client,
-                  leaderData: leader
-                };
-              });
-
-              this.dataSource.data = collaborators;
-              this.dataSource.paginator = this.paginator;
-              this.dataSource.sort = this.sort;
-              this.totalItems = collaborators.length;
-            },
-            error: (err) => {
-              console.error('Error loading details:', err);
-              this.dataSource.data = [];
-            }
-          });
-        },
-        error: (err) => {
-          console.error('Error loading initial data:', err);
-          this.dataSource.data = [];
-        }
-      });
+            this.dataSource.data = collaborators;
+            this.dataSource.paginator = this.paginator;
+            this.dataSource.sort = this.sort;
+            this.totalItems = collaborators.length;
+          },
+          error: (err) => {
+            console.error('Error loading details:', err);
+            this.dataSource.data = [];
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error loading initial data:', err);
+        this.dataSource.data = [];
+      }
     });
   }
 }
