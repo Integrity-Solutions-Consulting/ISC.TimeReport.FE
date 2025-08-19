@@ -153,7 +153,7 @@ export class MenuComponent implements OnInit {
     // Panel Configuración - Usamos los módulos ya procesados SIN volver a agregar /menu/
     const configModules = processedModules.filter(m =>
       m.moduleName === 'Roles' ||
-      m.moduleName === 'Users'
+      m.moduleName === 'Usuarios'
     );
 
     if (configModules.length > 0) {
