@@ -104,7 +104,7 @@ export class ReportDialogComponent implements OnInit {
 
   initializeForm(): void {
     this.payloadForm = this.fb.group({
-      clientID: [''],
+      clientID: ['', Validators.required],
       year: [new Date().getFullYear(), Validators.required],
       month: [new Date().getMonth() + 1, Validators.required],
       isFullMonth: [false]
