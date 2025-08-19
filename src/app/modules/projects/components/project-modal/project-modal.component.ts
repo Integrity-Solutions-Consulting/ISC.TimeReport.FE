@@ -235,60 +235,69 @@ export class ProjectModalComponent implements OnInit {
   }
 
   onSubmit() {
+    // Si ya se está enviando el formulario, salir para evitar múltiples envíos.
     if (this.isSubmitting) {
-      return;
+        return;
     }
 
+    // Si el formulario no es válido, marcar todos los controles como 'tocado' para mostrar los errores.
     if (this.projectForm.invalid) {
-      this.markFormGroupTouched(this.projectForm);
-      return;
+        this.markFormGroupTouched(this.projectForm);
+        console.error('El formulario es inválido. Por favor, revisa los campos.');
+        return;
     }
 
+    // Prevenir más clics y mostrar el indicador de carga.
     this.isSubmitting = true;
     this.projectService.showLoading();
 
+    // Obtener todos los valores del formulario.
     const formValue = this.projectForm.getRawValue();
+
+    // Buscar el tipo de proyecto seleccionado para obtener su 'subType'.
     const selectedType = this.projectTypes.find(t => t.id === formValue.projectTypeId);
 
-    let projectSubType: boolean | undefined;
-      if (formValue.projectTypeId === 1) {
-        projectSubType = formValue.projectSubTypeId === 1;
-      }
-
+    // Construir el objeto de datos del proyecto que se enviará a la API.
+    // Asegurarse de que projectTypeID y projectSubType se asignen correctamente aquí.
     const projectData: Project = {
-      clientID: formValue.clientId,
-      projectStatusID: Number(formValue.projectStatusId),
-      projectTypeID: formValue.projectTypeId,
-      projectSubType: selectedType?.subType,
-      code: formValue.code,
-      name: formValue.name,
-      description: formValue.description || '',
-      startDate: new Date(formValue.startDate).toISOString(),
-      endDate: new Date(formValue.endDate).toISOString(),
-      actualStartDate: formValue.actualStartDate ? new Date(formValue.actualStartDate).toISOString() : null,
-      actualEndDate: formValue.actualEndDate ? new Date(formValue.actualEndDate).toISOString() : null,
-      budget: Number(formValue.budget) || 0,
-      hours: Number(formValue.hours) || 0,
-      status: true,
+        clientID: formValue.clientId,
+        projectStatusID: Number(formValue.projectStatusId),
+        projectTypeID: formValue.projectTypeId, // Asignación directa del ID del formulario.
+        projectSubType: selectedType?.subType || null, // Asignación del subType basado en el tipo encontrado. Si no se encuentra, es null.
+        code: formValue.code,
+        name: formValue.name,
+        description: formValue.description || '',
+        startDate: new Date(formValue.startDate).toISOString(),
+        endDate: new Date(formValue.endDate).toISOString(),
+        actualStartDate: formValue.actualStartDate ? new Date(formValue.actualStartDate).toISOString() : null,
+        actualEndDate: formValue.actualEndDate ? new Date(formValue.actualEndDate).toISOString() : null,
+        budget: Number(formValue.budget) || 0,
+        hours: Number(formValue.hours) || 0,
+        status: true,
     };
 
+    // Añadir un log para depuración para verificar que el objeto 'projectData' se está construyendo correctamente
+    // antes de enviarlo. Esto es clave para saber si el problema está en el frontend.
+    console.log('Datos del proyecto a enviar:', projectData);
 
+    // Determinar si la operación es de creación o actualización.
     const request$: Observable<ProjectWithID | SuccessResponse<Project>> = this.isEditMode && this.data?.project?.id
-      ? this.projectService.updateProject(this.data.project.id, projectData)
-      : this.projectService.createProject(projectData);
+        ? this.projectService.updateProject(this.data.project.id, projectData)
+        : this.projectService.createProject(projectData);
 
     request$.subscribe({
-      next: (response: any) => {
-        this.projectService.hideLoading();
-        this.isSubmitting = false;
-        this.dialogRef.close(response);
-      },
-      error: (err: any) => {
-        this.projectService.hideLoading();
-        this.isSubmitting = false;
-        console.error('Error:', err);
-        // Mostrar mensaje de error al usuario
-      }
+        next: (response: any) => {
+            this.projectService.hideLoading();
+            this.isSubmitting = false;
+            // Cerrar el modal con la respuesta exitosa.
+            this.dialogRef.close(response);
+        },
+        error: (err: any) => {
+            this.projectService.hideLoading();
+            this.isSubmitting = false;
+            console.error('Error al guardar el proyecto:', err);
+            // Mostrar un mensaje de error al usuario, si es necesario.
+        }
     });
   }
 
