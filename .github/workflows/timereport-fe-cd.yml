@@ -1,9 +1,12 @@
-name: ISC.TimeReport.FE-DEV-CI/CD
+name: ISC.TimeReport.FE-PROD-CI/CD
 
 on:
-  push:
+  pull_request:
     branches:
-      - develop  # o la rama que uses
+      - main
+    types:
+      - closed
+  workflow_dispatch:
 
 jobs:
   deploy:
