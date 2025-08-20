@@ -162,8 +162,8 @@ export class UserCreateDialogComponent implements OnInit {
     this.snackBar.open(message, 'Cerrar', {
       duration: 5000,
       panelClass: type === 'success' ? ['success-snackbar'] : ['error-snackbar'],
-      horizontalPosition: 'end',
-      verticalPosition: 'top'
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
     });
   }
 }
