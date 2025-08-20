@@ -25,7 +25,7 @@ export class PersonService {
     return new Observable<Person[]>(observer => {
       const allPersons: Person[] = [];
       let currentPage = 1;
-      const pageSize = 100; // Tamaño razonable para cada request
+      const pageSize = 10000; // Tamaño razonable para cada request
 
       const fetchNextPage = () => {
         this.getPersons(currentPage, pageSize).subscribe({
@@ -67,14 +67,14 @@ export class PersonService {
 
         if (totalPages <= 1) {
           // Si solo hay una página, obtener todos los items
-          return this.getPersons(1, firstPage.totalItems || 1000).pipe(
+          return this.getPersons(1, firstPage.totalItems || 10000).pipe(
             map(response => response.items)
           );
         } else {
           // Crear array de observables para todas las páginas
           const requests: Observable<PersonApiResponse>[] = [];
           for (let i = 1; i <= totalPages; i++) {
-            requests.push(this.getPersons(i, 100)); // pageSize de 100 por página
+            requests.push(this.getPersons(i, 10000)); // pageSize de 100 por página
           }
 
           return forkJoin(requests).pipe(
@@ -94,7 +94,7 @@ export class PersonService {
   }
 
   getAllPersonsSimple(): Observable<Person[]> {
-    return this.getPersons(1, 1000).pipe(
+    return this.getPersons(1, 10000).pipe(
       map(response => response.items),
       catchError(error => {
         console.error('Error fetching persons:', error);
