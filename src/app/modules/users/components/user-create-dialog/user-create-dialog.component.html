@@ -7,8 +7,11 @@
     <mat-form-field appearance="outline" class="full-width">
       <input matInput
              (input)="onSearchChange($event)"
-             placeholder="Empleado">
+             placeholder="Buscar empleado...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
 
+    <mat-form-field appearance="outline" class="full-width">
       <mat-select formControlName="employeeID" required>
         <mat-option
           *ngFor="let employee of employees"
@@ -16,7 +19,7 @@
           {{employee.person.firstName}} {{employee.person.lastName}} - {{employee.person.identificationNumber}}
         </mat-option>
       </mat-select>
-
+      <mat-hint *ngIf="loadingEmployees">Buscando empleados...</mat-hint>
       <mat-error *ngIf="userForm.get('employeeID')?.hasError('required')">
         El empleado es obligatorio
       </mat-error>
@@ -31,7 +34,7 @@
       <mat-icon matSuffix>email</mat-icon>
     </mat-form-field>
 
-    <!-- Nombre de usuario (sin autocompletado) -->
+    <!-- Nombre de usuario -->
     <mat-form-field appearance="outline" class="full-width">
       <input matInput formControlName="username" placeholder="Nombre de Usuario" required>
       <mat-error *ngIf="userForm.get('username')?.hasError('required')">
@@ -55,6 +58,12 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="!userForm.valid">Crear</button>
+  <button mat-button (click)="onCancel()" [disabled]="loading">Cancelar</button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="!userForm.valid || loading">
+    <span *ngIf="!loading">Crear</span>
+    <span *ngIf="loading">
+      <mat-spinner diameter="20" class="spinner-button"></mat-spinner>
+      Creando...
+    </span>
+  </button>
 </mat-dialog-actions>
