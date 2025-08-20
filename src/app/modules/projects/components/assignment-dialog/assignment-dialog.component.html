@@ -26,11 +26,16 @@
         <mat-form-field appearance="outline">
           <mat-select formControlName="resource">
             @if (selectedResourceType === 1) {
-              @for (emp of employees; track emp) {
-                <mat-option [value]="emp.id">{{emp.person.firstName}} {{emp.person.lastName}}</mat-option>
+              @for (emp of employees; track emp.id) {
+                <mat-option [value]="emp.id">
+                  {{emp.person.firstName}} {{emp.person.lastName}}
+                  @if (emp.positionName || emp.position?.positionName) {
+                    - {{emp.positionName || emp.position?.positionName}}
+                  }
+                </mat-option>
               }
             } @else {
-              @for (prov of providers; track prov) {
+              @for (prov of providers; track prov.id) {
                 <mat-option [value]="prov.id">{{prov.businessName}} ({{prov.supplierType.name}})</mat-option>
               }
             }
@@ -46,6 +51,9 @@
               <mat-option [value]="position.positionName">{{position.positionName}}</mat-option>
             }
           </mat-select>
+          @if (assignmentForm.get('profile')?.value) {
+            <mat-hint>Perfil seleccionado automáticamente</mat-hint>
+          }
         </mat-form-field>
       </div>
 
