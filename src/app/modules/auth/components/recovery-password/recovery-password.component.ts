@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog'; // Assuming you use Angular Material for dialogs
-import { AuthService } from '../../services/auth.service'; // Adjust path to your auth service// Create this component
-import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'; // Reemplazamos MatDialog con MatSnackBar
+import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -20,11 +19,10 @@ import { Router } from '@angular/router';
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
-    MatDialogModule,
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MessageDialogComponent,
+    MatSnackBarModule,
     ReactiveFormsModule
   ],
   templateUrl: './recovery-password.component.html',
@@ -33,19 +31,17 @@ import { Router } from '@angular/router';
 export class RecoveryPasswordComponent implements OnInit {
   forgotPasswordForm!: FormGroup;
   isLoading: boolean = false;
-  mensajeError: string = '';
-  mostrarError: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    public dialog: MatDialog,
+    private snackBar: MatSnackBar, // Inyectamos el servicio SnackBar
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.forgotPasswordForm = this.fb.group({
-      username: ['', [Validators.required, Validators.email]] // Example: @empresa.com for corporate email
+      username: ['', [Validators.required, Validators.email]]
     });
   }
 
@@ -56,29 +52,36 @@ export class RecoveryPasswordComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.mostrarError = false;
-    this.mensajeError = '';
 
     const username = this.forgotPasswordForm.get('username')?.value;
 
     try {
-      await this.authService.requestPasswordRecovery(username).toPromise(); // Assuming authService has this method
-      this.openGenericMessageDialog();
+      await this.authService.requestPasswordRecovery(username).toPromise();
+
+      // Mostrar mensaje de éxito con SnackBar
+      this.showSnackBar('Si tu correo está registrado, recibirás un enlace de recuperación en breve.', 'success');
+
+      // Opcional: redirigir después de un tiempo
+      setTimeout(() => {
+        this.router.navigate(['/auth/login']);
+      }, 3000);
+
     } catch (error: any) {
-      this.mensajeError = error.message || 'Ocurrió un error al procesar tu solicitud.';
-      this.mostrarError = true;
+      // Mostrar mensaje de error con SnackBar
+      const errorMessage = error.message || 'Ocurrió un error al procesar tu solicitud.';
+      this.showSnackBar(errorMessage, 'error');
     } finally {
       this.isLoading = false;
     }
   }
 
-  openGenericMessageDialog(): void {
-    this.dialog.open(MessageDialogComponent, {
-      width: '600px',
-      data: {
-        title: 'Solicitud Enviada',
-        message: 'Si tu correo está registrado, recibirás un enlace de recuperación en breve.'
-      }
+  // Método para mostrar el SnackBar con diferentes estilos según el tipo
+  private showSnackBar(message: string, type: 'success' | 'error'): void {
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 5000, // Duración de 5 segundos
+      panelClass: [`snackbar-${type}`], // Clase CSS personalizada según el tipo
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
     });
   }
 
