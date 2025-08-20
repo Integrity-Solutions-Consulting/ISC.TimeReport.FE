@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Importamos el spinner
 
 @Component({
   selector: 'app-change-password',
@@ -20,7 +21,8 @@ import { CommonModule } from '@angular/common';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatProgressSpinnerModule // Añadimos el spinner
   ],
   templateUrl: './change-password.component.html',
   styleUrl: './change-password.component.scss'
@@ -29,6 +31,7 @@ export class ChangePasswordComponent implements OnInit{
 
   passwordChangeForm!: FormGroup;
   private urlBase: string = environment.URL_BASE;
+  isLoading: boolean = false; // Variable para controlar el estado de carga
 
   constructor(
     private fb: FormBuilder,
@@ -51,20 +54,30 @@ export class ChangePasswordComponent implements OnInit{
     const newPassword = control.get('newPassword');
     const confirmPassword = control.get('confirmPassword');
     if (newPassword && confirmPassword && newPassword.value !== confirmPassword.value) {
+      confirmPassword.setErrors({ mismatch: true });
       return { 'mismatch': true };
+    } else {
+      if (confirmPassword && confirmPassword.errors && confirmPassword.errors['mismatch']) {
+        const errors = { ...confirmPassword.errors };
+        delete errors['mismatch'];
+        confirmPassword.setErrors(Object.keys(errors).length ? errors : null);
+      }
     }
     return null;
   }
 
   onSubmit(): void {
     if (this.passwordChangeForm.valid) {
+      this.isLoading = true; // Activamos el estado de carga
+
       const { oldPassword, newPassword, confirmPassword } = this.passwordChangeForm.value;
-      const token = localStorage.getItem('token'); // Asume que el token se guarda en localStorage tras el login
+      const token = localStorage.getItem('token');
 
       if (!token) {
-        this.snackBar.open('No hay sesión activa. Por favor, inicie sesión.', 'Cerrar', { duration: 3000 });
+        this.showSnackBar('No hay sesión activa. Por favor, inicie sesión.', 'error');
         this.authService.logout();
-        this.router.navigate(['/auth/login']); // Redirigir al login si no hay token
+        this.router.navigate(['/auth/login']);
+        this.isLoading = false;
         return;
       }
 
@@ -74,28 +87,51 @@ export class ChangePasswordComponent implements OnInit{
 
       this.http.put(`${this.urlBase}/api/users/ChangePassword`, body, { headers }).subscribe({
         next: (response: any) => {
-          this.snackBar.open('Contraseña cambiada exitosamente!', 'Cerrar', {
-            duration: 3000,
-          });
-          this.passwordChangeForm.reset(); // Limpiar el formulario
-          this.router.navigate(['auth/login']); // O a donde desees redirigir después del cambio
+          this.showSnackBar('¡Contraseña cambiada exitosamente!', 'success');
+          this.passwordChangeForm.reset();
+          this.isLoading = false;
+
+          // Redirigir después de un breve tiempo
+          setTimeout(() => {
+            this.router.navigate(['/dashboard']); // O a donde desees redirigir
+          }, 2000);
         },
         error: (error) => {
           console.error('Error al cambiar la contraseña:', error);
+          this.isLoading = false;
+
           let errorMessage = 'Hubo un error al cambiar la contraseña.';
           if (error.error && error.error.message) {
             errorMessage = error.error.message;
+          } else if (error.status === 401) {
+            errorMessage = 'La contraseña actual es incorrecta.';
+          } else if (error.status === 400) {
+            errorMessage = 'La nueva contraseña no cumple con los requisitos.';
           }
-          this.snackBar.open(errorMessage, 'Cerrar', {
-            duration: 5000,
-            panelClass: ['error-snackbar']
-          });
+
+          this.showSnackBar(errorMessage, 'error');
+
           if (error.status === 401 || error.status === 403) {
-            this.authService.logout();
-            this.router.navigate(['/auth/login']);
+            setTimeout(() => {
+              this.authService.logout();
+              this.router.navigate(['/auth/login']);
+            }, 3000);
           }
         }
       });
+    } else {
+      // Marcar todos los campos como tocados para mostrar errores
+      this.passwordChangeForm.markAllAsTouched();
     }
+  }
+
+  // Método para mostrar SnackBar con estilos personalizados
+  private showSnackBar(message: string, type: 'success' | 'error' | 'warning'): void {
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 5000,
+      panelClass: [`snackbar-${type}`],
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
+    });
   }
 }

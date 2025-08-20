@@ -301,11 +301,27 @@ export class ProjectService {
       return this.http.post(`${this.urlBase}/api/Project/AssignEmployeesToProject`, payload);
     }
 
-    getAllEmployees(pageSize: number, pageNumber: number, search: string): Observable<any> {
-      return this.http.get(`${this.urlBase}/api/Employee/GetAllEmployees`, {
-        params: { pageSize, pageNumber, search }
-      });
-    }
+    // En ProjectService
+  getAllEmployees(pageSize: number, pageNumber: number, search: string): Observable<any> {
+    return this.http.get(`${this.urlBase}/api/Employee/GetAllEmployees`, {
+      params: { pageSize, pageNumber, search }
+    }).pipe(
+      map((response: any) => {
+        // Si la respuesta tiene items, procesarlos
+        if (response && response.items) {
+          return {
+            ...response,
+            items: response.items.map((employee: any) => ({
+              ...employee,
+              // Asegúrate de que la posición esté disponible
+              position: employee.position || employee.employeePosition || null
+            }))
+          };
+        }
+        return response;
+      })
+    );
+  }
 
     getInventoryProviders(): Observable<any> {
       return this.http.get(`${this.urlBase}/api/InventoryApi/GetInventoryProviders`);

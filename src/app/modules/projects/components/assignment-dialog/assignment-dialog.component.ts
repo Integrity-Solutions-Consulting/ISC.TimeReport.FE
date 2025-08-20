@@ -1,5 +1,5 @@
 // assignment-dialog.component.ts
-import { Component, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProjectService } from '../../services/project.service';
@@ -12,6 +12,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { ProjectDetail, EmployeeProject, EmployeeProjectMiddle, ResourceAssignmentPayload, Position } from '../../interfaces/project.interface';
+import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap } from 'rxjs';
+import { EmployeeService } from '../../../employees/services/employee.service';
 
 interface DialogData {
   projectId: number;
@@ -38,7 +40,7 @@ interface DialogData {
     ReactiveFormsModule
   ]
 })
-export class AssignmentDialogComponent {
+export class AssignmentDialogComponent implements OnInit {
   assignmentForm: FormGroup;
   resourceTypes = [
     { id: 1, name: 'Empleado' },
@@ -48,19 +50,29 @@ export class AssignmentDialogComponent {
   employees: any[] = [];
   providers: any[] = [];
   positions: any[] = [];
+  private resourceSubscription: any;
   selectedResourceType: number = 1;
   projectName: string = '';
   existingAssignments: (EmployeeProject & {markedForDeletion?: boolean})[] = [];
   assignmentsToDelete: Partial<EmployeeProject>[] = [];
   selectedResources: EmployeeProjectMiddle[] = [];
 
+  searchSubject = new Subject<string>();
+  loadingEmployees = false;
+  totalEmployees = 0;
+  currentPage = 1;
+  pageSize = 500;
+  searchTerm = '';
+
   displayedColumns: string[] = ['type', 'name', 'profile', 'cost', 'hours', 'actions'];
 
   constructor(
     private fb: FormBuilder,
     private projectService: ProjectService,
+    private employeeService: EmployeeService,
     public dialogRef: MatDialogRef<AssignmentDialogComponent>,
     private currencyPipe: CurrencyPipe,
+    private cdr: ChangeDetectorRef,
     @Inject(MAT_DIALOG_DATA) public data: DialogData
   ) {
     this.assignmentForm = this.fb.group({
@@ -75,6 +87,11 @@ export class AssignmentDialogComponent {
     this.loadProjectDetails();
   }
 
+  ngOnInit(): void {
+    this.setupSearch();
+    this.setupProfileAutofill();
+  }
+
   private resetForm(): void {
     this.assignmentForm.patchValue({
       resource: null,
@@ -84,10 +101,48 @@ export class AssignmentDialogComponent {
     });
   }
 
+  ngOnDestroy(): void {
+    this.searchSubject.complete();
+  }
+
+  private setupSearch(): void {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(searchTerm => {
+        this.loadingEmployees = true;
+        this.searchTerm = searchTerm;
+        this.currentPage = 1;
+        return this.employeeService.getEmployees(this.currentPage, this.pageSize, searchTerm)
+          .pipe(finalize(() => this.loadingEmployees = false));
+      })
+    ).subscribe({
+      next: (response) => {
+        this.employees = response.items;
+        this.totalEmployees = response.totalItems;
+        this.mapEmployeesWithPositions();
+      },
+      error: (error) => {
+        console.error('Error al buscar empleados:', error);
+      }
+    });
+  }
+
+  private setupProfileAutofill(): void {
+    this.assignmentForm.get('resource')?.valueChanges.subscribe(employeeId => {
+      if (this.selectedResourceType === 1 && employeeId) {
+        this.setDefaultProfileForEmployee(employeeId);
+      }
+    });
+  }
+
   async loadInitialData() {
     try {
-      const empResponse = await this.projectService.getAllEmployees(100, 1, '').toPromise();
+      // Cargar empleados iniciales
+      this.loadingEmployees = true;
+      const empResponse = await this.employeeService.getEmployees(1, this.pageSize, '').toPromise();
       this.employees = empResponse?.items || [];
+      this.totalEmployees = empResponse?.totalItems || 0;
 
       const provResponse = await this.projectService.getInventoryProviders().toPromise();
       this.providers = provResponse?.data || [];
@@ -95,10 +150,44 @@ export class AssignmentDialogComponent {
       const posResponse = await this.projectService.getPositions().toPromise();
       this.positions = posResponse || [];
 
-      console.log('Employees:', this.employees);
-      console.log('Positions:', this.positions);
+      this.mapEmployeesWithPositions();
+
     } catch (error) {
       console.error('Error loading initial data:', error);
+    } finally {
+      this.loadingEmployees = false;
+    }
+  }
+
+  private mapEmployeesWithPositions(): void {
+    // Esto es un ejemplo - ajusta según tu estructura de datos real
+    this.employees.forEach(employee => {
+      // Si el empleado tiene un positionId, buscar la posición correspondiente
+      if (employee.positionId && this.positions.length > 0) {
+        const position = this.positions.find(pos => pos.id === employee.positionId);
+        if (position) {
+          employee.position = position;
+          employee.positionName = position.positionName;
+        }
+      }
+    });
+  }
+
+  private setDefaultProfileForEmployee(employeeId: number): void {
+    const selectedEmployee = this.employees.find(emp => emp.id === employeeId);
+
+    if (selectedEmployee) {
+      // Intentar obtener el nombre de la posición de diferentes maneras
+      const positionName = selectedEmployee.positionName ||
+                          selectedEmployee.position?.positionName ||
+                          this.getPositionNameById(selectedEmployee.positionId);
+
+      if (positionName) {
+        this.assignmentForm.get('profile')?.setValue(positionName);
+        this.cdr.detectChanges();
+      } else {
+        this.assignmentForm.get('profile')?.reset();
+      }
     }
   }
 
@@ -121,10 +210,26 @@ export class AssignmentDialogComponent {
     }
   }
 
+  private getPositionNameById(positionId: number): string | null {
+    if (!positionId || this.positions.length === 0) return null;
+    const position = this.positions.find(pos => pos.id === positionId);
+    return position?.positionName || null;
+  }
+
+  onSearchChange(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    this.searchSubject.next(inputElement.value);
+  }
+
   onResourceTypeChange() {
     this.selectedResourceType = this.assignmentForm.get('resourceType')?.value;
     this.assignmentForm.get('resource')?.reset();
     this.assignmentForm.get('profile')?.reset();
+
+    // Si es proveedor, establecer perfil por defecto
+    if (this.selectedResourceType === 2) {
+      this.assignmentForm.get('profile')?.setValue('Proveedor');
+    }
   }
 
   getResourceOptions() {
@@ -247,7 +352,6 @@ export class AssignmentDialogComponent {
       ]
     };
 
-    console.log('Payload a enviar:', payload);
     this.projectService.assignResourcesToProject(payload).subscribe({
       next: () => this.dialogRef.close(true),
       error: (err) => {

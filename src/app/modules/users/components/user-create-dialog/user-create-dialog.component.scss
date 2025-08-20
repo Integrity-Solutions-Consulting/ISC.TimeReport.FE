@@ -1,19 +1,33 @@
-/* user-create-dialog.component.scss */
-.user-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+// user-create-dialog.component.scss
+.spinner-button {
+  display: inline-block;
+  margin-right: 8px;
 }
 
 .full-width {
   width: 100%;
+  margin-bottom: 16px;
 }
 
-.mat-select-panel {
-  max-height: 300px !important;
+.user-form {
+  min-width: 400px;
 }
 
-.mat-form-field-disabled .mat-form-field-outline {
-  background-color: #f5f5f5;
-  opacity: 1;
+// Estilos para los snackbars
+::ng-deep .success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
+}
+
+::ng-deep .error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
 }
