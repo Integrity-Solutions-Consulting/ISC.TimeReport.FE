@@ -9,8 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar'; // Reemplazamos MatDialog con MatSnackBar
 
 @Component({
   selector: 'app-reset-password',
@@ -20,7 +19,6 @@ import { MessageDialogComponent } from '../message-dialog/message-dialog.compone
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
-    MatDialogModule,
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
@@ -33,8 +31,6 @@ export class ResetPasswordComponent implements OnInit {
   resetPasswordForm!: FormGroup;
   token: string | null = null;
   isLoading: boolean = false;
-  mensajeError: string = '';
-  mostrarError: boolean = false;
   showNewPassword = false;
   showConfirmPassword = false;
 
@@ -43,15 +39,14 @@ export class ResetPasswordComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
-    private dialog: MatDialog
+    private snackBar: MatSnackBar // Inyectamos SnackBar en lugar de Dialog
   ) {}
 
   ngOnInit(): void {
     this.token = this.route.snapshot.queryParamMap.get('token');
 
     if (!this.token) {
-      this.mensajeError = 'Token de recuperación no encontrado. Por favor, solicita un nuevo enlace.';
-      this.mostrarError = true;
+      this.showSnackBar('Token de recuperación no encontrado. Por favor, solicita un nuevo enlace.', 'error');
       return;
     }
 
@@ -77,33 +72,36 @@ export class ResetPasswordComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.mostrarError = false;
-    this.mensajeError = '';
 
     const { newPassword, confirmPassword } = this.resetPasswordForm.value;
 
     try {
       await this.authService.resetPassword(this.token!, newPassword, confirmPassword).toPromise();
-      this.openSuccessDialog();
+
+      // Mostrar mensaje de éxito con SnackBar
+      this.showSnackBar('Tu contraseña ha sido restablecida exitosamente. Ahora puedes iniciar sesión.', 'success');
+
+      // Redirigir después de un breve tiempo
+      setTimeout(() => {
+        this.router.navigate(['/auth/login']);
+      }, 3000);
+
     } catch (error: any) {
-      this.mensajeError = error.error?.message || 'Error al restablecer la contraseña. El enlace puede haber expirado o ser inválido.';
-      this.mostrarError = true;
+      // Mostrar mensaje de error con SnackBar
+      const errorMessage = error.error?.message || 'Tu contraseña ha sido restablecida exitosamente. Ahora puedes iniciar sesión.';
+      this.showSnackBar(errorMessage, 'error');
     } finally {
       this.isLoading = false;
     }
   }
 
-  openSuccessDialog(): void {
-    const dialogRef = this.dialog.open(MessageDialogComponent, {
-      width: '600px',
-      data: {
-        title: 'Contraseña Restablecida',
-        message: 'Tu contraseña ha sido restablecida exitosamente. Ahora puedes iniciar sesión.'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(() => {
-      this.router.navigate(['/auth/login']);
+  // Método para mostrar SnackBar con estilos personalizados
+  private showSnackBar(message: string, type: 'success' | 'error' | 'warning'): void {
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 10000,
+      panelClass: [`snackbar-${type}`],
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
     });
   }
 
