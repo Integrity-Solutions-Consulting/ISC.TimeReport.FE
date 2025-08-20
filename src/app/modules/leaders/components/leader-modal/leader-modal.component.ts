@@ -412,14 +412,27 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
 
   private loadPersons(): void {
     this.isLoadingPersons = true;
-    this.personService.getPersons().subscribe({
-      next: (response) => {
-        this.personsList = response.items;
+
+    // Usa el método que mejor se adapte a tu API
+    this.personService.getAllPersons().subscribe({
+      next: (persons) => {
+        this.personsList = persons;
         this.isLoadingPersons = false;
       },
       error: (err: any) => {
-        console.error('Error:', err);
-        this.personsList = [];
+        console.error('Error loading all persons:', err);
+        // Fallback: intentar con método simple
+        this.personService.getAllPersonsSimple().subscribe({
+          next: (persons) => {
+            this.personsList = persons;
+            this.isLoadingPersons = false;
+          },
+          error: (fallbackError) => {
+            console.error('Fallback also failed:', fallbackError);
+            this.personsList = [];
+            this.isLoadingPersons = false;
+          }
+        });
       }
     });
   }
