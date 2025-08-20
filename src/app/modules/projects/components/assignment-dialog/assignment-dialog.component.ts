@@ -12,8 +12,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { ProjectDetail, EmployeeProject, EmployeeProjectMiddle, ResourceAssignmentPayload, Position } from '../../interfaces/project.interface';
-import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap, forkJoin, of } from 'rxjs';
 import { EmployeeService } from '../../../employees/services/employee.service';
+import { catchError } from 'rxjs/operators';
 
 interface DialogData {
   projectId: number;
@@ -49,8 +50,9 @@ export class AssignmentDialogComponent implements OnInit {
 
   employees: any[] = [];
   providers: any[] = [];
-  positions: any[] = [];
-  private resourceSubscription: any;
+  positions: Position[] = [];
+  filteredEmployees: any[] = [];
+  filteredProviders: any[] = [];
   selectedResourceType: number = 1;
   projectName: string = '';
   existingAssignments: (EmployeeProject & {markedForDeletion?: boolean})[] = [];
@@ -78,31 +80,72 @@ export class AssignmentDialogComponent implements OnInit {
     this.assignmentForm = this.fb.group({
       resourceType: [1, Validators.required],
       resource: [null, Validators.required],
-      profile: [null, Validators.required],
+      profile: [{value: null, disabled: false}, Validators.required],
       costPerHour: [0, [Validators.required, Validators.min(0)]],
       totalHours: [0, [Validators.required, Validators.min(0)]]
     });
-
-    this.loadInitialData();
-    this.loadProjectDetails();
   }
 
   ngOnInit(): void {
+    this.loadInitialData();
     this.setupSearch();
-    this.setupProfileAutofill();
   }
 
-  private resetForm(): void {
-    this.assignmentForm.patchValue({
-      resource: null,
-      profile: null,
-      costPerHour: 0,
-      totalHours: 0
+  private loadInitialData() {
+    // Cargar datos en paralelo
+    forkJoin({
+      positions: this.projectService.getPositions().pipe(
+        catchError(error => {
+          console.error('Error loading positions:', error);
+          return of([]);
+        })
+      ),
+      employees: this.projectService.getAllEmployees(1000, 1, '').pipe(
+        catchError(error => {
+          console.error('Error loading employees:', error);
+          return of({items: []});
+        })
+      ),
+      providers: this.projectService.getInventoryProviders().pipe(
+        catchError(error => {
+          console.error('Error loading providers:', error);
+          return of({data: []});
+        })
+      )
+    }).subscribe(({positions, employees, providers}) => {
+      // Cargar posiciones
+      this.positions = positions || [];
+
+      // Cargar empleados y mapear sus posiciones
+      this.employees = employees.items || [];
+      this.filteredEmployees = [...this.employees];
+      this.mapEmployeesWithPositions();
+
+      // Cargar proveedores
+      this.providers = providers.data || [];
+      this.filteredProviders = [...this.providers];
+
+      // Cargar detalles del proyecto después de tener los datos básicos
+      this.loadProjectDetails();
     });
   }
 
-  ngOnDestroy(): void {
-    this.searchSubject.complete();
+  private mapEmployeesWithPositions(): void {
+    this.employees.forEach(employee => {
+      // Buscar la posición del empleado en el array de posiciones
+      if (employee.positionID && this.positions.length > 0) {
+        const position = this.positions.find(pos => pos.id === employee.positionID);
+        if (position) {
+          employee.positionName = position.positionName;
+        } else {
+          employee.positionName = 'Sin posición definida';
+          console.warn(`No se encontró posición con ID ${employee.positionID} para el empleado ${employee.person.firstName} ${employee.person.lastName}`);
+        }
+      } else {
+        employee.positionName = 'Sin posición definida';
+        console.warn(`Empleado ${employee.person.firstName} ${employee.person.lastName} no tiene positionID definido`);
+      }
+    });
   }
 
   private setupSearch(): void {
@@ -121,6 +164,7 @@ export class AssignmentDialogComponent implements OnInit {
         this.employees = response.items;
         this.totalEmployees = response.totalItems;
         this.mapEmployeesWithPositions();
+        this.filteredEmployees = [...this.employees];
       },
       error: (error) => {
         console.error('Error al buscar empleados:', error);
@@ -128,65 +172,59 @@ export class AssignmentDialogComponent implements OnInit {
     });
   }
 
-  private setupProfileAutofill(): void {
-    this.assignmentForm.get('resource')?.valueChanges.subscribe(employeeId => {
-      if (this.selectedResourceType === 1 && employeeId) {
-        this.setDefaultProfileForEmployee(employeeId);
-      }
+  private resetForm(): void {
+    this.assignmentForm.patchValue({
+      resource: null,
+      profile: null,
+      costPerHour: 0,
+      totalHours: 0
     });
-  }
 
-  async loadInitialData() {
-    try {
-      // Cargar empleados iniciales
-      this.loadingEmployees = true;
-      const empResponse = await this.employeeService.getEmployees(1, this.pageSize, '').toPromise();
-      this.employees = empResponse?.items || [];
-      this.totalEmployees = empResponse?.totalItems || 0;
-
-      const provResponse = await this.projectService.getInventoryProviders().toPromise();
-      this.providers = provResponse?.data || [];
-
-      const posResponse = await this.projectService.getPositions().toPromise();
-      this.positions = posResponse || [];
-
-      this.mapEmployeesWithPositions();
-
-    } catch (error) {
-      console.error('Error loading initial data:', error);
-    } finally {
-      this.loadingEmployees = false;
+    // Si es empleado, deshabilitar el campo de perfil
+    if (this.selectedResourceType === 1) {
+      this.assignmentForm.get('profile')?.disable();
+    } else {
+      this.assignmentForm.get('profile')?.enable();
     }
   }
 
-  private mapEmployeesWithPositions(): void {
-    // Esto es un ejemplo - ajusta según tu estructura de datos real
-    this.employees.forEach(employee => {
-      // Si el empleado tiene un positionId, buscar la posición correspondiente
-      if (employee.positionId && this.positions.length > 0) {
-        const position = this.positions.find(pos => pos.id === employee.positionId);
-        if (position) {
-          employee.position = position;
-          employee.positionName = position.positionName;
-        }
-      }
-    });
+  onResourceTypeChange(type: number) {
+    this.selectedResourceType = type;
+
+    // Resetear el formulario cuando cambia el tipo
+    this.assignmentForm.get('resource')?.reset();
+    this.assignmentForm.get('profile')?.reset();
+
+    // Configurar el estado del campo de perfil según el tipo
+    if (type === 1) {
+      // Para empleados: deshabilitar y limpiar
+      this.assignmentForm.get('profile')?.disable();
+      this.assignmentForm.get('profile')?.setValue(null);
+    } else {
+      // Para proveedores: habilitar
+      this.assignmentForm.get('profile')?.enable();
+      this.assignmentForm.get('profile')?.setValue(null);
+    }
+
+    this.filterByType(type);
   }
 
-  private setDefaultProfileForEmployee(employeeId: number): void {
-    const selectedEmployee = this.employees.find(emp => emp.id === employeeId);
+  filterByType(type: number) {
+    if (type === 1) {
+      this.filteredEmployees = this.employees;
+    } else if (type === 2) {
+      this.filteredProviders = this.providers;
+    }
+  }
 
-    if (selectedEmployee) {
-      // Intentar obtener el nombre de la posición de diferentes maneras
-      const positionName = selectedEmployee.positionName ||
-                          selectedEmployee.position?.positionName ||
-                          this.getPositionNameById(selectedEmployee.positionId);
+  onResourceSelected(resourceId: number) {
+    if (this.selectedResourceType === 1 && resourceId) {
+      // Buscar el empleado seleccionado
+      const selectedEmployee = this.employees.find(emp => emp.id === resourceId);
 
-      if (positionName) {
-        this.assignmentForm.get('profile')?.setValue(positionName);
-        this.cdr.detectChanges();
-      } else {
-        this.assignmentForm.get('profile')?.reset();
+      if (selectedEmployee) {
+        // Establecer el valor en el campo de perfil
+        this.assignmentForm.get('profile')?.setValue(selectedEmployee.positionName);
       }
     }
   }
@@ -208,39 +246,6 @@ export class AssignmentDialogComponent implements OnInit {
     } catch (error) {
       console.error('Error loading project details:', error);
     }
-  }
-
-  private getPositionNameById(positionId: number): string | null {
-    if (!positionId || this.positions.length === 0) return null;
-    const position = this.positions.find(pos => pos.id === positionId);
-    return position?.positionName || null;
-  }
-
-  onSearchChange(event: Event): void {
-    const inputElement = event.target as HTMLInputElement;
-    this.searchSubject.next(inputElement.value);
-  }
-
-  onResourceTypeChange() {
-    this.selectedResourceType = this.assignmentForm.get('resourceType')?.value;
-    this.assignmentForm.get('resource')?.reset();
-    this.assignmentForm.get('profile')?.reset();
-
-    // Si es proveedor, establecer perfil por defecto
-    if (this.selectedResourceType === 2) {
-      this.assignmentForm.get('profile')?.setValue('Proveedor');
-    }
-  }
-
-  getResourceOptions() {
-    return this.selectedResourceType === 1 ? this.employees : this.providers;
-  }
-
-  getProfileOptions() {
-    if (this.selectedResourceType === 1) {
-      return this.positions;
-    }
-    return [{ positionName: 'Proveedor' }];
   }
 
   addResource() {
@@ -317,29 +322,15 @@ export class AssignmentDialogComponent implements OnInit {
       assignedRole: resource.assignedRole,
       costPerHour: resource.costPerHour,
       allocatedHours: resource.allocatedHours,
-      //status: true
     }));
 
     // 2. Preparar recursos existentes que se mantienen
     const keptResources: EmployeeProjectMiddle[] = this.existingAssignments.map(resource => ({
-      //id: resource.id,
       employeeId: resource.employeeID,
       supplierID: resource.supplierID,
       assignedRole: resource.assignedRole,
       costPerHour: resource.costPerHour,
       allocatedHours: resource.allocatedHours,
-      //status: true
-    }));
-
-    // 3. Preparar recursos a eliminar (con todos los campos requeridos)
-    const deletedResources: EmployeeProjectMiddle[] = this.assignmentsToDelete.map(assignment => ({
-      //id: assignment.id!,
-      employeeId: assignment.employeeID || null,
-      supplierID: assignment.supplierID || null,
-      assignedRole: assignment.assignedRole || 'Eliminado', // Valor por defecto
-      costPerHour: assignment.costPerHour || 0,             // Valor por defecto
-      allocatedHours: assignment.allocatedHours || 0,       // Valor por defecto
-      //status: false
     }));
 
     // Payload final
@@ -348,7 +339,6 @@ export class AssignmentDialogComponent implements OnInit {
       employeeProjectMiddle: [
         ...newAssignments,
         ...keptResources,
-        //...deletedResources
       ]
     };
 
