@@ -4,15 +4,12 @@
 <mat-dialog-content>
   <form [formGroup]="userForm" class="user-form">
 
-    <!--
     <mat-form-field appearance="outline" class="full-width">
       <input matInput
              (input)="onSearchChange($event)"
              placeholder="Buscar empleado...">
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
-    -->
-
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-select formControlName="employeeID" required>
