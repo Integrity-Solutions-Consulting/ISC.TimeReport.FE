@@ -24,10 +24,19 @@
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field-half">
         <mat-select formControlName="clientId" placeholder="Cliente">
+          <!-- Campo de búsqueda para clientes -->
+          <mat-option>
+            <ngx-mat-select-search
+              [formControl]="clientFilterCtrl"
+              placeholderLabel="Buscar cliente..."
+              noEntriesFoundLabel="No se encontraron clientes">
+            </ngx-mat-select-search>
+          </mat-option>
+
           @if (isLoadingClients) {
             <mat-option disabled>Cargando clientes...</mat-option>
           } @else {
-            @for (client of clients; track client.id) {
+            @for (client of filteredClients | async; track client.id) {
               <mat-option [value]="client.id">{{client.tradeName}}</mat-option>
             }
           }

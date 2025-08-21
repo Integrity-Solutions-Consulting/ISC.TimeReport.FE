@@ -55,19 +55,17 @@
 
     <!-- Descripción -->
     <div class="field-with-help">
-      <mat-form-field appearance="outline" class="full-width">
+      <mat-form-field appearance="outline" class="fixed-textarea full-width">
         <textarea matInput
           [(ngModel)]="event.activityDescription"
-          rows="3"
+          rows="5"
           placeholder="Descripción"
           required
           name="description"
           maxlength="200"
           (input)="trimDescription()"
-          cdkTextareaAutosize
           #descInput="ngModel"
-          cdkAutosizeMinRows="3"
-          cdkAutosizeMaxRows="5">
+          class="fixed-textarea">
         </textarea>
         <mat-hint align="end">{{event.activityDescription?.length || 0}}/200</mat-hint>
         <mat-error *ngIf="descInput.errors?.['maxlength']">
