@@ -17,6 +17,7 @@ import { ActivityService } from '../../services/activity.service';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { ActivityType } from '../../interfaces/activity.interface';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-event-dialog',
@@ -33,6 +34,7 @@ import { ActivityType } from '../../interfaces/activity.interface';
     MatSelectModule,
     MatSlideToggleModule,
     MatDividerModule,
+    MatTooltipModule,
     FormsModule,
   ],
   providers: [
