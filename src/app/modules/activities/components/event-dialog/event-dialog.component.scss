@@ -129,3 +129,21 @@ mat-dialog-content .mat-form-field-wrapper .mat-form-field-flex .mat-form-field-
   gap: 16px;
   padding: 12px 0;
 }
+
+// En tu archivo SCSS (event-dialog.component.scss)
+.fixed-textarea {
+  resize: none; /* Evita que el usuario pueda redimensionar */
+  height: 120px; /* Altura fija más grande */
+  min-height: 120px; /* Altura mínima igual a la altura */
+  max-height: 120px; /* Altura máxima igual a la altura */
+  overflow-y: auto; /* Permite scroll si el contenido es muy largo */
+}
+
+// O si prefieres una altura aún mayor:
+.larger-textarea {
+  resize: none;
+  height: 150px;
+  min-height: 150px;
+  max-height: 150px;
+  overflow-y: auto;
+}

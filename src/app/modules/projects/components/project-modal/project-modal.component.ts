@@ -1,6 +1,6 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core'; // Añadido OnDestroy
 import { CommonModule, formatDate } from '@angular/common';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators, FormControl } from '@angular/forms'; // Añadido FormControl
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { ProjectService } from '../../services/project.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,9 +14,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { Client } from '../../../clients/interfaces/client.interface';
 import { ClientService } from '../../../clients/services/client.service';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { Observable, take } from 'rxjs';
+import { Observable, take, ReplaySubject, Subject, takeUntil } from 'rxjs'; // Añadido ReplaySubject, Subject, takeUntil
 import { SuccessResponse } from '../../../../shared/interfaces/response.interface';
 import { LoadingComponent } from '../../../auth/components/login-loading/login-loading.component';
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search'; // Añadido
 
 export const MY_DATE_FORMATS = {
   parse: {
@@ -43,7 +44,8 @@ export const MY_DATE_FORMATS = {
     MomentDateModule,
     ReactiveFormsModule,
     MatButtonModule,
-    LoadingComponent
+    LoadingComponent,
+    NgxMatSelectSearchModule // Añadido
   ],
   providers: [
     { provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
@@ -68,7 +70,7 @@ export const MY_DATE_FORMATS = {
   templateUrl: './project-modal.component.html',
   styleUrls: ['./project-modal.component.scss']
 })
-export class ProjectModalComponent implements OnInit {
+export class ProjectModalComponent implements OnInit, OnDestroy { // Implementado OnDestroy
   projectForm!: FormGroup;
   isEditMode: boolean = false;
   projectId: number | null = null;
@@ -79,6 +81,11 @@ export class ProjectModalComponent implements OnInit {
   isLoading = false;
   projectTypes: any[] = [];
   formattedProjectTypes: any[] = [];
+
+  // Para ngx-mat-select-search
+  public clientFilterCtrl: FormControl<string | null> = new FormControl<string>('');
+  public filteredClients: ReplaySubject<Client[]> = new ReplaySubject<Client[]>(1);
+  protected _onDestroy = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -126,6 +133,11 @@ export class ProjectModalComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this._onDestroy.next();
+    this._onDestroy.complete();
+  }
+
     private dateRangeValidator(): ValidatorFn {
       return (control: AbstractControl): ValidationErrors | null => {
         const startDate = control.get('startDate')?.value;
@@ -155,6 +167,47 @@ export class ProjectModalComponent implements OnInit {
     }, { validator: this.dateRangeValidator() });
   }
 
+  /**
+   * Configura el filtro para clientes usando ngx-mat-select-search
+   */
+  private setupClientFilter(): void {
+    // Cargar set inicial
+    this.filteredClients.next(this.clients.slice());
+
+    // Escuchar cambios en el filtro
+    this.clientFilterCtrl.valueChanges
+      .pipe(takeUntil(this._onDestroy))
+      .subscribe(() => {
+        this.filterClients();
+      });
+  }
+
+  /**
+   * Filtra los clientes basado en la consulta
+   */
+  private filterClients(): void {
+    if (!this.clients) {
+      return;
+    }
+
+    // Obtener la palabra clave de búsqueda
+    let searchTerm = this.clientFilterCtrl.value || '';
+    if (typeof searchTerm === 'string') {
+      searchTerm = searchTerm.toLowerCase();
+    } else {
+      searchTerm = '';
+    }
+
+    // Filtrar clientes
+    const filteredClients = this.clients.filter(client => {
+      const tradeName = (client.tradeName || '').toLowerCase();
+      const businessName = (client.legalName || '').toLowerCase();
+      return tradeName.includes(searchTerm) || businessName.includes(searchTerm);
+    });
+
+    this.filteredClients.next(filteredClients);
+  }
+
   private loadClients(): void {
     this.isLoadingClients = true;
     // Puedes ajustar los parámetros según necesites
@@ -165,6 +218,9 @@ export class ProjectModalComponent implements OnInit {
 
         // Filtramos los clientes que tienen el status en true
         this.clients = clients.filter(client => client.status === true);
+
+        // Inicializar el filtro después de cargar los clientes
+        this.setupClientFilter();
 
         // Marcamos el estado de carga como falso después de la operación
         this.isLoadingClients = false;

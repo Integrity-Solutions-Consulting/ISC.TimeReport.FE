@@ -14,13 +14,22 @@
     <div class="form-row" *ngIf="useExistingPerson">
       <mat-form-field appearance="outline" class="full-width">
         <mat-select formControlName="existingPerson" (selectionChange)="onPersonSelected($event)" placeholder="Persona">
+          <!-- Campo de búsqueda para personas -->
+          <mat-option>
+            <ngx-mat-select-search
+              [formControl]="personFilterCtrl"
+              placeholderLabel="Buscar persona..."
+              noEntriesFoundLabel="No se encontraron personas">
+            </ngx-mat-select-search>
+          </mat-option>
+
           <mat-option *ngIf="isLoadingPersons" disabled>
             <div style="display: flex; align-items: center;">
               <mat-spinner diameter="20"></mat-spinner>
               <span style="margin-left: 8px;">Cargando personas...</span>
             </div>
           </mat-option>
-          @for (person of personsList; track person) {
+          @for (person of filteredPersons | async; track person) {
             <mat-option [value]="person.id">
               {{ person.firstName }} {{ person.lastName }} ({{ person.identificationNumber }})
             </mat-option>
@@ -32,6 +41,7 @@
       </mat-form-field>
     </div>
 
+    <!-- El resto del HTML se mantiene igual -->
     <div class="section-title" style="font-family: 'Poppins';">Datos del Líder</div>
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field-half">
@@ -49,13 +59,22 @@
 
       <mat-form-field appearance="outline" class="form-field-half">
         <mat-select formControlName="projectID" required placeholder="Proyecto">
+          <!-- Campo de búsqueda para proyectos -->
+          <mat-option>
+            <ngx-mat-select-search
+              [formControl]="projectFilterCtrl"
+              placeholderLabel="Buscar proyecto..."
+              noEntriesFoundLabel="No se encontraron proyectos">
+            </ngx-mat-select-search>
+          </mat-option>
+
           <mat-option *ngIf="isLoadingProjects" disabled>
             <div style="display: flex; align-items: center;">
               <mat-spinner diameter="20"></mat-spinner>
               <span style="margin-left: 8px;">Cargando proyectos...</span>
             </div>
           </mat-option>
-          @for (project of projectsList; track project) {
+          @for (project of filteredProjects | async; track project) {
             <mat-option [value]="project.id">
               {{ project.name }} ({{ project.code }})
             </mat-option>

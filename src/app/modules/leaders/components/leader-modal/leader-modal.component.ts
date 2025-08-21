@@ -1,5 +1,5 @@
 import { CommonModule, formatDate } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core'; // Agregado OnInit
+import { ChangeDetectionStrategy, Component, Inject, OnDestroy, OnInit } from '@angular/core'; // Agregado OnInit
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle, } from '@angular/material/dialog';
@@ -15,6 +15,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { ProjectService } from '../../../projects/services/project.service';
 import { Project, ProjectWithID } from '../../../projects/interfaces/project.interface';
+import { ReplaySubject, Subject, takeUntil } from 'rxjs';
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 @Component({
   selector: 'app-leader-modal',
@@ -31,7 +33,8 @@ import { Project, ProjectWithID } from '../../../projects/interfaces/project.int
     MatDatepickerModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    MatInputModule
+    MatInputModule,
+    NgxMatSelectSearchModule
   ],
   providers: [
     PersonService,
@@ -41,7 +44,7 @@ import { Project, ProjectWithID } from '../../../projects/interfaces/project.int
   templateUrl: './leader-modal.component.html',
   styleUrl: './leader-modal.component.scss'
 })
-export class LeaderModalComponent implements OnInit { // Implementamos OnInit
+export class LeaderModalComponent implements OnInit, OnDestroy {
 
   leaderForm!: FormGroup;
   personsList: Person[] = [];
@@ -52,6 +55,14 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
   originalStatus: boolean = true;
 
   isEditMode: boolean = false;
+
+  public personFilterCtrl: FormControl<string | null> = new FormControl<string>('');
+  public filteredPersons: ReplaySubject<Person[]> = new ReplaySubject<Person[]>(1);
+
+  public projectFilterCtrl: FormControl<string | null> = new FormControl<string>('');
+  public filteredProjects: ReplaySubject<any[]> = new ReplaySubject<any[]>(1);
+
+  protected _onDestroy = new Subject<void>();
 
   personTypes = [
     { value: 'NATURAL', viewValue: 'Natural' },
@@ -103,6 +114,13 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
       this.loadLeaderData(this.data.leader);
     }
     this.loadProjects();
+    this.setupPersonFilter();
+    this.setupProjectFilter();
+  }
+
+  ngOnDestroy(): void {
+    this._onDestroy.next();
+    this._onDestroy.complete();
   }
 
   private initializeForm(leaderData: any): void {
@@ -240,6 +258,18 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
     return null;
   }
 
+    private setupProjectFilter(): void {
+      // Cargar set inicial
+      this.filteredProjects.next(this.projectsList.slice());
+
+      // Escuchar cambios en el filtro
+      this.projectFilterCtrl.valueChanges
+        .pipe(takeUntil(this._onDestroy))
+        .subscribe(() => {
+          this.filterProjects();
+        });
+    }
+
   private updateIdentificationValidators(personType: string): void {
     const identificationTypeControl = this.leaderForm.get('person.identificationTypeId');
     const identificationNumberControl = this.leaderForm.get('person.identificationNumber');
@@ -269,6 +299,64 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
     identificationNumberControl?.updateValueAndValidity();
 
     this.leaderForm.get('person')?.updateValueAndValidity();
+  }
+
+  private setupPersonFilter(): void {
+    // Cargar set inicial
+    this.filteredPersons.next(this.personsList.slice());
+
+    // Escuchar cambios en el filtro
+    this.personFilterCtrl.valueChanges
+      .pipe(takeUntil(this._onDestroy))
+      .subscribe(() => {
+        this.filterPersons();
+      });
+  }
+
+    private filterProjects(): void {
+      if (!this.projectsList) {
+        return;
+      }
+
+      // Obtener la palabra clave de búsqueda
+      let searchTerm = this.projectFilterCtrl.value || '';
+      if (typeof searchTerm === 'string') {
+        searchTerm = searchTerm.toLowerCase();
+      } else {
+        searchTerm = '';
+      }
+
+      // Filtrar proyectos
+      const filteredProjects = this.projectsList.filter(project => {
+        const name = (project.name || '').toLowerCase();
+        const code = (project.code || '').toLowerCase();
+        return name.includes(searchTerm) || code.includes(searchTerm);
+      });
+
+      this.filteredProjects.next(filteredProjects);
+    }
+
+  private filterPersons(): void {
+    if (!this.personsList) {
+      return;
+    }
+
+    // Obtener la palabra clave de búsqueda
+    let searchTerm = this.personFilterCtrl.value || '';
+    if (typeof searchTerm === 'string') {
+      searchTerm = searchTerm.toLowerCase();
+    } else {
+      searchTerm = '';
+    }
+
+    // Filtrar personas
+    const filteredPersons = this.personsList.filter(person => {
+      const fullName = `${person.firstName || ''} ${person.lastName || ''}`.toLowerCase();
+      const identification = (person.identificationNumber || '').toLowerCase();
+      return fullName.includes(searchTerm) || identification.includes(searchTerm);
+    });
+
+    this.filteredPersons.next(filteredPersons);
   }
 
   private updateIdentificationRequiredStatus(isIntegrityLeader: boolean): void {
@@ -418,6 +506,9 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
       next: (persons) => {
         this.personsList = persons;
         this.isLoadingPersons = false;
+
+        // Inicializar el filtro después de cargar las personas
+        this.filteredPersons.next(this.personsList.slice());
       },
       error: (err: any) => {
         console.error('Error loading all persons:', err);
@@ -426,11 +517,15 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
           next: (persons) => {
             this.personsList = persons;
             this.isLoadingPersons = false;
+
+            // Inicializar el filtro después de cargar las personas
+            this.filteredPersons.next(this.personsList.slice());
           },
           error: (fallbackError) => {
             console.error('Fallback also failed:', fallbackError);
             this.personsList = [];
             this.isLoadingPersons = false;
+            this.filteredPersons.next([]);
           }
         });
       }
@@ -445,11 +540,15 @@ export class LeaderModalComponent implements OnInit { // Implementamos OnInit
       next: (response) => {
         this.projectsList = response.items || [];
         this.isLoadingProjects = false;
+
+        // Inicializar el filtro después de cargar los proyectos
+        this.filteredProjects.next(this.projectsList.slice());
       },
       error: (error) => {
         console.error('Error loading projects:', error);
         this.isLoadingProjects = false;
         this.projectsList = [];
+        this.filteredProjects.next([]);
       }
     });
   }
