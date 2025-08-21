@@ -87,3 +87,45 @@ mat-dialog-content .mat-form-field-wrapper .mat-form-field-flex .mat-form-field-
   max-height: none !important;
   overflow: auto !important;
 }
+
+.field-with-help {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.field-with-help .full-width,
+.field-with-help .half-width,
+.field-with-help .duration-container {
+  flex: 1;
+}
+
+.help-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background-color: #1976d2; /* Azul de Material Design */
+  color: white;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: bold;
+  margin-left: 8px;
+  margin-top: 12px; /* Alineación vertical con los campos */
+  cursor: help;
+  transition: background-color 0.3s;
+}
+
+.help-icon:hover {
+  background-color: #1565c0; /* Azul más oscuro al hacer hover */
+}
+
+/* Ajustes para el campo de duración */
+.duration-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+}
