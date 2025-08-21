@@ -12,7 +12,6 @@
         <span>Tipo de Recurso</span>
         <mat-form-field appearance="outline">
           <mat-select formControlName="resourceType"
-                      (selectionChange)="onResourceTypeChange($event.value)"
                       placeholder="Seleccione Tipo">
             @for (type of resourceTypes; track type) {
               <mat-option [value]="type.id">{{type.name}}</mat-option>
@@ -26,15 +25,18 @@
       <div class="field-group">
         <span>Recurso</span>
         <mat-form-field appearance="outline">
-          <mat-select formControlName="resource" (selectionChange)="onResourceSelected($event.value)">
+          <mat-select formControlName="resource">
             @if (selectedResourceType === 1) {
-              @for (emp of filteredEmployees; track emp.id) {
+              @for (emp of employees; track emp.id) {
                 <mat-option [value]="emp.id">
                   {{emp.person.firstName}} {{emp.person.lastName}}
+                  @if (emp.positionName || emp.position?.positionName) {
+                    - {{emp.positionName || emp.position?.positionName}}
+                  }
                 </mat-option>
               }
             } @else {
-              @for (prov of filteredProviders; track prov.id) {
+               @for (prov of providers; track prov.id) {
                 <mat-option [value]="prov.id">
                   {{prov.businessName}} ({{prov.supplierType.name}})
                 </mat-option>
@@ -46,21 +48,16 @@
 
       <div class="field-group">
         <span>Perfil</span>
-        @if (selectedResourceType === 1) {
-          <!-- Input deshabilitado para empleados -->
-          <mat-form-field appearance="outline">
-            <input matInput formControlName="profile" readonly>
-          </mat-form-field>
-        } @else {
-          <!-- Select para proveedores -->
-          <mat-form-field appearance="outline">
-            <mat-select formControlName="profile">
-              @for (position of positions; track position.id) {
-                <mat-option [value]="position.positionName">{{position.positionName}}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-        }
+        <mat-form-field appearance="outline">
+          <mat-select formControlName="profile">
+            @for (position of positions; track position.id) {
+              <mat-option [value]="position.positionName">{{position.positionName}}</mat-option>
+            }
+          </mat-select>
+          @if (assignmentForm.get('profile')?.value) {
+            <mat-hint>Perfil seleccionado automáticamente</mat-hint>
+          }
+        </mat-form-field>
       </div>
 
       <div class="field-group">
