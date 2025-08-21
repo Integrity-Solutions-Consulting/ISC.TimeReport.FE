@@ -4,17 +4,27 @@
 <mat-dialog-content>
   <form [formGroup]="userForm" class="user-form">
 
-    <mat-form-field appearance="outline" class="full-width">
+    <!-- Eliminado el input de búsqueda separado -->
+    <!-- <mat-form-field appearance="outline" class="full-width">
       <input matInput
              (input)="onSearchChange($event)"
              placeholder="Buscar empleado...">
       <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+    </mat-form-field> -->
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-select formControlName="employeeID" required>
+        <!-- Campo de búsqueda integrado en el select -->
+        <mat-option>
+          <ngx-mat-select-search
+            [formControl]="employeeFilterCtrl"
+            placeholderLabel="Buscar empleado..."
+            noEntriesFoundLabel="No se encontraron empleados">
+          </ngx-mat-select-search>
+        </mat-option>
+
         <mat-option
-          *ngFor="let employee of employees"
+          *ngFor="let employee of filteredEmployees | async"
           [value]="employee.id">
           {{employee.person.firstName}} {{employee.person.lastName}} - {{employee.person.identificationNumber}}
         </mat-option>
