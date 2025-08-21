@@ -1,4 +1,4 @@
-import { Component , signal, ChangeDetectorRef, ViewChild, OnInit, AfterViewInit } from '@angular/core';
+import { Component , signal, ChangeDetectorRef, ViewChild, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FullCalendarModule, FullCalendarComponent } from '@fullcalendar/angular';
 import { CalendarOptions, DateSelectArg, EventClickArg, EventApi } from '@fullcalendar/core';
@@ -14,8 +14,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router, RouterModule } from '@angular/router';
 import { Project, ProjectWithID } from '../../../projects/interfaces/project.interface';
 import { ProjectService } from '../../../projects/services/project.service';
-import { Activity } from '../../interfaces/activity.interface';
-import { Observable, take, map, catchError, throwError, of } from 'rxjs';
+import { Activity, ActivityType } from '../../interfaces/activity.interface';
+import { Observable, take, map, catchError, throwError, of, Subscription } from 'rxjs';
 import { ApiResponse } from '../../interfaces/activity.interface';
 import { ReportDialogComponent } from '../report-dialog/report-dialog.component';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -56,18 +56,11 @@ import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } 
   templateUrl: './daily-activities.component.html',
   styleUrl: './daily-activities.component.scss'
 })
-export class DailyActivitiesComponent implements AfterViewInit {
+export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
   currentEmployeeId: number | null = null;
   projectList: ProjectWithID[] = [];
-  activityColors = [
-    { id: 1, value: '#2E8B57'},
-    { id: 2, value: '#4169E1'},
-    { id: 3, value: '#FF6347'},
-    { id: 4, value: '#9370DB'},
-    { id: 5, value: '#DAA520'},
-    { id: 6, value: '#DC143C'},
-    { id: 7, value: '#008B8B'},
-  ];
+  activityTypes: ActivityType[] = [];
+  private subscriptions: Subscription = new Subscription();
   isLoadingProjects = false;
   @ViewChild('calendar') calendarComponent!: FullCalendarComponent;
   private calendar: any;
@@ -137,9 +130,43 @@ export class DailyActivitiesComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.loadActivityTypes();
     this.loadProjects().pipe(take(1)).subscribe(() => {
       this.loadInitialData();
     });
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  private loadActivityTypes(): void {
+    const activityTypesSub = this.activityService.getActivityTypes().subscribe({
+      next: (types) => {
+        this.activityTypes = types;
+        console.log('Tipos de actividad cargados:', this.activityTypes);
+      },
+      error: (error) => {
+        console.error('Error al cargar tipos de actividad:', error);
+        // Puedes mantener un fallback si es necesario
+        this.activityTypes = this.getDefaultActivityTypes();
+      }
+    });
+    this.subscriptions.add(activityTypesSub);
+  }
+
+  private getDefaultActivityTypes(): ActivityType[] {
+    // Fallback por si falla la carga desde el servidor
+    return [
+      { id: 1, name: 'Desarrollo', description: 'Programación y desarrollo de software', colorCode: '#2E8B57' },
+      { id: 2, name: 'Reunión', description: 'Reuniones con clientes y equipo', colorCode: '#4169E1' },
+      { id: 3, name: 'Análisis', description: 'Análisis de requerimientos y diseño', colorCode: '#FF6347' },
+      { id: 4, name: 'Testing', description: 'Pruebas y control de calidad', colorCode: '#9370DB' },
+      { id: 5, name: 'Documentación', description: 'Creación de documentación', colorCode: '#DAA520' },
+      { id: 6, name: 'Soporte', description: 'Soporte técnico y mantenimiento', colorCode: '#DC143C' },
+      { id: 7, name: 'Capacitación', description: 'Entrenamiento y capacitación', colorCode: '#008B8B' },
+      { id: 1002, name: 'Auditoria', description: 'Auditoria Informática', colorCode: '#518B00' }
+    ];
   }
 
   private getUserData(): any {
@@ -253,10 +280,10 @@ export class DailyActivitiesComponent implements AfterViewInit {
         }
 
         const project = this.projectList.find(p => p.id === activity.projectID);
-        const activityType = this.activityColors.find(t => t.id === activity.activityTypeID);
-        const color = activityType?.value || '#9E9E9E';
+        const activityType = this.activityTypes.find(t => t.id === activity.activityTypeID);
+        const color = activityType?.colorCode || '#9E9E9E';
         const rawTitle = `${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`;
-        const truncatedTitle = rawTitle.length > 30 ? rawTitle.substring(0, 27) + '...' : rawTitle;
+        const truncatedTitle = rawTitle.length > 30 ? rawTitle.substring(0, 20) + '...' : rawTitle;
 
         console.log('Creando evento para actividad:', { // Debug
           id: activity.id,
@@ -332,7 +359,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
     this.projectService.getProjectsByUserRole(this.currentEmployeeId ?? undefined).subscribe({
       next: (projectsResponse) => {
         const dialogRef = this.dialog.open(EventDialogComponent, {
-          width: '500px',
+          width: '800px',
           data: {
             event: {
               activityDate: selectInfo.start,
@@ -346,7 +373,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
             },
             isEdit: false,
             projects: projectsResponse.items,
-            activityTypes: this.activityColors
+            activityTypes: this.activityTypes
           }
         });
 
@@ -391,7 +418,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
             },
             isEdit: false,
             projects: projectsResponse.items,
-            activityTypes: this.activityColors
+            activityTypes: this.activityTypes
           }
         });
 
@@ -609,7 +636,7 @@ export class DailyActivitiesComponent implements AfterViewInit {
         },
         isEdit: true,
         projects: this.projectList,
-        activityTypes: this.activityColors,
+        activityTypes: this.activityTypes,
         currentCalendarEvents: this.currentEvents()
       }
     });

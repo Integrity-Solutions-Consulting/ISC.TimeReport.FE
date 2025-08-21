@@ -6,7 +6,7 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-select [(ngModel)]="event.activityTypeID" required placeholder="Tipo de Actividad" name="activityType">
         @for (type of activityTypes; track type.id) {
-          <mat-option [value]="type.id">{{type.value}}</mat-option>
+          <mat-option [value]="type.id">{{type.name}}</mat-option>
         }
       </mat-select>
     </mat-form-field>
