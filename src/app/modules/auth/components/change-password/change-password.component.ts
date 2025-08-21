@@ -11,6 +11,7 @@ import { environment } from '../../../../../environments/environment';
 import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Importamos el spinner
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-change-password',
@@ -22,7 +23,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; /
     MatFormFieldModule,
     MatInputModule,
     ReactiveFormsModule,
-    MatProgressSpinnerModule // Añadimos el spinner
+    MatProgressSpinnerModule,
+    MatIconModule
   ],
   templateUrl: './change-password.component.html',
   styleUrl: './change-password.component.scss'
@@ -93,7 +95,7 @@ export class ChangePasswordComponent implements OnInit{
 
           // Redirigir después de un breve tiempo
           setTimeout(() => {
-            this.router.navigate(['/dashboard']); // O a donde desees redirigir
+            this.router.navigate(['/auth/login']); // O a donde desees redirigir
           }, 2000);
         },
         error: (error) => {
