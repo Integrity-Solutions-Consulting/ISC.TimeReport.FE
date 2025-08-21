@@ -158,7 +158,7 @@ export class LeaderModalComponent implements OnInit, OnDestroy {
         email: [leaderData.person?.email || '', [Validators.required, Validators.email]],
         phone: [leaderData.person?.phone || '', [Validators.pattern(/^[0-9]+$/)]],
         address: [leaderData.person?.address || ''],
-        genderID: [leaderData.person?.genderID || null],
+        genderId: [leaderData.person?.genderId || null],
         nationalityId: [leaderData.person?.nationalityId || null]
       })
     });
@@ -482,7 +482,7 @@ export class LeaderModalComponent implements OnInit, OnDestroy {
         email: leaderData.person?.email,
         phone: leaderData.person?.phone,
         address: leaderData.person?.address,
-        genderID: leaderData.person?.genderID,
+        genderId: leaderData.person?.genderId,
         nationalityId: leaderData.person?.nationalityId
       }
     });
