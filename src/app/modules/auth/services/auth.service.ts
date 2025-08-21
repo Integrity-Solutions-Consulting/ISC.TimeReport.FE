@@ -27,6 +27,16 @@ export class AuthService {
     this.loadInitialData();
   }
 
+  private startTokenExpirationCheck(): void {
+    // Verificar cada minuto si el token ha expirado
+    setInterval(() => {
+      if (this.isAuthenticated() && this.isTokenExpired()) {
+        this.logout();
+        this.router.navigate(['/auth/login']);
+      }
+    }, 10000); // 60 segundos
+  }
+
   // Inicializa el estado de autenticación al cargar el servicio
   private initializeAuthState(): void {
     const token = this.getToken();
@@ -377,6 +387,31 @@ export class AuthService {
 
   public getCurrentEmployeeId(): number | null {
     return this.currentEmployeeId.value;
+  }
+
+    // En tu AuthService
+  isTokenExpired(): boolean {
+    const token = this.getToken();
+    if (!token) return true;
+
+    try {
+      const decoded: any = jwtDecode(token);
+      const currentTime = Date.now() / 1000;
+      return decoded.exp < currentTime;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return true;
+    }
+  }
+
+  // Método para verificar token antes de operaciones sensibles
+  checkTokenExpiration(): boolean {
+    if (this.isTokenExpired()) {
+      this.logout();
+      this.router.navigate(['/login']);
+      return true;
+    }
+    return false;
   }
 
 }
