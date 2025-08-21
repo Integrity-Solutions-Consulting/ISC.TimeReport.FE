@@ -26,8 +26,17 @@
         <span>Recurso</span>
         <mat-form-field appearance="outline">
           <mat-select formControlName="resource">
+            <!-- Campo de búsqueda para recursos -->
+            <mat-option>
+              <ngx-mat-select-search
+                [formControl]="resourceFilterCtrl"
+                placeholderLabel="Buscar recurso..."
+                noEntriesFoundLabel="No se encontraron recursos">
+              </ngx-mat-select-search>
+            </mat-option>
+
             @if (selectedResourceType === 1) {
-              @for (emp of employees; track emp.id) {
+              @for (emp of filteredEmployees | async; track emp.id) {
                 <mat-option [value]="emp.id">
                   {{emp.person.firstName}} {{emp.person.lastName}}
                   @if (emp.positionName || emp.position?.positionName) {
@@ -36,7 +45,7 @@
                 </mat-option>
               }
             } @else {
-               @for (prov of providers; track prov.id) {
+               @for (prov of filteredProviders | async; track prov.id) {
                 <mat-option [value]="prov.id">
                   {{prov.businessName}} ({{prov.supplierType.name}})
                 </mat-option>
@@ -50,13 +59,23 @@
         <span>Perfil</span>
         <mat-form-field appearance="outline">
           <mat-select formControlName="profile">
-            @for (position of positions; track position.id) {
-              <mat-option [value]="position.positionName">{{position.positionName}}</mat-option>
+            <!-- Campo de búsqueda para perfiles -->
+            <mat-option>
+              <ngx-mat-select-search
+                [formControl]="profileFilterCtrl"
+                placeholderLabel="Buscar perfil..."
+                noEntriesFoundLabel="No se encontraron perfiles">
+              </ngx-mat-select-search>
+            </mat-option>
+
+            @if (selectedResourceType === 1) {
+              @for (position of filteredPositions | async; track position.id) {
+                <mat-option [value]="position.positionName">{{position.positionName}}</mat-option>
+              }
+            } @else {
+              <mat-option [value]="'Proveedor'">Proveedor</mat-option>
             }
           </mat-select>
-          @if (assignmentForm.get('profile')?.value) {
-            <mat-hint>Perfil seleccionado automáticamente</mat-hint>
-          }
         </mat-form-field>
       </div>
 

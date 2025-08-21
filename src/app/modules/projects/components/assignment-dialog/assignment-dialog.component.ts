@@ -1,7 +1,7 @@
 // assignment-dialog.component.ts
-import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProjectService } from '../../services/project.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -12,8 +12,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { ProjectDetail, EmployeeProject, EmployeeProjectMiddle, ResourceAssignmentPayload, Position } from '../../interfaces/project.interface';
-import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap, ReplaySubject, takeUntil } from 'rxjs';
 import { EmployeeService } from '../../../employees/services/employee.service';
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 interface DialogData {
   projectId: number;
@@ -37,10 +38,11 @@ interface DialogData {
     MatListModule,
     MatSelectModule,
     MatTableModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgxMatSelectSearchModule
   ]
 })
-export class AssignmentDialogComponent implements OnInit {
+export class AssignmentDialogComponent implements OnInit, OnDestroy {
   assignmentForm: FormGroup;
   resourceTypes = [
     { id: 1, name: 'Empleado' },
@@ -63,6 +65,17 @@ export class AssignmentDialogComponent implements OnInit {
   currentPage = 1;
   pageSize = 500;
   searchTerm = '';
+
+  // Para ngx-mat-select-search - Recursos
+  public resourceFilterCtrl: FormControl<string | null> = new FormControl<string>('');
+  public filteredEmployees: ReplaySubject<any[]> = new ReplaySubject<any[]>(1);
+  public filteredProviders: ReplaySubject<any[]> = new ReplaySubject<any[]>(1);
+
+  // Para ngx-mat-select-search - Perfiles
+  public profileFilterCtrl: FormControl<string | null> = new FormControl<string>('');
+  public filteredPositions: ReplaySubject<any[]> = new ReplaySubject<any[]>(1);
+
+  protected _onDestroy = new Subject<void>();
 
   displayedColumns: string[] = ['type', 'name', 'profile', 'cost', 'hours', 'actions'];
 
@@ -90,6 +103,15 @@ export class AssignmentDialogComponent implements OnInit {
   ngOnInit(): void {
     this.setupSearch();
     this.setupProfileAutofill();
+    this.setupResourceFilter();
+    this.setupProfileFilter();
+
+    // Suscribirse a cambios en el tipo de recurso
+    this.assignmentForm.get('resourceType')?.valueChanges
+      .pipe(takeUntil(this._onDestroy))
+      .subscribe(() => {
+        this.onResourceTypeChange();
+      });
   }
 
   private resetForm(): void {
@@ -99,10 +121,16 @@ export class AssignmentDialogComponent implements OnInit {
       costPerHour: 0,
       totalHours: 0
     });
+
+    // Limpiar filtros al resetear el formulario
+    this.resourceFilterCtrl.setValue('', { emitEvent: false });
+    this.profileFilterCtrl.setValue('', { emitEvent: false });
   }
 
   ngOnDestroy(): void {
     this.searchSubject.complete();
+    this._onDestroy.next();
+    this._onDestroy.complete();
   }
 
   private setupSearch(): void {
@@ -121,11 +149,98 @@ export class AssignmentDialogComponent implements OnInit {
         this.employees = response.items;
         this.totalEmployees = response.totalItems;
         this.mapEmployeesWithPositions();
+        this.filterResources(); // Actualizar filtros después de cargar empleados
       },
       error: (error) => {
         console.error('Error al buscar empleados:', error);
       }
     });
+  }
+
+  /**
+   * Configura el filtro para recursos usando ngx-mat-select-search
+   */
+  private setupResourceFilter(): void {
+    // Cargar sets iniciales
+    this.filteredEmployees.next(this.employees.slice());
+    this.filteredProviders.next(this.providers.slice());
+
+    // Escuchar cambios en el filtro
+    this.resourceFilterCtrl.valueChanges
+      .pipe(takeUntil(this._onDestroy))
+      .subscribe(() => {
+        this.filterResources();
+      });
+  }
+
+  /**
+   * Configura el filtro para perfiles usando ngx-mat-select-search
+   */
+  private setupProfileFilter(): void {
+    // Cargar set inicial
+    this.filteredPositions.next(this.positions.slice());
+
+    // Escuchar cambios en el filtro
+    this.profileFilterCtrl.valueChanges
+      .pipe(takeUntil(this._onDestroy))
+      .subscribe(() => {
+        this.filterProfiles();
+      });
+  }
+
+  /**
+   * Filtra los recursos basado en la consulta
+   */
+  private filterResources(): void {
+    // Obtener la palabra clave de búsqueda
+    let searchTerm = this.resourceFilterCtrl.value || '';
+    if (typeof searchTerm === 'string') {
+      searchTerm = searchTerm.toLowerCase();
+    } else {
+      searchTerm = '';
+    }
+
+    // Filtrar empleados
+    if (this.employees.length > 0) {
+      const filteredEmps = this.employees.filter(emp => {
+        const fullName = `${emp.person?.firstName || ''} ${emp.person?.lastName || ''}`.toLowerCase();
+        const position = (emp.positionName || emp.position?.positionName || '').toLowerCase();
+        return fullName.includes(searchTerm) || position.includes(searchTerm);
+      });
+      this.filteredEmployees.next(filteredEmps);
+    }
+
+    // Filtrar proveedores
+    if (this.providers.length > 0) {
+      const filteredProvs = this.providers.filter(prov => {
+        const businessName = (prov.businessName || '').toLowerCase();
+        const supplierType = (prov.supplierType?.name || '').toLowerCase();
+        return businessName.includes(searchTerm) || supplierType.includes(searchTerm);
+      });
+      this.filteredProviders.next(filteredProvs);
+    }
+  }
+
+  /**
+   * Filtra los perfiles basado en la consulta
+   */
+  private filterProfiles(): void {
+    // Obtener la palabra clave de búsqueda
+    let searchTerm = this.profileFilterCtrl.value || '';
+    if (typeof searchTerm === 'string') {
+      searchTerm = searchTerm.toLowerCase();
+    } else {
+      searchTerm = '';
+    }
+
+    // Filtrar posiciones
+    if (this.positions.length > 0) {
+      const filteredPositions = this.positions.filter(position => {
+        const positionName = (position.positionName || '').toLowerCase();
+        return positionName.includes(searchTerm);
+      });
+      this.filteredPositions.next(filteredPositions);
+    }
   }
 
   private setupProfileAutofill(): void {
@@ -151,6 +266,11 @@ export class AssignmentDialogComponent implements OnInit {
       this.positions = posResponse || [];
 
       this.mapEmployeesWithPositions();
+
+      // Inicializar los filtros después de cargar los datos
+      this.filteredEmployees.next(this.employees.slice());
+      this.filteredProviders.next(this.providers.slice());
+      this.filteredPositions.next(this.positions.slice());
 
     } catch (error) {
       console.error('Error loading initial data:', error);
@@ -225,6 +345,10 @@ export class AssignmentDialogComponent implements OnInit {
     this.selectedResourceType = this.assignmentForm.get('resourceType')?.value;
     this.assignmentForm.get('resource')?.reset();
     this.assignmentForm.get('profile')?.reset();
+
+    // Limpiar los filtros cuando cambia el tipo
+    this.resourceFilterCtrl.setValue('', { emitEvent: false });
+    this.profileFilterCtrl.setValue('', { emitEvent: false });
 
     // Si es proveedor, establecer perfil por defecto
     if (this.selectedResourceType === 2) {

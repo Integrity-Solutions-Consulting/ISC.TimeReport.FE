@@ -3,15 +3,23 @@
 <mat-dialog-content>
   <div class="form-container">
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-select [(ngModel)]="event.activityTypeID" required placeholder="Tipo de Actividad" name="activityType">
-        @for (type of activityTypes; track type.id) {
-          <mat-option [value]="type.id">{{type.name}}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <!-- Tipo de Actividad -->
+    <div class="field-with-help">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-select [(ngModel)]="event.activityTypeID" required placeholder="Tipo de Actividad" name="activityType">
+          @for (type of activityTypes; track type.id) {
+            <mat-option [value]="type.id">{{type.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <div class="help-icon" [matTooltip]="'Selecciona el tipo de actividad que vas a registrar (ej. Desarrollo, Testing, Reunión, etc.)'" matTooltipPosition="right">
+        ?
+      </div>
+    </div>
 
-    <mat-form-field appearance="outline" class="full-width">
+    <!-- Proyecto -->
+    <div class="field-with-help">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-select [(ngModel)]="event.projectID"
                     (ngModelChange)="onProjectChange($event)"
                     required
@@ -25,67 +33,91 @@
                 <mat-option disabled>No tienes proyectos asignados</mat-option>
             }
         </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <input matInput
-            [(ngModel)]="event.requirementCode"
-            placeholder="Código de Requerimiento"
-            [required]="!event.projectId"
-            name="requirementCode">
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <textarea matInput
-        [(ngModel)]="event.activityDescription"
-        rows="3"
-        placeholder="Descripción"
-        required
-        name="description"
-        maxlength="200"
-        (input)="trimDescription()"
-        cdkTextareaAutosize
-        #descInput="ngModel"
-        cdkAutosizeMinRows="3"
-        cdkAutosizeMaxRows="5">
-      </textarea>
-      <mat-hint align="end">{{event.activityDescription?.length || 0}}/200</mat-hint>
-      <mat-error *ngIf="descInput.errors?.['maxlength']">
-        La descripción no puede exceder los 200 caracteres
-      </mat-error>
-    </mat-form-field>
-
-    <!--<mat-form-field appearance="outline" class="full-width">
-      <textarea matInput [(ngModel)]="event.details" rows="3" placeholder="Detalle de la Actividad" name="details"></textarea>
-    </mat-form-field>-->
-
-    <div class="duration-container">
-      <span>Duración:</span>
-      <mat-slide-toggle [(ngModel)]="isFullDay" (change)="onDurationChange()" color="primary" name="durationToggle">
-        {{isFullDay ? 'Día Completo' : 'Horas'}}
-      </mat-slide-toggle>
+      </mat-form-field>
+      <div class="help-icon" [matTooltip]="'Selecciona el proyecto al que pertenece esta actividad. Si no ves proyectos, contacta a tu administrador.'" matTooltipPosition="right">
+        ?
+      </div>
     </div>
 
-    <div class="row">
-      <mat-form-field appearance="outline" class="half-width">
-        <mat-label>Fecha Actividad</mat-label>
+    <!-- Código de Requerimiento -->
+    <div class="field-with-help">
+      <mat-form-field appearance="outline" class="full-width">
         <input matInput
-              [matDatepicker]="activityDatePicker"
-              [(ngModel)]="event.activityDate"
-              required
-              name="activityDate"
-              placeholder="dd/mm/aaaa">
-        <mat-datepicker-toggle matSuffix [for]="activityDatePicker"></mat-datepicker-toggle>
-        <mat-datepicker #activityDatePicker></mat-datepicker>
+              [(ngModel)]="event.requirementCode"
+              placeholder="Código de Requerimiento"
+              [required]="!event.projectId"
+              name="requirementCode">
       </mat-form-field>
+      <div class="help-icon" [matTooltip]="'Ingresa el código del requerimiento o ticket asociado a esta actividad (ej. JIRA-123, PROY-456)'" matTooltipPosition="right">
+        ?
+      </div>
+    </div>
 
-      <mat-form-field appearance="outline" *ngIf="!isFullDay">
-        <mat-label>Número de Horas</mat-label>
-        <input matInput type="number" [(ngModel)]="event.hours" name="hours" min="1" max="8" [required]="!isFullDay" (ngModelChange)="validateHours()">
-        <mat-error *ngIf="!isFullDay">
-          Horas inválidas (debe ser entre 1 y 8).
+    <!-- Descripción -->
+    <div class="field-with-help">
+      <mat-form-field appearance="outline" class="full-width">
+        <textarea matInput
+          [(ngModel)]="event.activityDescription"
+          rows="3"
+          placeholder="Descripción"
+          required
+          name="description"
+          maxlength="200"
+          (input)="trimDescription()"
+          cdkTextareaAutosize
+          #descInput="ngModel"
+          cdkAutosizeMinRows="3"
+          cdkAutosizeMaxRows="5">
+        </textarea>
+        <mat-hint align="end">{{event.activityDescription?.length || 0}}/200</mat-hint>
+        <mat-error *ngIf="descInput.errors?.['maxlength']">
+          La descripción no puede exceder los 200 caracteres
         </mat-error>
       </mat-form-field>
+      <div class="help-icon" [matTooltip]="'Describe brevemente la actividad realizada. Máximo 200 caracteres.'" matTooltipPosition="right">
+        ?
+      </div>
+    </div>
+
+    <!-- Duración -->
+    <div class="field-with-help">
+      <div class="duration-container">
+        <span>Duración:</span>
+        <mat-slide-toggle [(ngModel)]="isFullDay" (change)="onDurationChange()" color="primary" name="durationToggle">
+          {{isFullDay ? 'Día Completo' : 'Horas'}}
+        </mat-slide-toggle>
+      </div>
+      <div class="help-icon" [matTooltip]="'Selecciona si la actividad ocupa todo el día o solo algunas horas. Día completo registrará 8 horas automáticamente.'" matTooltipPosition="right">
+        ?
+      </div>
+    </div>
+
+    <!-- Fecha y Horas -->
+    <div class="field-with-help">
+      <div class="row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Fecha Actividad</mat-label>
+          <input matInput
+                [matDatepicker]="activityDatePicker"
+                [(ngModel)]="event.activityDate"
+                required
+                name="activityDate"
+                placeholder="dd/mm/aaaa">
+          <mat-datepicker-toggle matSuffix [for]="activityDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #activityDatePicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="!isFullDay" class="half-width">
+          <mat-label>Número de Horas</mat-label>
+          <input matInput type="number" [(ngModel)]="event.hours" name="hours" min="1" max="8" [required]="!isFullDay" (ngModelChange)="validateHours()">
+          <mat-error *ngIf="!isFullDay">
+            Horas inválidas (debe ser entre 1 y 8).
+          </mat-error>
+        </mat-form-field>
+      </div>
+      <div class="help-icon" [matTooltip]="'Selecciona la fecha de la actividad y, si no es día completo, ingresa el número de horas trabajadas (máximo 8 por día).'" matTooltipPosition="right">
+        ?
+      </div>
     </div>
   </div>
 </mat-dialog-content>
