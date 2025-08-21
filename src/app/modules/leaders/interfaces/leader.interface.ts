@@ -6,7 +6,7 @@ export interface LeaderWithPerson {
   responsibilities: string;
   status: boolean;
   person: {
-    genderID: number;
+    genderId: number;
     nationalityId: number;
     identificationTypeId: number;
     identificationNumber: string;
