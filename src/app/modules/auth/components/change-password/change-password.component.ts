@@ -133,7 +133,7 @@ export class ChangePasswordComponent implements OnInit{
       duration: 5000,
       panelClass: [`snackbar-${type}`],
       horizontalPosition: 'center',
-      verticalPosition: 'top'
+      verticalPosition: 'bottom'
     });
   }
 }

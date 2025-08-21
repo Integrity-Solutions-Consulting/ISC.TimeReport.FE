@@ -81,7 +81,7 @@ export class RecoveryPasswordComponent implements OnInit {
       duration: 5000, // Duración de 5 segundos
       panelClass: [`snackbar-${type}`], // Clase CSS personalizada según el tipo
       horizontalPosition: 'center',
-      verticalPosition: 'top'
+      verticalPosition: 'bottom'
     });
   }
 
