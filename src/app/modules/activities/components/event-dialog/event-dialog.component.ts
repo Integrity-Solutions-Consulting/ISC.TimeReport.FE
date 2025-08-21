@@ -256,6 +256,12 @@ export class EventDialogComponent implements OnInit {
     return new Date().toISOString().split('T')[0];
   }
 
+  trimDescription(): void {
+    if (this.event.activityDescription && this.event.activityDescription.length > 200) {
+      this.event.activityDescription = this.event.activityDescription.substring(0, 200);
+    }
+  }
+
   isFormValid(): boolean {
     if (!this.event.activityTypeID ||
         !this.event.projectID ||
