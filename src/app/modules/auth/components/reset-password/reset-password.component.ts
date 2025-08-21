@@ -101,7 +101,7 @@ export class ResetPasswordComponent implements OnInit {
       duration: 10000,
       panelClass: [`snackbar-${type}`],
       horizontalPosition: 'center',
-      verticalPosition: 'top'
+      verticalPosition: 'bottom'
     });
   }
 
