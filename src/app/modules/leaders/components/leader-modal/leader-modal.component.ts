@@ -116,6 +116,11 @@ export class LeaderModalComponent implements OnInit, OnDestroy {
     this.loadProjects();
     this.setupPersonFilter();
     this.setupProjectFilter();
+
+    // Actualizar campos después de cargar todo
+    setTimeout(() => {
+      this.updateEditModeFields();
+    });
   }
 
   ngOnDestroy(): void {
@@ -173,10 +178,19 @@ export class LeaderModalComponent implements OnInit, OnDestroy {
     });
 
     this.leaderForm.get('leadershipType')?.valueChanges.subscribe(value => {
+      this.isIdentificationTypeDisabled = value === false;
+      const identificationTypeControl = this.leaderForm.get('person.identificationTypeId');
+      if (value === false) { // Externo
+        identificationTypeControl?.disable();
+      } else { // Integrity
+        identificationTypeControl?.enable();
+      }
       this.updateIdentificationRequiredStatus(value);
       // También actualiza los validadores del número de identificación
       const personType = this.leaderForm.get('person.personType')?.value;
       this.updateIdentificationValidators(personType);
+
+      this.updateEditModeFields();
     });
 
     this.updateIdentificationRequiredStatus(this.leaderForm.get('leadershipType')?.value);
@@ -198,11 +212,28 @@ export class LeaderModalComponent implements OnInit, OnDestroy {
       }
     });
 
+    const initialLeadershipType = this.leaderForm.get('leadershipType')?.value;
+    this.isIdentificationTypeDisabled = initialLeadershipType === false;
+
     const initialPersonType = this.leaderForm.get('person.personType')?.value;
     this.updateIdentificationValidators(initialPersonType);
 
     // Inicializa los campos de persona según el modo
     this.togglePersonFields();
+  }
+
+  private updateEditModeFields(): void {
+    if (this.isEditMode) {
+      const isIntegrityLeader = this.leaderForm.get('leadershipType')?.value === true;
+      const personGroup = this.leaderForm.get('person') as FormGroup;
+
+      if (isIntegrityLeader) {
+        // Deshabilitar los campos específicos para Integrity en modo edición
+        personGroup.get('personType')?.disable();
+        personGroup.get('identificationTypeId')?.disable();
+        personGroup.get('identificationNumber')?.disable();
+      }
+    }
   }
 
   loadCatalogs(): void {
@@ -224,16 +255,18 @@ export class LeaderModalComponent implements OnInit, OnDestroy {
   }
 
   private identificationNumberValidator(control: FormControl): { [key: string]: any } | null {
-    const personType = this.leaderForm?.get('person.personType')?.value;
-    const identificationTypeId = this.leaderForm?.get('person.identificationTypeId')?.value;
-    const value = control.value;
-    const leadershipType = this.leaderForm?.get('leadershipType')?.value;
 
-    if (!value) return null;
+    const leadershipType = this.leaderForm?.get('leadershipType')?.value;
 
     if (leadershipType === false) {
       return null;
     }
+
+    const personType = this.leaderForm?.get('person.personType')?.value;
+    const identificationTypeId = this.leaderForm?.get('person.identificationTypeId')?.value;
+    const value = control.value;
+
+    if (!value) return null;
 
     // Validación para persona jurídica
     if (personType === 'JURIDICA') {
@@ -336,6 +369,8 @@ export class LeaderModalComponent implements OnInit, OnDestroy {
       this.filteredProjects.next(filteredProjects);
     }
 
+  isIdentificationTypeDisabled: boolean = false;
+
   private filterPersons(): void {
     if (!this.personsList) {
       return;
@@ -363,26 +398,29 @@ export class LeaderModalComponent implements OnInit, OnDestroy {
     const personGroup = this.leaderForm.get('person') as FormGroup;
     const identificationNumberControl = personGroup.get('identificationNumber');
     const personTypeControl = personGroup.get('personType');
-    const identificationTypeControl = personGroup.get('identificationTypeId');
+    const identificationTypeControl = personGroup.get('identificationTypeId'); // Este es el campo que quieres desactivar
 
     if (!isIntegrityLeader) { // Externo
-      // Deshabilitar y limpiar validadores
+      // Deshabilitar los campos relevantes
       identificationNumberControl?.disable();
       personTypeControl?.disable();
-      identificationTypeControl?.disable();
+      identificationTypeControl?.disable(); // Desactivar el campo identificationType
 
       identificationNumberControl?.clearValidators();
       identificationNumberControl?.setErrors(null);
     } else { // Integrity
-      // Habilitar y restaurar validadores
+      // Habilitar los campos
       identificationNumberControl?.enable();
       personTypeControl?.enable();
-      identificationTypeControl?.enable();
+      identificationTypeControl?.enable(); // Activar el campo identificationType
 
       identificationNumberControl?.setValidators([
         Validators.required,
         this.identificationNumberValidator.bind(this)
       ]);
+
+      // Forzar validación después de habilitar
+      identificationNumberControl?.updateValueAndValidity();
     }
 
     identificationNumberControl?.updateValueAndValidity();
@@ -496,6 +534,8 @@ export class LeaderModalComponent implements OnInit, OnDestroy {
       this.useExistingPerson = true;
       this.togglePersonFields(); // Asegura que los campos de persona se deshabiliten
     }
+
+    this.updateEditModeFields();
   }
 
   private loadPersons(): void {
