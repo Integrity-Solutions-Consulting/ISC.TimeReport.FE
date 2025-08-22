@@ -15,6 +15,7 @@ import { ProjectDetail, EmployeeProject, EmployeeProjectMiddle, ResourceAssignme
 import { debounceTime, distinctUntilChanged, finalize, Subject, switchMap, ReplaySubject, takeUntil } from 'rxjs';
 import { EmployeeService } from '../../../employees/services/employee.service';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 interface DialogData {
   projectId: number;
@@ -38,6 +39,7 @@ interface DialogData {
     MatListModule,
     MatSelectModule,
     MatTableModule,
+    MatTooltipModule,
     ReactiveFormsModule,
     NgxMatSelectSearchModule
   ]

@@ -17,6 +17,7 @@ import { ProjectService } from '../../../projects/services/project.service';
 import { Project, ProjectWithID } from '../../../projects/interfaces/project.interface';
 import { ReplaySubject, Subject, takeUntil } from 'rxjs';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-leader-modal',
@@ -34,6 +35,7 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
     MatProgressSpinnerModule,
     MatSelectModule,
     MatInputModule,
+    MatTooltipModule,
     NgxMatSelectSearchModule
   ],
   providers: [
