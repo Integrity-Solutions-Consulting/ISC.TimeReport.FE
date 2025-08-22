@@ -9,88 +9,101 @@
   <form [formGroup]="assignmentForm">
     <div class="resource-type-section">
       <div class="type-selector">
-        <span>Tipo de Recurso</span>
-        <mat-form-field appearance="outline">
-          <mat-select formControlName="resourceType"
-                      placeholder="Seleccione Tipo">
-            @for (type of resourceTypes; track type) {
-              <mat-option [value]="type.id">{{type.name}}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        <div class="field-with-help">
+          <span>Tipo de Recurso</span>
+          <mat-form-field appearance="outline">
+            <mat-select formControlName="resourceType"
+                        placeholder="Seleccione Tipo">
+              @for (type of resourceTypes; track type) {
+                <mat-option [value]="type.id">{{type.name}}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="help-icon" [matTooltip]="'Selecciona si el recurso es un empleado interno o un proveedor externo'" matTooltipPosition="right">
+            ?
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="resource-details">
       <div class="field-group">
-        <span>Recurso</span>
-        <mat-form-field appearance="outline">
-          <mat-select formControlName="resource">
-            <!-- Campo de búsqueda para recursos -->
-            <mat-option>
-              <ngx-mat-select-search
-                [formControl]="resourceFilterCtrl"
-                placeholderLabel="Buscar recurso..."
-                noEntriesFoundLabel="No se encontraron recursos">
-              </ngx-mat-select-search>
-            </mat-option>
+        <div class="field-with-help">
+          <span>Recurso</span>
+          <mat-form-field appearance="outline">
+            <mat-select formControlName="resource">
+              <!-- Campo de búsqueda para recursos -->
+              <mat-option>
+                <ngx-mat-select-search
+                  [formControl]="resourceFilterCtrl"
+                  placeholderLabel="Buscar recurso..."
+                  noEntriesFoundLabel="No se encontraron recursos">
+                </ngx-mat-select-search>
+              </mat-option>
 
-            @if (selectedResourceType === 1) {
-              @for (emp of filteredEmployees | async; track emp.id) {
-                <mat-option [value]="emp.id">
-                  {{emp.person.firstName}} {{emp.person.lastName}}
-                  @if (emp.positionName || emp.position?.positionName) {
-                    - {{emp.positionName || emp.position?.positionName}}
-                  }
-                </mat-option>
+              @if (selectedResourceType === 1) {
+                @for (emp of filteredEmployees | async; track emp.id) {
+                  <mat-option [value]="emp.id">
+                    {{emp.person.firstName}} {{emp.person.lastName}}
+                    @if (emp.positionName || emp.position?.positionName) {
+                      - {{emp.positionName || emp.position?.positionName}}
+                    }
+                  </mat-option>
+                }
+              } @else {
+                 @for (prov of filteredProviders | async; track prov.id) {
+                  <mat-option [value]="prov.id">
+                    {{prov.businessName}} ({{prov.supplierType.name}})
+                  </mat-option>
+                }
               }
-            } @else {
-               @for (prov of filteredProviders | async; track prov.id) {
-                <mat-option [value]="prov.id">
-                  {{prov.businessName}} ({{prov.supplierType.name}})
-                </mat-option>
-              }
-            }
-          </mat-select>
-        </mat-form-field>
+            </mat-select>
+          </mat-form-field>
+        </div>
       </div>
 
       <div class="field-group">
-        <span>Perfil</span>
-        <mat-form-field appearance="outline">
-          <mat-select formControlName="profile">
-            <!-- Campo de búsqueda para perfiles -->
-            <mat-option>
-              <ngx-mat-select-search
-                [formControl]="profileFilterCtrl"
-                placeholderLabel="Buscar perfil..."
-                noEntriesFoundLabel="No se encontraron perfiles">
-              </ngx-mat-select-search>
-            </mat-option>
+        <div class="field-with-help">
+          <span>Perfil</span>
+          <mat-form-field appearance="outline">
+            <mat-select formControlName="profile">
+              <!-- Campo de búsqueda para perfiles -->
+              <mat-option>
+                <ngx-mat-select-search
+                  [formControl]="profileFilterCtrl"
+                  placeholderLabel="Buscar perfil..."
+                  noEntriesFoundLabel="No se encontraron perfiles">
+                </ngx-mat-select-search>
+              </mat-option>
 
-            @if (selectedResourceType === 1) {
-              @for (position of filteredPositions | async; track position.id) {
-                <mat-option [value]="position.positionName">{{position.positionName}}</mat-option>
+              @if (selectedResourceType === 1) {
+                @for (position of filteredPositions | async; track position.id) {
+                  <mat-option [value]="position.positionName">{{position.positionName}}</mat-option>
+                }
+              } @else {
+                <mat-option [value]="'Proveedor'">Proveedor</mat-option>
               }
-            } @else {
-              <mat-option [value]="'Proveedor'">Proveedor</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+            </mat-select>
+          </mat-form-field>
+        </div>
       </div>
 
       <div class="field-group">
-        <span>Costo/Hora</span>
-        <mat-form-field appearance="outline">
-          <input matInput type="number" formControlName="costPerHour" placeholder="Ej. 10">
-        </mat-form-field>
+        <div class="field-with-help">
+          <span>Costo/Hora</span>
+          <mat-form-field appearance="outline">
+            <input matInput type="number" formControlName="costPerHour" placeholder="Ej. 10">
+          </mat-form-field>
+        </div>
       </div>
 
       <div class="field-group">
-        <span>Total Horas</span>
-        <mat-form-field appearance="outline">
-          <input matInput type="number" formControlName="totalHours" placeholder="Ej. 40">
-        </mat-form-field>
+        <div class="field-with-help">
+          <span>Total Horas</span>
+          <mat-form-field appearance="outline">
+            <input matInput type="number" formControlName="totalHours" placeholder="Ej. 40">
+          </mat-form-field>
+        </div>
       </div>
 
       <button mat-raised-button

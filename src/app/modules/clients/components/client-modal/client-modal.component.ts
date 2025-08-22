@@ -25,6 +25,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ClientService } from '../../services/client.service';
 import { ErrorHandlerService } from '../../../../shared/services/errorhandler.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-customer-edit-modal',
@@ -48,7 +49,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatRadioModule,
     MatAutocompleteModule,
     MatDatepickerModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTooltipModule
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

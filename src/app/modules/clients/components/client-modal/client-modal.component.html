@@ -6,97 +6,162 @@
 
     <div class="section-title" style="font-family: 'Poppins';">Datos del Cliente</div>
     <div class="form-row">
-      <mat-form-field appearance="outline" class="form-field-half">
-        <input matInput formControlName="tradeName" placeholder="Empresa">
-      </mat-form-field>
+      <!-- Empresa -->
+      <div class="field-with-help">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="tradeName" placeholder="Empresa">
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Ingresa el nombre comercial de la empresa o cliente'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="outline" class="form-field-half">
-        <mat-label style="font-family: 'Poppins'; ">Tipo de Compañía</mat-label>
-        <mat-select formControlName="company">
-          <mat-option value="ISC">ISC</mat-option>
-          <mat-option value="RPS">RPS</mat-option>
-        </mat-select>
-      </mat-form-field>
+      <!-- Tipo de Compañía -->
+      <div class="field-with-help">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label style="font-family: 'Poppins';">Tipo de Compañía</mat-label>
+          <mat-select formControlName="company">
+            <mat-option value="ISC">ISC</mat-option>
+            <mat-option value="RPS">RPS</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Selecciona la compañía a la que pertenece este cliente (ISC o RPS)'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
     </div>
 
     <div formGroupName="person">
       <div class="section-title" style="font-family: 'Poppins';">Datos de Contacto</div>
 
       <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins';">Tipo de Persona</mat-label>
-          <mat-select formControlName="personType">
-            @for (type of personTypes; track type) {
-              <mat-option [value]="type.id">{{type.name}}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        <!-- Tipo de Persona -->
+        <div class="field-with-help">
+          <mat-form-field appearance="outline" class="form-field-half">
+            <mat-label style="font-family: 'Poppins';">Tipo de Persona</mat-label>
+            <mat-select formControlName="personType">
+              @for (type of personTypes; track type) {
+                <mat-option [value]="type.id">{{type.name}}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="help-icon" [matTooltip]="'Selecciona si es Persona Natural o Persona Jurídica. Esto afecta las validaciones de identificación.'" matTooltipPosition="right">
+            ?
+          </div>
+        </div>
 
-        <mat-form-field appearance="outline" class="form-field-half">
-          <mat-label style="font-family: 'Poppins';">Tipo de Identificación</mat-label>
-          <mat-select formControlName="identificationTypeId">
-            @for (type of identificationTypes; track type) {
-              <mat-option [value]="type.id">{{type.name}}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        <!-- Tipo de Identificación -->
+        <div class="field-with-help">
+          <mat-form-field appearance="outline" class="form-field-half">
+            <mat-label style="font-family: 'Poppins';">Tipo de Identificación</mat-label>
+            <mat-select formControlName="identificationTypeId">
+              @for (type of identificationTypes; track type) {
+                <mat-option [value]="type.id">{{type.name}}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="help-icon" [matTooltip]="'Selecciona el tipo de documento de identificación (Cédula, RUC, Pasaporte, etc.)'" matTooltipPosition="right">
+            ?
+          </div>
+        </div>
       </div>
 
       <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
-          <input matInput formControlName="identificationNumber" placeholder="Número de Identificación">
-          <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('duplicate')">
-            ¡Este número de identificación ya está registrado!
-          </mat-error>
-          <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('pattern')">
-            Solo se permiten números
-          </mat-error>
-        </mat-form-field>
+        <!-- Número de Identificación -->
+        <div class="field-with-help">
+          <mat-form-field appearance="outline" class="full-width">
+            <input matInput formControlName="identificationNumber" placeholder="Número de Identificación">
+            <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('duplicate')">
+              ¡Este número de identificación ya está registrado!
+            </mat-error>
+            <mat-error *ngIf="clientForm.get('person.identificationNumber')?.hasError('pattern')">
+              Solo se permiten números
+            </mat-error>
+          </mat-form-field>
+          <div class="help-icon" [matTooltip]="'Ingresa el número de identificación. Personas Naturales: cédula (máx. 10 dígitos). Personas Jurídicas: RUC (13 dígitos).'" matTooltipPosition="right">
+            ?
+          </div>
+        </div>
       </div>
 
       <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field-half">
-          <input matInput formControlName="firstName" placeholder="Nombres">
-        </mat-form-field>
+        <!-- Nombres -->
+        <div class="field-with-help">
+          <mat-form-field appearance="outline" class="form-field-half">
+            <input matInput formControlName="firstName" placeholder="Nombres">
+          </mat-form-field>
+          <div class="help-icon" [matTooltip]="'Ingresa los nombres del contacto principal'" matTooltipPosition="right">
+            ?
+          </div>
+        </div>
 
-        <mat-form-field appearance="outline" class="form-field-half">
-          <input matInput formControlName="lastName" placeholder="Apellidos">
-        </mat-form-field>
+        <!-- Apellidos -->
+        <div class="field-with-help">
+          <mat-form-field appearance="outline" class="form-field-half">
+            <input matInput formControlName="lastName" placeholder="Apellidos">
+          </mat-form-field>
+          <div class="help-icon" [matTooltip]="'Ingresa los apellidos del contacto principal'" matTooltipPosition="right">
+            ?
+          </div>
+        </div>
       </div>
 
       <div class="form-row">
-
-        <mat-form-field appearance="outline" class="form-field-half">
-          <input matInput formControlName="email" type="email" placeholder="Correo Electrónico">
-          <mat-error *ngIf="clientForm.get('person.email')?.hasError('email')">
-            Formato de email inválido
-          </mat-error>
-        </mat-form-field>
+        <!-- Correo Electrónico -->
+        <div class="field-with-help">
+          <mat-form-field appearance="outline" class="form-field-half">
+            <input matInput formControlName="email" type="email" placeholder="Correo Electrónico">
+            <mat-error *ngIf="clientForm.get('person.email')?.hasError('email')">
+              Formato de email inválido
+            </mat-error>
+          </mat-form-field>
+          <div class="help-icon" [matTooltip]="'Ingresa el correo electrónico del contacto principal. Debe tener un formato válido.'" matTooltipPosition="right">
+            ?
+          </div>
+        </div>
       </div>
 
       <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field-half">
-          <input matInput formControlName="phone" placeholder="Teléfono">
-          <mat-error *ngIf="clientForm.get('person.phone')?.hasError('pattern')">
-            El teléfono debe contener solo números (máximo 10 dígitos)
-          </mat-error>
-        </mat-form-field>
+        <!-- Teléfono -->
+        <div class="field-with-help">
+          <mat-form-field appearance="outline" class="form-field-half">
+            <input matInput formControlName="phone" placeholder="Teléfono">
+            <mat-error *ngIf="clientForm.get('person.phone')?.hasError('pattern')">
+              El teléfono debe contener solo números (máximo 10 dígitos)
+            </mat-error>
+          </mat-form-field>
+          <div class="help-icon" [matTooltip]="'Ingresa el número de teléfono. Solo números, máximo 10 dígitos.'" matTooltipPosition="right">
+            ?
+          </div>
+        </div>
 
-        <mat-form-field appearance="outline" class="form-field-half">
-          <input matInput formControlName="address" placeholder="Dirección">
-        </mat-form-field>
+        <!-- Dirección -->
+        <div class="field-with-help">
+          <mat-form-field appearance="outline" class="form-field-half">
+            <input matInput formControlName="address" placeholder="Dirección">
+          </mat-form-field>
+          <div class="help-icon" [matTooltip]="'Ingresa la dirección completa del cliente'" matTooltipPosition="right">
+            ?
+          </div>
+        </div>
       </div>
 
       <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field-half">
-          <mat-select formControlName="nationalityId" placeholder="País">
-            @for (nation of nationalities; track nation) {
-              <mat-option [value]="nation.id">{{nation.name}}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        <!-- País -->
+        <div class="field-with-help">
+          <mat-form-field appearance="outline" class="form-field-half">
+            <mat-select formControlName="nationalityId" placeholder="País">
+              @for (nation of nationalities; track nation) {
+                <mat-option [value]="nation.id">{{nation.name}}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="help-icon" [matTooltip]="'Selecciona el país del cliente'" matTooltipPosition="right">
+            ?
+          </div>
+        </div>
       </div>
     </div>
   </form>
