@@ -109,7 +109,10 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field-half">
-          <mat-select formControlName="identificationTypeId" placeholder="Tipo de Identificación">
+          <mat-select
+            formControlName="identificationTypeId"
+            placeholder="Tipo de Identificación"
+            [disabled]="isIdentificationTypeDisabled">
             @for (type of identificationTypes; track type) {
               <mat-option [value]="type.id">{{type.name}}</mat-option>
             }
