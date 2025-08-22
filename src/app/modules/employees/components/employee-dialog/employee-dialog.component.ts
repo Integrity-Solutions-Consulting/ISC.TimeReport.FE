@@ -15,6 +15,7 @@ import { PersonService } from '../../services/person.service';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
 import { LoadingComponent } from '../../../auth/components/login-loading/login-loading.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 export const MY_DATE_FORMATS = {
   parse: {
@@ -56,6 +57,7 @@ export const MY_DATE_FORMATS = {
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatTooltipModule,
     MomentDateModule,
     LoadingComponent
   ],

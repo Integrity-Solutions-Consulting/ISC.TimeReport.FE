@@ -6,99 +6,158 @@
   <form [formGroup]="projectForm" class="full-width" style="margin-top: 5px;">
 
     <div class="form-row">
-      <mat-form-field appearance="outline" class="form-field-half">
-        <input matInput formControlName="code" placeholder="Código del Proyecto">
-      </mat-form-field>
+      <!-- Código del Proyecto -->
+      <div class="field-with-help">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="code" placeholder="Código del Proyecto">
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Ingresa un código único para identificar el proyecto (ej. PROY-001, WEB-2023)'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
 
-      <mat-form-field appearance="outline" class="form-field-half">
-        <input matInput formControlName="name" placeholder="Nombre del Proyecto">
-      </mat-form-field>
+      <!-- Nombre del Proyecto -->
+      <div class="field-with-help">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <input matInput formControlName="name" placeholder="Nombre del Proyecto">
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Ingresa el nombre completo del proyecto (máximo 150 caracteres)'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="outline" class="full-width">
-        <input matInput formControlName="description" placeholder="Descripción">
-      </mat-form-field>
+      <!-- Descripción -->
+      <div class="field-with-help">
+        <mat-form-field appearance="outline" class="full-width">
+          <input matInput formControlName="description" placeholder="Descripción">
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Describe brevemente el objetivo y alcance del proyecto'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="outline" class="form-field-half">
-        <mat-select formControlName="clientId" placeholder="Cliente">
-          <!-- Campo de búsqueda para clientes -->
-          <mat-option>
-            <ngx-mat-select-search
-              [formControl]="clientFilterCtrl"
-              placeholderLabel="Buscar cliente..."
-              noEntriesFoundLabel="No se encontraron clientes">
-            </ngx-mat-select-search>
-          </mat-option>
+      <!-- Cliente -->
+      <div class="field-with-help">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-select formControlName="clientId" placeholder="Cliente">
+            <!-- Campo de búsqueda para clientes -->
+            <mat-option>
+              <ngx-mat-select-search
+                [formControl]="clientFilterCtrl"
+                placeholderLabel="Buscar cliente..."
+                noEntriesFoundLabel="No se encontraron clientes">
+              </ngx-mat-select-search>
+            </mat-option>
 
-          @if (isLoadingClients) {
-            <mat-option disabled>Cargando clientes...</mat-option>
-          } @else {
-            @for (client of filteredClients | async; track client.id) {
-              <mat-option [value]="client.id">{{client.tradeName}}</mat-option>
+            @if (isLoadingClients) {
+              <mat-option disabled>Cargando clientes...</mat-option>
+            } @else {
+              @for (client of filteredClients | async; track client.id) {
+                <mat-option [value]="client.id">{{client.tradeName}}</mat-option>
+              }
             }
+          </mat-select>
+          @if (isLoadingClients) {
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
           }
-        </mat-select>
-        @if (isLoadingClients) {
-          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-        }
-      </mat-form-field>
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Selecciona el cliente para el cual se realiza el proyecto. Puedes buscar por nombre comercial.'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
 
-      <mat-form-field appearance="outline" class="form-field-half">
-        <mat-select formControlName="projectStatusId" placeholder="Estado del Proyecto">
-          @for (code of projectCodes; track code) {
-            <mat-option [value]="code.id">{{code.name}}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      <!-- Estado del Proyecto -->
+      <div class="field-with-help">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-select formControlName="projectStatusId" placeholder="Estado del Proyecto">
+            @for (code of projectCodes; track code.id) {
+              <mat-option [value]="code.id">{{code.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Selecciona el estado actual del proyecto (Planificación, En Progreso, Completado, etc.)'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
     </div>
 
     <div class="form-row">
-      <!-- Selector de tipo de proyecto -->
-      <mat-form-field class="form-field-half" appearance="outline">
-        <mat-label>Tipo de proyecto</mat-label>
-        <mat-select formControlName="projectTypeId" required>
-          <mat-option *ngFor="let type of formattedProjectTypes" [value]="type.id">
-            {{ type.displayName }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+      <!-- Tipo de proyecto -->
+      <div class="field-with-help">
+        <mat-form-field class="form-field-half" appearance="outline">
+          <mat-label>Tipo de proyecto</mat-label>
+          <mat-select formControlName="projectTypeId" required>
+            <mat-option *ngFor="let type of formattedProjectTypes" [value]="type.id">
+              {{ type.displayName }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Selecciona el tipo de proyecto (Facturable, No Facturable, Interno, etc.)'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
     </div>
 
     <div class="form-row">
-      <mat-form-field class="form-field-half" appearance="outline">
-        <input matInput [matDatepicker]="picker1" formControlName="startDate" placeholder="Fecha de Inicio">
-        <mat-hint>DD/MM/YYYY</mat-hint>
-        <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
-        <mat-datepicker #picker1></mat-datepicker>
-      </mat-form-field>
+      <!-- Fecha de Inicio -->
+      <div class="field-with-help">
+        <mat-form-field class="form-field-half" appearance="outline">
+          <input matInput [matDatepicker]="picker1" formControlName="startDate" placeholder="Fecha de Inicio">
+          <mat-hint>DD/MM/YYYY</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
+          <mat-datepicker #picker1></mat-datepicker>
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Selecciona la fecha planificada de inicio del proyecto'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
 
-      <mat-form-field class="form-field-half" appearance="outline">
-        <input matInput [matDatepicker]="picker2" formControlName="endDate" [min]="projectForm.get('startDate')?.value" placeholder="Fecha de Terminación">
-        <mat-hint>DD/MM/YYYY</mat-hint>
-        <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
-        <mat-datepicker #picker2></mat-datepicker>
-        <mat-error *ngIf="projectForm.get('endDate')?.hasError('required')">
-          La fecha de fin es requerida
-        </mat-error>
-        <mat-error *ngIf="projectForm.hasError('dateRange')">
-          La fecha de fin no puede ser anterior a la fecha de inicio
-        </mat-error>
-      </mat-form-field>
+      <!-- Fecha de Terminación -->
+      <div class="field-with-help">
+        <mat-form-field class="form-field-half" appearance="outline">
+          <input matInput [matDatepicker]="picker2" formControlName="endDate" [min]="projectForm.get('startDate')?.value" placeholder="Fecha de Terminación">
+          <mat-hint>DD/MM/YYYY</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
+          <mat-datepicker #picker2></mat-datepicker>
+          <mat-error *ngIf="projectForm.get('endDate')?.hasError('required')">
+            La fecha de fin es requerida
+          </mat-error>
+          <mat-error *ngIf="projectForm.hasError('dateRange')">
+            La fecha de fin no puede ser anterior a la fecha de inicio
+          </mat-error>
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Selecciona la fecha planificada de finalización del proyecto. Debe ser posterior a la fecha de inicio.'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Presupuesto</mat-label>
-        <input matInput formControlName="budget" type="number" min="0" placeholder="Presupuesto">
-      </mat-form-field>
+      <!-- Presupuesto -->
+      <div class="field-with-help">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label style="font-family: 'Poppins'; ">Presupuesto</mat-label>
+          <input matInput formControlName="budget" type="number" min="0" placeholder="Presupuesto">
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Ingresa el presupuesto total asignado al proyecto (en la moneda correspondiente)'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label style="font-family: 'Poppins'; ">Número de Horas</mat-label>
-        <input matInput formControlName="hours" type="number" min="0" placeholder="Número de Horas">
-      </mat-form-field>
+      <!-- Número de Horas -->
+      <div class="field-with-help">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label style="font-family: 'Poppins'; ">Número de Horas</mat-label>
+          <input matInput formControlName="hours" type="number" min="0" placeholder="Número de Horas">
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Ingresa el número total de horas estimadas para completar el proyecto'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
     </div>
 
   </form>

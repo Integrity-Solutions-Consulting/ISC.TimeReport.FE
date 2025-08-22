@@ -18,6 +18,7 @@ import { Observable, take, ReplaySubject, Subject, takeUntil } from 'rxjs'; // A
 import { SuccessResponse } from '../../../../shared/interfaces/response.interface';
 import { LoadingComponent } from '../../../auth/components/login-loading/login-loading.component';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search'; // Añadido
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 export const MY_DATE_FORMATS = {
   parse: {
@@ -44,6 +45,7 @@ export const MY_DATE_FORMATS = {
     MomentDateModule,
     ReactiveFormsModule,
     MatButtonModule,
+    MatTooltipModule,
     LoadingComponent,
     NgxMatSelectSearchModule // Añadido
   ],

@@ -328,7 +328,7 @@ export class ListProjectComponent implements OnInit{
       }
 
       const dialogRef = this.dialog.open(AssignmentDialogComponent, {
-        width: '800px',
+        width: '1000px',
         data: {
           projectId: project.id,
           projectName: project.name // Pasamos el nombre del proyecto
