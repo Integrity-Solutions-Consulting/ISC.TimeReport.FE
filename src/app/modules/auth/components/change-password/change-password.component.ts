@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Importamos el spinner
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
@@ -33,7 +33,7 @@ export class ChangePasswordComponent implements OnInit{
 
   passwordChangeForm!: FormGroup;
   private urlBase: string = environment.URL_BASE;
-  isLoading: boolean = false; // Variable para controlar el estado de carga
+  isLoading: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -68,9 +68,14 @@ export class ChangePasswordComponent implements OnInit{
     return null;
   }
 
+  // Método para regresar al dashboard
+  goBack(): void {
+    this.router.navigate(['/menu/dashboard']);
+  }
+
   onSubmit(): void {
     if (this.passwordChangeForm.valid) {
-      this.isLoading = true; // Activamos el estado de carga
+      this.isLoading = true;
 
       const { oldPassword, newPassword, confirmPassword } = this.passwordChangeForm.value;
       const token = localStorage.getItem('token');
@@ -95,7 +100,7 @@ export class ChangePasswordComponent implements OnInit{
 
           // Redirigir después de un breve tiempo
           setTimeout(() => {
-            this.router.navigate(['/auth/login']); // O a donde desees redirigir
+            this.router.navigate(['/auth/login']);
           }, 2000);
         },
         error: (error) => {
