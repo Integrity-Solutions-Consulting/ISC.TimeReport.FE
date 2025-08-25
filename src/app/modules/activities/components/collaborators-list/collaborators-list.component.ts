@@ -108,10 +108,28 @@ export class CollaboratorsListComponent implements OnInit{
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
+  yearControl = new FormControl<number>(new Date().getFullYear());
+
+  years: number[] = this.generateYears(2020, new Date().getFullYear() + 1);
+
+  private generateYears(start: number, end: number): number[] {
+    const years = [];
+    for (let year = start; year <= end; year++) {
+      years.push(year);
+    }
+    return years;
+  }
+
   ngOnInit() {
     this.loadData();
     this.monthControl.valueChanges.subscribe(() => this.updateDateRange());
     this.periodToggleControl.valueChanges.subscribe(() => this.updateDateRange());
+    this.yearControl.valueChanges.subscribe((newYear) => {
+    if (newYear) {
+        this.currentYear = newYear;
+        this.loadData();
+      }
+    });
   }
 
   applyFilter(event: Event) {
@@ -138,6 +156,7 @@ export class CollaboratorsListComponent implements OnInit{
       // Obtener valores con defaults
       const month = this.monthControl.value ?? new Date().getMonth();
       const fullMonth = this.periodToggleControl.value ?? false;
+      const year = this.yearControl.value ?? new Date().getFullYear();
 
       // Obtener clientId
       let clientId: number;
@@ -237,7 +256,7 @@ export class CollaboratorsListComponent implements OnInit{
 
       const month = this.monthControl.value ?? new Date().getMonth();
       const fullMonth = this.periodToggleControl.value ?? false;
-      const year = this.currentYear;
+      const year = this.yearControl.value ?? new Date().getFullYear();
 
       // Descargar cada reporte seleccionado
       for (const collaborator of this.selection.selected) {
@@ -322,6 +341,7 @@ export class CollaboratorsListComponent implements OnInit{
     }
 
     this.range.setValue({ start: startDate, end: endDate });
+
     this.loadData();
   }
 
@@ -332,9 +352,20 @@ export class CollaboratorsListComponent implements OnInit{
   }
 
   loadData() {
-    // 1. Obtenemos los empleados pendientes y las actividades
+    const selectedMonth = this.monthControl.value ?? new Date().getMonth();
+    const selectedYear = this.yearControl.value ?? new Date().getFullYear();
+
+    // 1. Obtenemos los empleados pendientes con los parámetros de mes y año
     forkJoin({
-      employees: this.http.get<any[]>(`${this.urlBase}/api/TimeReport/recursos-pendientes`).pipe(
+      employees: this.http.get<any[]>(
+        `${this.urlBase}/api/TimeReport/recursos-pendientes`,
+        {
+          params: {
+            month: selectedMonth + 1,
+            year: selectedYear
+          }
+        }
+      ).pipe(
         catchError(error => {
           console.error('Error loading employees:', error);
           return of([]);
@@ -356,13 +387,7 @@ export class CollaboratorsListComponent implements OnInit{
         // 2. Filtramos las actividades que tienen un projectID válido
         const validActivities = activities.data.filter((activity: any) => activity.projectID);
 
-        // Si no hay actividades válidas, la lista de colaboradores estará vacía
-        if (validActivities.length === 0) {
-          this.dataSource.data = [];
-          return;
-        }
-
-        // 3. Creamos un mapa de actividades por empleado, usando solo las válidas
+        // 3. Creamos un mapa de actividades por empleado
         const employeeActivitiesMap = new Map<number, any[]>();
         validActivities.forEach((activity: any) => {
           if (!employeeActivitiesMap.has(activity.employeeID)) {
@@ -379,13 +404,20 @@ export class CollaboratorsListComponent implements OnInit{
           }
         });
 
-        // 5. Filtramos los empleados que tienen al menos un proyecto asignado
-        const employeesWithProjects = employees.filter(emp => employeeActivitiesMap.has(emp.employeeID));
-
-        // 6. Procesamos cada empleado filtrado
-        const requests = employeesWithProjects.map(emp => {
+        // 5. Procesamos cada empleado del response
+        const requests = employees.map(emp => {
           const empActivities = employeeActivitiesMap.get(emp.employeeID) || [];
           const firstActivity = empActivities[0];
+
+          // Si no hay actividades, usar datos básicos del empleado
+          if (!firstActivity || !firstActivity.projectID) {
+            return of({
+              employee: emp,
+              project: null,
+              client: null,
+              leader: null
+            });
+          }
 
           // Obtenemos el proyecto
           return this.http.get<any>(`${this.urlBase}/api/Project/GetProjectByID/${firstActivity.projectID}`).pipe(
@@ -396,8 +428,7 @@ export class CollaboratorsListComponent implements OnInit{
                   employee: emp,
                   project: project,
                   client: null,
-                  leader: null,
-                  totalHours: empActivities.reduce((sum, act) => sum + act.hoursQuantity, 0)
+                  leader: null
                 });
               }
 
@@ -406,14 +437,11 @@ export class CollaboratorsListComponent implements OnInit{
                 catchError(() => of(null)),
                 map(client => {
                   const leader = projectLeadersMap.get(firstActivity.projectID);
-                  const totalHours = empActivities.reduce((sum, act) => sum + act.hoursQuantity, 0);
-
                   return {
                     employee: emp,
                     project: project,
                     client: client,
-                    leader: leader,
-                    totalHours: totalHours
+                    leader: leader
                   };
                 })
               );
@@ -421,31 +449,27 @@ export class CollaboratorsListComponent implements OnInit{
           );
         });
 
-        // 7. Procesamos todas las solicitudes y actualizamos la tabla
+        // 6. Procesamos todas las solicitudes
         forkJoin(requests).subscribe({
           next: (results) => {
-            const collaborators = results.map(result => {
-              const emp = result.employee;
-              const project = result.project;
-              const client = result.client;
-              const leader = result.leader;
-              const totalHours = result.totalHours;
+            const collaborators = results.map((result, index) => {
+              const emp = employees[index]; // Usamos el empleado original del response
 
               return {
                 employeeID: emp.employeeID,
-                nombre: emp.nombreCompletoEmpleado || `${emp.firstName} ${emp.lastName}`,
+                nombre: emp.nombreCompletoEmpleado,
                 cedula: emp.employeeID.toString(),
-                proyecto: project?.name || 'No asignado',
-                cliente: client?.tradeName || client?.legalName || 'No asignado',
-                lider: leader ? `${leader.person.firstName} ${leader.person.lastName}` : 'No asignado',
-                horas: totalHours,
-                estado: totalHours >= 80 ? 'Completo' : 'Pendiente',
-                projectData: project,
-                clientData: client,
-                leaderData: leader
+                proyecto: result.project?.name || 'No asignado',
+                cliente: result.client?.tradeName || result.client?.legalName || 'No asignado',
+                lider: result.leader ? `${result.leader.person?.firstName} ${result.leader.person?.lastName}` : 'No asignado',
+                horas: emp.horasRegistradasMes, // Usamos las horas del response
+                estado: this.getEstado(emp.horasRegistradasMes, emp.totalDiasHabilesMes),
+                projectData: result.project,
+                clientData: result.client,
+                leaderData: result.leader,
+                horasRegistradasMes: emp.horasRegistradasMes // Mantener también esta propiedad
               };
-            })
-            .filter(colaborador => colaborador.proyecto !== 'No asignado'); // Añade este filtro
+            }).filter(colaborador => colaborador.proyecto !== 'No asignado');
 
             this.dataSource.data = collaborators;
             this.dataSource.paginator = this.paginator;
@@ -464,4 +488,18 @@ export class CollaboratorsListComponent implements OnInit{
       }
     });
   }
+
+// Método auxiliar para determinar el estado basado en las horas
+private getEstado(horasRegistradas: number, totalDiasHabiles: number): string {
+  const horasEsperadas = totalDiasHabiles * 8; // 8 horas por día
+  const porcentajeCompletado = (horasRegistradas / horasEsperadas) * 100;
+
+  if (porcentajeCompletado >= 100) {
+    return 'Completo';
+  } else if (porcentajeCompletado >= 50) {
+    return 'En progreso';
+  } else {
+    return 'Pendiente';
+  }
+}
 }

@@ -4,133 +4,92 @@
 
 .top-container {
   display: flex;
-  align-items: flex-start; // Cambiado a flex-start para mejor control
-  width: 100%;
+  align-items: center;
   gap: 16px;
-  padding: 8px 0;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 
-  // Alinear la base de todos los elementos (donde estaría el texto)
-  .search-field,
-  .month-selector,
-  .period-toggle,
-  .download-button {
-    align-self: center; // Fuerza la alineación vertical al centro
-    margin-top: 16px; // Compensa la altura de los inputs
-  }
-
+  // Campos de búsqueda y selectores
   .search-field {
-    flex: 2;
+    flex: 1;
     min-width: 250px;
-
-    // Ajuste específico para el input
-    .mat-form-field-wrapper {
-      padding-bottom: 0; // Elimina espacio extra inferior
-    }
+    max-width: 350px;
   }
 
+  .year-selector,
   .month-selector {
-    flex: 1;
-    min-width: 120px;
-
-    .mat-form-field-wrapper {
-      padding-bottom: 0;
-    }
+    width: 120px;
+    min-width: 100px;
   }
 
+  // Toggle de período
   .period-toggle {
-    flex: 1;
     display: flex;
     align-items: center;
-    min-width: 180px;
+    gap: 8px;
+    padding: 0 12px;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
     height: 56px; // Misma altura que los mat-form-field
-    margin-top: 0; // Ajuste fino de posición
 
     .toggle-label {
       font-size: 14px;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.6);
       white-space: nowrap;
     }
 
     .mat-slide-toggle {
-      background-color: var(--itg-primary);
-      margin: 0 8px;
+      margin: 0 4px;
     }
   }
 
+  // Botón de descarga
   .download-button {
-    background-color: var(--itg-primary);
-    height: 40px; // Misma altura que los inputs
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-    margin-top: 0; // Ajuste fino de posición
+    margin-left: auto;
 
-    mat-icon {
-      margin-right: 8px;
+    &:hover {
+      background-color: #1565c0;
     }
 
     &:disabled {
-      background-color: var(--itg-bg); // Gris claro
-      cursor: not-allowed; // Cambiar el cursor
-      opacity: 0.7; // Opcional: reducir un poco la opacidad
-    }
-  }
-
-  @media (max-width: 900px) {
-    flex-wrap: wrap;
-    align-items: center;
-
-    .search-field {
-      flex: 1 1 100%;
-      margin-top: 0;
+      background-color: #b0bec5;
+      color: #eceff1;
     }
 
-    .month-selector,
-    .period-toggle {
-      flex: 1;
-      min-width: 120px;
-      margin-top: 0;
-    }
-
-    .download-button {
-      margin-top: 0;
-    }
-  }
-
-  @media (max-width: 600px) {
-    .month-selector,
-    .period-toggle {
-      flex: 1 1 100%;
-    }
-
-    .period-toggle {
-      justify-content: flex-start;
-      height: auto;
-      margin: 8px 0;
-    }
-
-    .download-button {
-      width: 100%;
-      margin: 4px 0;
+    mat-icon {
+      margin-right: 8px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
   }
 }
 
+// Estilos para la tabla
 .collaborator-table {
   width: 100%;
-  border-radius: 8px 8px 0 0;
+  background: white;
+  border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   th {
     background-color: #f5f5f5;
-    font-weight: 500;
+    font-weight: 600;
+    color: #333;
   }
 
-  .download-button {
-    color: #3f51b5;
+  td, th {
+    padding: 12px 16px;
   }
 }
 
+// Estados de los elementos
 .status-container {
   display: flex;
   align-items: center;
@@ -142,27 +101,178 @@
     border-radius: 50%;
   }
 
-  &.completed {
-    .status-dot {
-      background-color: #4caf50;
-    }
-    .status-text {
-      color: #4caf50;
-    }
+  &.completed .status-dot {
+    background-color: #4caf50;
   }
 
-  &.pending {
-    .status-dot {
-      background-color: #f44336;
+  &.pending .status-dot {
+    background-color: #ff9800;
+  }
+
+  .status-text {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+// Paginador
+mat-paginator {
+  background: white;
+  border-radius: 0 0 8px 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+// Media Queries para responsividad
+@media (max-width: 1200px) {
+  .top-container {
+    gap: 12px;
+
+    .search-field {
+      min-width: 200px;
+      max-width: 300px;
     }
-    .status-text {
-      color: #f44336;
+
+    .year-selector,
+    .month-selector {
+      width: 110px;
     }
   }
 }
 
-mat-paginator {
-  border-radius: 0 0 8px 8px;
-  border: 1px solid #e0e0e0;
-  border-top: none;
+@media (max-width: 960px) {
+  .top-container {
+    gap: 12px;
+
+    .search-field {
+      min-width: 180px;
+      max-width: 250px;
+    }
+
+    .year-selector,
+    .month-selector {
+      width: 100px;
+    }
+
+    .period-toggle {
+      padding: 0 8px;
+
+      .toggle-label {
+        font-size: 12px;
+      }
+    }
+
+    .download-button {
+      min-width: 100px;
+      padding: 0 12px;
+
+      mat-icon {
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .top-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
+
+    .search-field,
+    .year-selector,
+    .month-selector {
+      width: 100%;
+      max-width: none;
+    }
+
+    .period-toggle {
+      width: 100%;
+      justify-content: center;
+      order: 4; // Mover el toggle al final
+    }
+
+    .download-button {
+      margin-left: 0;
+      width: 100%;
+      order: 5; // Mover el botón al final
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .main-class {
+    padding: 8px;
+  }
+
+  .top-container {
+    padding: 8px;
+    gap: 8px;
+
+    .period-toggle {
+      flex-direction: column;
+      height: auto;
+      padding: 12px;
+
+      .toggle-label {
+        text-align: center;
+      }
+    }
+  }
+
+  .collaborator-table {
+    font-size: 14px;
+
+    td, th {
+      padding: 8px 12px;
+    }
+  }
+}
+
+// Asegurar que los mat-form-field tengan la misma altura
+.mat-form-field {
+  .mat-form-field-wrapper {
+    padding-bottom: 0;
+  }
+
+  .mat-form-field-flex {
+    align-items: center;
+  }
+}
+
+// Estilos para el toggle
+.mat-slide-toggle {
+  .mat-slide-toggle-bar {
+    background-color: #ccc;
+  }
+
+  &.mat-checked .mat-slide-toggle-bar {
+    background-color: rgba(25, 118, 210, 0.5);
+  }
+
+  &.mat-checked .mat-slide-toggle-thumb {
+    background-color: #1976d2;
+  }
+}
+
+// Mejorar la apariencia de los selects
+.mat-select {
+  font-size: 14px;
+}
+
+.mat-option {
+  font-size: 14px;
+}
+
+// Asegurar que todo esté alineado verticalmente
+.top-container > * {
+  display: flex;
+  align-items: center;
+  height: 56px; // Altura consistente
+}
+
+// Ajuste específico para el toggle container
+.period-toggle {
+  display: flex !important;
+  align-items: center !important;
 }

@@ -51,6 +51,17 @@ export interface Collaborator {
   lider: string;
   horas: number;
   estado: string;
+  projectData?: {
+    id: number;
+    clientID: number;
+    name: string;
+  };
+  clientData?: {
+    id: number;
+    tradeName: string;
+    legalName: string;
+  };
+  horasRegistradasMes?: number;
 }
 
 export interface ActivityType {
