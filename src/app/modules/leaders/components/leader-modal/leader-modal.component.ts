@@ -192,7 +192,7 @@ export class LeaderModalComponent implements OnInit, OnDestroy {
       const personType = this.leaderForm.get('person.personType')?.value;
       this.updateIdentificationValidators(personType);
 
-      this.updateEditModeFields();
+      this.updateEditModeFields(); // Añadir esta línea
     });
 
     this.updateIdentificationRequiredStatus(this.leaderForm.get('leadershipType')?.value);
@@ -233,6 +233,10 @@ export class LeaderModalComponent implements OnInit, OnDestroy {
         // Deshabilitar los campos específicos para Integrity en modo edición
         personGroup.get('personType')?.disable();
         personGroup.get('identificationTypeId')?.disable();
+        personGroup.get('identificationNumber')?.disable();
+      } else {
+        // Deshabilitar campos para líderes externos en modo edición
+        personGroup.get('personType')?.disable();
         personGroup.get('identificationNumber')?.disable();
       }
     }
@@ -434,6 +438,7 @@ export class LeaderModalComponent implements OnInit, OnDestroy {
         if (response) {
           this.patchFormValues(response);
           this.originalStatus = response.status;
+          this.updateEditModeFields(); // Añadir esta línea
         }
       },
       error: (err) => {
