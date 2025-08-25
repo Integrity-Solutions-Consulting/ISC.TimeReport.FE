@@ -1,6 +1,11 @@
 :host {
   display: block;
   width: 100%;
+  .mat-mdc-raised-button[disabled] {
+    opacity: 0.6;
+    background-color: rgba(var(--itg-primary-rgb), 0.4) !important;
+    color: rgba(var(--itg-bg-rgb), 0.6) !important;
+  }
 }
 
 .dialog-content {
