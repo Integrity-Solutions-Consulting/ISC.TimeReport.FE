@@ -409,7 +409,7 @@ export class AssignmentDialogComponent implements OnInit, OnDestroy {
 
   getResourceName(resource: any): string {
     // Para recursos existentes (EmployeeProject)
-    if ('employeeID' in resource) {
+    if ('employeeID' in resource && resource.employeeID !== null) {
       if (this.data.employeesPersonInfo) {
         const employee = this.data.employeesPersonInfo.find(e => e.id === resource.employeeID);
         if (employee) return `${employee.firstName} ${employee.lastName}`;
@@ -418,17 +418,17 @@ export class AssignmentDialogComponent implements OnInit, OnDestroy {
       return employee ? `${employee.person.firstName} ${employee.person.lastName}` : 'Empleado no encontrado';
     }
     // Para proveedores existentes
-    else if ('supplierID' in resource) {
+    else if ('supplierID' in resource && resource.supplierID !== null) {
       const provider = this.providers.find(p => p.id === resource.supplierID);
       return provider ? provider.businessName : 'Proveedor no encontrado';
     }
     // Para recursos nuevos (EmployeeProjectMiddle)
-    else if ('employeeId' in resource) {
+    else if ('employeeId' in resource && resource.employeeId !== null) {
       const employee = this.employees.find(e => e.id === resource.employeeId);
       return employee ? `${employee.person.firstName} ${employee.person.lastName}` : 'Empleado no encontrado';
     }
     // Para proveedores nuevos
-    else if ('supplierID' in resource) {
+    else if ('supplierID' in resource && resource.supplierID !== null) {
       const provider = this.providers.find(p => p.id === resource.supplierID);
       return provider ? provider.businessName : 'Proveedor no encontrado';
     }
