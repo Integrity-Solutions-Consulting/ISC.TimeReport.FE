@@ -245,7 +245,7 @@
   <button style="background-color: var(--itg-primary); color: var(--itg-bg)"
           mat-raised-button
           (click)="assignResources()"
-          >
+          [disabled]="selectedResources.length === 0">
     Asignar
   </button>
 </mat-dialog-actions>
