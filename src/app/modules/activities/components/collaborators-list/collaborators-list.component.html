@@ -126,6 +126,10 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
 
+  <div *ngIf="dataSource.data.length === 0 && noDataMessage" class="no-data-message">
+    {{ noDataMessage }}
+  </div>
+
   <mat-paginator
     [length]="totalItems"
     [pageSize]="pageSize"

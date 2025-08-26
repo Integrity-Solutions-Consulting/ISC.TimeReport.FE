@@ -20,8 +20,6 @@ export class ActivityService {
   getActivities(): Observable<ApiResponse> {
     return this.http.get<ApiResponse>(`${this.urlBase}/api/DailyActivity/GetAllActivities`).pipe(
       tap(response => {
-        // Puedes hacer transformaciones adicionales aquí si es necesario
-        console.log('Respuesta de actividades:', response);
       }),
     catchError(error => {
       console.error('Error obteniendo actividades:', error);
@@ -58,8 +56,6 @@ export class ActivityService {
       employeeID: Number(activityData.employeeID) // Añadir si es necesario
     };
 
-    console.log('Payload enviado al backend:', payload);
-
     // 3. Configurar headers con el token de autenticación
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({
@@ -78,7 +74,6 @@ export class ActivityService {
 
   updateActivity(id: number, activityData: any): Observable<any> {
       const token = localStorage.getItem('token');
-      console.log(activityData);
 
       const formattedData = {
         ...activityData,

@@ -4,57 +4,44 @@
 
 .top-container {
   display: flex;
-  align-items: center; /* Alinea todos los elementos verticalmente al centro */
-  width: 100%;
+  flex-wrap: wrap; /* Permite que bajen de línea cuando no caben */
+  align-items: center;
   gap: 16px;
+  width: 100%;
   padding: 8px 0;
 
-  /* Asegura que todos los elementos hijos tengan la misma alineación base */
-  .search-field,
-  .year-selector,
-  .month-selector,
-  .period-toggle,
-  .download-button {
-    align-self: center;
-    margin-top: 0; /* Elimina cualquier margen superior inconsistente */
+  /* Normaliza altura y alineación */
+  > * {
+    display: flex;
+    align-items: center;
+    height: 56px;
   }
 
-  .search-field {
-    flex: 2;
-    min-width: 250px;
-
-    .mat-form-field-wrapper {
-      padding-bottom: 0;
-    }
-
-    /* Asegura que el input interno esté alineado */
-    .mat-form-field-infix {
-      display: flex;
-      align-items: center;
-    }
-  }
-
-  .year-selector,
-  .month-selector {
+  mat-form-field {
     flex: 1;
-    min-width: 120px;
+    min-width: 200px; /* Para que no se hagan muy pequeños */
+    height: 56px;
+    display: flex;
+    align-items: center;
 
     .mat-form-field-wrapper {
       padding-bottom: 0;
+      height: 100%;
     }
 
-    .mat-form-field-infix {
-      display: flex;
+    .mat-form-field-flex {
+      height: 100%;
       align-items: center;
     }
   }
 
   .period-toggle {
-    flex: 1;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
+    flex: 1;
     min-width: 180px;
-    height: 56px; /* Misma altura que los campos de formulario */
+    height: 56px;
 
     .toggle-label {
       font-size: 14px;
@@ -68,7 +55,7 @@
 
   .download-button {
     background-color: var(--itg-primary);
-    height: 56px; /* Misma altura que los campos de formulario */
+    height: 56px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -85,37 +72,27 @@
     }
   }
 
+  /* 📱 Responsividad */
   @media (max-width: 900px) {
-    flex-wrap: wrap;
-
-    .search-field {
-      flex: 1 1 100%;
+    mat-form-field {
+      flex: 1 1 45%; /* Dos columnas */
     }
-
-    .year-selector,
-    .month-selector,
-    .period-toggle {
-      flex: 1;
-      min-width: 120px;
+    .period-toggle,
+    .download-button {
+      flex: 1 1 45%;
     }
   }
 
   @media (max-width: 600px) {
-    .year-selector,
-    .month-selector,
-    .period-toggle {
-      flex: 1 1 100%;
-    }
-
-    .period-toggle {
-      justify-content: flex-start;
-      height: auto;
-      margin: 8px 0;
+    mat-form-field,
+    .period-toggle,
+    .download-button {
+      flex: 1 1 100%; /* Una sola columna */
+      min-width: unset;
     }
 
     .download-button {
       width: 100%;
-      margin: 4px 0;
     }
   }
 }
@@ -179,3 +156,11 @@ mat-paginator {
   border: 1px solid #e0e0e0;
   border-top: none;
 }
+
+.no-data-message {
+    padding: 20px;
+    text-align: center;
+    color: #555;
+    font-size: 1.1em;
+    font-style: italic;
+  }
