@@ -108,10 +108,28 @@ export class CollaboratorsListComponent implements OnInit{
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
+  yearControl = new FormControl<number>(new Date().getFullYear());
+
+  years: number[] = this.generateYears(2020, new Date().getFullYear() + 1);
+
+  private generateYears(start: number, end: number): number[] {
+    const years = [];
+    for (let year = start; year <= end; year++) {
+      years.push(year);
+    }
+    return years;
+  }
+
   ngOnInit() {
     this.loadData();
     this.monthControl.valueChanges.subscribe(() => this.updateDateRange());
     this.periodToggleControl.valueChanges.subscribe(() => this.updateDateRange());
+    this.yearControl.valueChanges.subscribe((newYear) => {
+    if (newYear) {
+        this.currentYear = newYear;
+        this.loadData();
+      }
+    });
   }
 
   applyFilter(event: Event) {
@@ -138,6 +156,7 @@ export class CollaboratorsListComponent implements OnInit{
       // Obtener valores con defaults
       const month = this.monthControl.value ?? new Date().getMonth();
       const fullMonth = this.periodToggleControl.value ?? false;
+      const year = this.yearControl.value ?? new Date().getFullYear();
 
       // Obtener clientId
       let clientId: number;
@@ -237,7 +256,7 @@ export class CollaboratorsListComponent implements OnInit{
 
       const month = this.monthControl.value ?? new Date().getMonth();
       const fullMonth = this.periodToggleControl.value ?? false;
-      const year = this.currentYear;
+      const year = this.yearControl.value ?? new Date().getFullYear();
 
       // Descargar cada reporte seleccionado
       for (const collaborator of this.selection.selected) {
@@ -322,6 +341,7 @@ export class CollaboratorsListComponent implements OnInit{
     }
 
     this.range.setValue({ start: startDate, end: endDate });
+
     this.loadData();
   }
 
@@ -331,137 +351,179 @@ export class CollaboratorsListComponent implements OnInit{
       this.dataSource.data.forEach(row => this.selection.select(row));
   }
 
-  loadData() {
-    // 1. Obtenemos los empleados pendientes y las actividades
-    forkJoin({
-      employees: this.http.get<any[]>(`${this.urlBase}/api/TimeReport/recursos-pendientes`).pipe(
-        catchError(error => {
-          console.error('Error loading employees:', error);
-          return of([]);
-        })
-      ),
-      activities: this.http.get<any>(`${this.urlBase}/api/DailyActivity/GetAllActivities`).pipe(
-        catchError(() => of({ data: [] }))
-      ),
-      leaders: this.http.get<any>(`${this.urlBase}/api/Leader/GetAllLeaders`).pipe(
-        catchError(() => of({ items: [] }))
-      )
-    }).subscribe({
-      next: ({ employees, activities, leaders }) => {
-        if (!employees || employees.length === 0) {
-          this.dataSource.data = [];
-          return;
+  // En el método loadData() del CollaboratorsListComponent
+loadData() {
+  const selectedMonth = this.monthControl.value ?? new Date().getMonth();
+  const selectedYear = this.yearControl.value ?? new Date().getFullYear();
+
+  // 1. Obtenemos los empleados pendientes con los parámetros de mes y año
+  forkJoin({
+    employees: this.http.get<any[]>(
+      `${this.urlBase}/api/TimeReport/recursos-pendientes`,
+      {
+        params: {
+          month: selectedMonth + 1,
+          year: selectedYear
+        }
+      }
+    ).pipe(
+      catchError(error => {
+        console.error('Error loading employees:', error);
+        return of([]);
+      })
+    ),
+    activities: this.http.get<any>(`${this.urlBase}/api/DailyActivity/GetAllActivities`).pipe(
+      catchError(() => of({ data: [] }))
+    ),
+    // Obtener todos los líderes (tanto Integrity como externos) con parámetros
+    leaders: this.http.get<any>(`${this.urlBase}/api/Leader/GetAllLeaders`, {
+      params: {
+        pageNumber: 1,
+        pageSize: 10000,
+        search: ''
+      }
+    }).pipe(
+      catchError(() => of({ items: [] }))
+    )
+  }).subscribe({
+    next: ({ employees, activities, leaders }) => {
+      if (!employees || employees.length === 0) {
+        this.dataSource.data = [];
+        return;
+      }
+
+      // 2. Filtramos las actividades que tienen un projectID válido
+      const validActivities = activities.data.filter((activity: any) => activity.projectID);
+
+      // 3. Creamos un mapa de actividades por empleado
+      const employeeActivitiesMap = new Map<number, any[]>();
+      validActivities.forEach((activity: any) => {
+        if (!employeeActivitiesMap.has(activity.employeeID)) {
+          employeeActivitiesMap.set(activity.employeeID, []);
+        }
+        employeeActivitiesMap.get(activity.employeeID)?.push(activity);
+      });
+
+      // 4. Creamos un mapa de líderes por proyecto
+      const projectLeadersMap = new Map<number, any>();
+      leaders.items.forEach((leader: any) => {
+        if (leader.projectID) {
+          projectLeadersMap.set(leader.projectID, leader);
+        }
+      });
+
+      // 5. Procesamos cada empleado del response
+      const requests = employees.map(emp => {
+        const empActivities = employeeActivitiesMap.get(emp.employeeID) || [];
+        const firstActivity = empActivities[0];
+
+        // Si no hay actividades, usar datos básicos del empleado
+        if (!firstActivity || !firstActivity.projectID) {
+          return of({
+            employee: emp,
+            project: null,
+            client: null,
+            leader: null
+          });
         }
 
-        // 2. Filtramos las actividades que tienen un projectID válido
-        const validActivities = activities.data.filter((activity: any) => activity.projectID);
+        // Obtenemos el proyecto
+        return this.http.get<any>(`${this.urlBase}/api/Project/GetProjectByID/${firstActivity.projectID}`).pipe(
+          catchError(() => of(null)),
+          switchMap(project => {
+            if (!project || !project.clientID) {
+              return of({
+                employee: emp,
+                project: project,
+                client: null,
+                leader: null
+              });
+            }
 
-        // Si no hay actividades válidas, la lista de colaboradores estará vacía
-        if (validActivities.length === 0) {
-          this.dataSource.data = [];
-          return;
-        }
-
-        // 3. Creamos un mapa de actividades por empleado, usando solo las válidas
-        const employeeActivitiesMap = new Map<number, any[]>();
-        validActivities.forEach((activity: any) => {
-          if (!employeeActivitiesMap.has(activity.employeeID)) {
-            employeeActivitiesMap.set(activity.employeeID, []);
-          }
-          employeeActivitiesMap.get(activity.employeeID)?.push(activity);
-        });
-
-        // 4. Creamos un mapa de líderes por proyecto
-        const projectLeadersMap = new Map<number, any>();
-        leaders.items.forEach((leader: any) => {
-          if (leader.projectID) {
-            projectLeadersMap.set(leader.projectID, leader);
-          }
-        });
-
-        // 5. Filtramos los empleados que tienen al menos un proyecto asignado
-        const employeesWithProjects = employees.filter(emp => employeeActivitiesMap.has(emp.employeeID));
-
-        // 6. Procesamos cada empleado filtrado
-        const requests = employeesWithProjects.map(emp => {
-          const empActivities = employeeActivitiesMap.get(emp.employeeID) || [];
-          const firstActivity = empActivities[0];
-
-          // Obtenemos el proyecto
-          return this.http.get<any>(`${this.urlBase}/api/Project/GetProjectByID/${firstActivity.projectID}`).pipe(
-            catchError(() => of(null)),
-            switchMap(project => {
-              if (!project || !project.clientID) {
-                return of({
+            // Obtenemos el cliente
+            return this.http.get<any>(`${this.urlBase}/api/Client/GetClientByID/${project.clientID}`).pipe(
+              catchError(() => of(null)),
+              map(client => {
+                const leader = projectLeadersMap.get(firstActivity.projectID);
+                return {
                   employee: emp,
                   project: project,
-                  client: null,
-                  leader: null,
-                  totalHours: empActivities.reduce((sum, act) => sum + act.hoursQuantity, 0)
-                });
+                  client: client,
+                  leader: leader
+                };
+              })
+            );
+          })
+        );
+      });
+
+      // 6. Procesamos todas las solicitudes
+      forkJoin(requests).subscribe({
+        next: (results) => {
+          const collaborators = results.map((result, index) => {
+            const emp = employees[index]; // Usamos el empleado original del response
+            const leader = result.leader;
+
+            // Formatear el nombre del líder según su tipo
+            let leaderName = 'No asignado';
+            if (leader) {
+              if (leader.person) {
+                // Líder Integrity
+                leaderName = `${leader.person.firstName} ${leader.person.lastName}`;
+              } else if (leader.externalPerson) {
+                // Líder externo
+                leaderName = `${leader.externalPerson.firstName} ${leader.externalPerson.lastName}`;
+              } else if (leader.firstName && leader.lastName) {
+                // Líder con estructura directa
+                leaderName = `${leader.firstName} ${leader.lastName}`;
               }
+            }
 
-              // Obtenemos el cliente
-              return this.http.get<any>(`${this.urlBase}/api/Client/GetClientByID/${project.clientID}`).pipe(
-                catchError(() => of(null)),
-                map(client => {
-                  const leader = projectLeadersMap.get(firstActivity.projectID);
-                  const totalHours = empActivities.reduce((sum, act) => sum + act.hoursQuantity, 0);
+            return {
+              employeeID: emp.employeeID,
+              nombre: emp.nombreCompletoEmpleado,
+              cedula: emp.employeeID.toString(),
+              proyecto: result.project?.name || 'No asignado',
+              cliente: result.client?.tradeName || result.client?.legalName || 'No asignado',
+              lider: leaderName,
+              horas: emp.horasRegistradasMes, // Usamos las horas del response
+              estado: this.getEstado(emp.horasRegistradasMes, emp.totalDiasHabilesMes),
+              projectData: result.project,
+              clientData: result.client,
+              leaderData: result.leader,
+              horasRegistradasMes: emp.horasRegistradasMes // Mantener también esta propiedad
+            };
+          }).filter(colaborador => colaborador.proyecto !== 'No asignado');
 
-                  return {
-                    employee: emp,
-                    project: project,
-                    client: client,
-                    leader: leader,
-                    totalHours: totalHours
-                  };
-                })
-              );
-            })
-          );
-        });
+          this.dataSource.data = collaborators;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+          this.totalItems = collaborators.length;
+        },
+        error: (err) => {
+          console.error('Error loading details:', err);
+          this.dataSource.data = [];
+        }
+      });
+    },
+    error: (err) => {
+      console.error('Error loading initial data:', err);
+      this.dataSource.data = [];
+    }
+  });
+}
 
-        // 7. Procesamos todas las solicitudes y actualizamos la tabla
-        forkJoin(requests).subscribe({
-          next: (results) => {
-            const collaborators = results.map(result => {
-              const emp = result.employee;
-              const project = result.project;
-              const client = result.client;
-              const leader = result.leader;
-              const totalHours = result.totalHours;
+  // Método auxiliar para determinar el estado basado en las horas
+  private getEstado(horasRegistradas: number, totalDiasHabiles: number): string {
+    const horasEsperadas = totalDiasHabiles * 8; // 8 horas por día
+    const porcentajeCompletado = (horasRegistradas / horasEsperadas) * 100;
 
-              return {
-                employeeID: emp.employeeID,
-                nombre: emp.nombreCompletoEmpleado || `${emp.firstName} ${emp.lastName}`,
-                cedula: emp.employeeID.toString(),
-                proyecto: project?.name || 'No asignado',
-                cliente: client?.tradeName || client?.legalName || 'No asignado',
-                lider: leader ? `${leader.person.firstName} ${leader.person.lastName}` : 'No asignado',
-                horas: totalHours,
-                estado: totalHours >= 80 ? 'Completo' : 'Pendiente',
-                projectData: project,
-                clientData: client,
-                leaderData: leader
-              };
-            })
-            .filter(colaborador => colaborador.proyecto !== 'No asignado'); // Añade este filtro
-
-            this.dataSource.data = collaborators;
-            this.dataSource.paginator = this.paginator;
-            this.dataSource.sort = this.sort;
-            this.totalItems = collaborators.length;
-          },
-          error: (err) => {
-            console.error('Error loading details:', err);
-            this.dataSource.data = [];
-          }
-        });
-      },
-      error: (err) => {
-        console.error('Error loading initial data:', err);
-        this.dataSource.data = [];
-      }
-    });
+    if (porcentajeCompletado >= 100) {
+      return 'Completo';
+    } else if (porcentajeCompletado >= 50) {
+      return 'En progreso';
+    } else {
+      return 'Pendiente';
+    }
   }
 }
