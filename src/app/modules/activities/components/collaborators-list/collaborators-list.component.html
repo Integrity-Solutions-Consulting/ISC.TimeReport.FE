@@ -100,7 +100,8 @@
       <td mat-cell *matCellDef="let element">
         <div class="status-container" [ngClass]="{
           'completed': element.estado === 'Completo',
-          'pending': element.estado === 'Pendiente'
+          'pending': element.estado === 'Pendiente',
+          'process': element.estado === 'En progreso'
         }">
           <div class="status-dot"></div>
           <div class="status-text">{{element.estado}}</div>
