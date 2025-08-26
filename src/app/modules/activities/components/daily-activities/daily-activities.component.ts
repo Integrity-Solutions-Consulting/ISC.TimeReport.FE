@@ -144,7 +144,6 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     const activityTypesSub = this.activityService.getActivityTypes().subscribe({
       next: (types) => {
         this.activityTypes = types;
-        console.log('Tipos de actividad cargados:', this.activityTypes);
       },
       error: (error) => {
         console.error('Error al cargar tipos de actividad:', error);
@@ -283,15 +282,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         const activityType = this.activityTypes.find(t => t.id === activity.activityTypeID);
         const color = activityType?.colorCode || '#9E9E9E';
         const rawTitle = `${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`;
-        const truncatedTitle = rawTitle.length > 30 ? rawTitle.substring(0, 20) + '...' : rawTitle;
-
-        console.log('Creando evento para actividad:', { // Debug
-          id: activity.id,
-          startDate,
-          endDate,
-          project: project?.name,
-          activityType: activityType?.id
-        });
+        const truncatedTitle = rawTitle.length > 30 ? rawTitle.substring(0, 16) + '...' : rawTitle;
 
         const eventData = {
           id: activity.id.toString(),

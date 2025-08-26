@@ -90,6 +90,8 @@ export class CollaboratorsListComponent implements OnInit{
 
   isDownloading = false;
 
+  noDataMessage: string = '';
+
   readonly range = new FormGroup({
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
@@ -495,14 +497,24 @@ loadData() {
             };
           }).filter(colaborador => colaborador.proyecto !== 'No asignado');
 
-          this.dataSource.data = collaborators;
+          // Filtra la lista para incluir solo a los colaboradores con horas > 0
+          const filteredCollaborators = collaborators.filter(colaborador => colaborador.horas > 0);
+
+          if (filteredCollaborators.length === 0) {
+            this.noDataMessage = 'No hay empleados que hayan registrado actividades durante ese periodo.';
+          } else {
+            this.noDataMessage = '';
+          }
+
+          this.dataSource.data = filteredCollaborators;
           this.dataSource.paginator = this.paginator;
           this.dataSource.sort = this.sort;
-          this.totalItems = collaborators.length;
+          this.totalItems = filteredCollaborators.length;
         },
         error: (err) => {
           console.error('Error loading details:', err);
           this.dataSource.data = [];
+          this.noDataMessage = 'Ocurrió un error al cargar los datos. Por favor, inténtalo de nuevo.';
         }
       });
     },
