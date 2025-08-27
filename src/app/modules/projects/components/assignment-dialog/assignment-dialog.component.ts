@@ -385,22 +385,9 @@ export class AssignmentDialogComponent implements OnInit, OnDestroy {
 
   removeResource(index: number, isExisting: boolean = false) {
     if (isExisting) {
-      const assignment = this.existingAssignments[index];
-
-      // Guardar todos los campos necesarios para la eliminación
-      if (assignment.id) {
-        this.assignmentsToDelete.push({
-          id: assignment.id,
-          employeeID: assignment.employeeID,
-          supplierID: assignment.supplierID,
-          assignedRole: assignment.assignedRole,
-          costPerHour: assignment.costPerHour,
-          allocatedHours: assignment.allocatedHours
-        });
-      }
-
-      this.existingAssignments.splice(index, 1);
-      this.existingAssignments = [...this.existingAssignments];
+      // En lugar de eliminar, marcar para eliminación
+      this.existingAssignments[index].markedForDeletion = true;
+      this.existingAssignments = [...this.existingAssignments]; // Trigger change detection
     } else {
       this.selectedResources.splice(index, 1);
       this.selectedResources = [...this.selectedResources];
@@ -436,55 +423,72 @@ export class AssignmentDialogComponent implements OnInit, OnDestroy {
   }
 
   assignResources() {
-    // 1. Preparar nuevos recursos (sin ID)
+    // 1. Preparar NUEVOS recursos (los que se acaban de agregar)
     const newAssignments: EmployeeProjectMiddle[] = this.selectedResources.map(resource => ({
       employeeId: resource.employeeId || null,
       supplierID: resource.supplierID || null,
       assignedRole: resource.assignedRole,
       costPerHour: resource.costPerHour,
       allocatedHours: resource.allocatedHours,
-      //status: true
+      status: true
     }));
 
-    // 2. Preparar recursos existentes que se mantienen
-    const keptResources: EmployeeProjectMiddle[] = this.existingAssignments.map(resource => ({
-      //id: resource.id,
-      employeeId: resource.employeeID,
-      supplierID: resource.supplierID,
-      assignedRole: resource.assignedRole,
-      costPerHour: resource.costPerHour,
-      allocatedHours: resource.allocatedHours,
-      //status: true
-    }));
+    // 2. Preparar recursos EXISTENTES que se MANTIENEN (no marcados para eliminación)
+    const keptResources: EmployeeProjectMiddle[] = this.existingAssignments
+      .filter(resource => !resource.markedForDeletion)
+      .map(resource => ({
+        id: resource.id, // Incluir ID para updates
+        employeeId: resource.employeeID || null,
+        supplierID: resource.supplierID || null,
+        assignedRole: resource.assignedRole,
+        costPerHour: resource.costPerHour,
+        allocatedHours: resource.allocatedHours,
+        status: true
+      }));
 
-    // 3. Preparar recursos a eliminar (con todos los campos requeridos)
-    const deletedResources: EmployeeProjectMiddle[] = this.assignmentsToDelete.map(assignment => ({
-      //id: assignment.id!,
-      employeeId: assignment.employeeID || null,
-      supplierID: assignment.supplierID || null,
-      assignedRole: assignment.assignedRole || 'Eliminado', // Valor por defecto
-      costPerHour: assignment.costPerHour || 0,             // Valor por defecto
-      allocatedHours: assignment.allocatedHours || 0,       // Valor por defecto
-      //status: false
-    }));
+    // 3. Preparar recursos EXISTENTES que se ELIMINAN (marcados para eliminación)
+    // SOLO si el backend espera que se envíen con status: false
+    const deletedResources: EmployeeProjectMiddle[] = this.existingAssignments
+      .filter(resource => resource.markedForDeletion && resource.id)
+      .map(resource => ({
+        id: resource.id!, // ID es requerido para eliminación
+        employeeId: resource.employeeID || null,
+        supplierID: resource.supplierID || null,
+        assignedRole: resource.assignedRole,
+        costPerHour: resource.costPerHour,
+        allocatedHours: resource.allocatedHours,
+        status: false // Esto indica eliminación
+      }));
 
-    // Payload final
+    // Payload final - Depende de cómo el backend maneje las eliminaciones
     const payload: ResourceAssignmentPayload = {
       projectID: this.data.projectId,
       employeeProjectMiddle: [
         ...newAssignments,
         ...keptResources,
-        //...deletedResources
       ]
     };
+
+    console.log('Payload enviado:', payload);
 
     this.projectService.assignResourcesToProject(payload).subscribe({
       next: () => this.dialogRef.close(true),
       error: (err) => {
-        console.error('Error:', err);
-        this.loadProjectDetails();
+        console.error('Error al asignar recursos:', err);
+        this.loadProjectDetails(); // Recargar en caso de error
       }
     });
+  }
+
+  hasChanges(): boolean {
+    // Hay cambios si:
+    // 1. Hay recursos nuevos para agregar
+    const hasNewResources = this.selectedResources.length > 0;
+
+    // 2. Hay recursos existentes marcados para eliminación
+    const hasResourcesToDelete = this.existingAssignments.some(assignment => assignment.markedForDeletion);
+
+    return hasNewResources || hasResourcesToDelete;
   }
 
   cancel() {
