@@ -69,6 +69,7 @@ export interface EmployeeProject {
   allocatedHours: number;
   projectID: number;
   status: boolean;
+  markedForDeletion?: boolean;
 }
 
 export interface ResourceAssignmentPayload {
