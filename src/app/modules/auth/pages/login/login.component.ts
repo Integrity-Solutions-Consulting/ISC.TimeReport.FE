@@ -142,10 +142,10 @@ export class LoginPage implements OnInit {
         localStorage.setItem("modules", JSON.stringify(modules))
         localStorage.setItem("employeeID", employeeID.toString());
 
-        this.loginForm.reset()
-        this.isLoading = false
-        this.router.navigate(["/menu"])
-        this.authService.updateUsername();
+        //this.loginForm.reset()
+        //this.isLoading = false
+        //this.router.navigate(["/menu"])
+        //this.authService.updateUsername();
       },
       error: (err) => {
         this.isLoading = false

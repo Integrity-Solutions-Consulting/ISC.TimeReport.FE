@@ -212,7 +212,24 @@ export class UserCreateDialogComponent implements OnInit, OnDestroy { // Impleme
           },
           error: (error) => {
             console.error('Error al crear usuario:', error);
-            const errorMessage = error.error?.message || 'Error al crear usuario';
+
+            // Extraer el mensaje de error de la respuesta del backend
+            let errorMessage = 'Error al crear usuario';
+
+            if (error.error?.Message) {
+              // Si el backend devuelve un mensaje directo
+              errorMessage = error.error.Message;
+            } else if (error.error?.error?.[0]?.Message) {
+              // Si el mensaje está dentro del array Error
+              errorMessage = error.error.error[0].Message;
+            } else if (error.error?.message) {
+              // Formato alternativo
+              errorMessage = error.error.message;
+            } else if (error.message) {
+              // Mensaje de error genérico de HTTP
+              errorMessage = error.message;
+            }
+
             this.showSnackbar(errorMessage, 'error');
           }
         });
@@ -220,8 +237,9 @@ export class UserCreateDialogComponent implements OnInit, OnDestroy { // Impleme
   }
 
   private showSnackbar(message: string, type: 'success' | 'error' = 'success'): void {
+    const duration = type === 'error' ? 8000 : 5000;
     this.snackBar.open(message, 'Cerrar', {
-      duration: 5000,
+      duration: duration,
       panelClass: type === 'success' ? ['success-snackbar'] : ['error-snackbar'],
       horizontalPosition: 'center',
       verticalPosition: 'bottom'
