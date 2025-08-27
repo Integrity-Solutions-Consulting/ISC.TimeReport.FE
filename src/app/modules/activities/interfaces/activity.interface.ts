@@ -70,3 +70,19 @@ export interface ActivityType {
   description: string;
   colorCode: string;
 }
+
+export interface Holiday {
+  id: number;
+  holidayName: string;
+  holidayDate: string;
+  isRecurring: boolean;
+  holidayType: string;
+  description: string | null;
+  status: boolean;
+}
+
+export interface HolidaysResponse {
+  data: Holiday[];
+  code: number;
+  message: string;
+}

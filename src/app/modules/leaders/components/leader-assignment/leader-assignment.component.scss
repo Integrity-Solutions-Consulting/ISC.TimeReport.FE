@@ -1,0 +1,216 @@
+// leader-assignments-dialog.component.scss
+.dialog-content {
+  min-width: 800px;
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.leader-info {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+
+  .info-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .info-item {
+    flex: 1;
+
+    strong {
+      color: #3f51b5;
+      margin-right: 8px;
+    }
+  }
+
+  .active {
+    color: #4caf50;
+    font-weight: 500;
+  }
+
+  .inactive {
+    color: #f44336;
+    font-weight: 500;
+  }
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  gap: 16px;
+}
+
+.assignments-management {
+  .section {
+    margin-bottom: 32px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+
+    h3 {
+      margin: 0 0 16px 0;
+      color: #3f51b5;
+      font-weight: 500;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #3f51b5;
+    }
+
+    h4 {
+      margin: 16px 0 12px 0;
+      color: #ff9800;
+      font-weight: 500;
+    }
+  }
+
+  .no-data {
+    text-align: center;
+    padding: 20px;
+    color: #757575;
+    font-style: italic;
+    background-color: #fafafa;
+    border-radius: 4px;
+  }
+}
+
+.add-project-form {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+
+  .project-select {
+    flex: 1;
+    min-width: 300px;
+  }
+
+  button {
+    margin-top: 4px;
+  }
+}
+
+// Estilos para las tablas
+.assignments-table, .to-assign-table, .to-unassign-table {
+  width: 100%;
+  margin-bottom: 16px;
+
+  .project-info {
+    .project-name {
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .project-id {
+      font-size: 12px;
+      color: #666;
+      font-style: italic;
+    }
+  }
+
+  .mat-column-actions {
+    width: 80px;
+    text-align: center;
+
+    button {
+      margin: 0 4px;
+    }
+  }
+}
+
+.to-assign-section {
+  background-color: #e8f5e8;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #4caf50;
+}
+
+.to-unassign-table {
+  background-color: #ffebee;
+  border-radius: 8px;
+
+  .mat-row {
+    background-color: #fff;
+
+    &:nth-child(even) {
+      background-color: #fce4ec;
+    }
+  }
+}
+
+// Estilos responsivos
+@media (max-width: 1500px) {
+  .dialog-content {
+    min-width: unset;
+    max-width: 95vw;
+  }
+
+  .leader-info {
+    .info-row {
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+
+  .add-project-form {
+    flex-direction: column;
+    align-items: stretch;
+
+    .project-select {
+      min-width: unset;
+    }
+
+    button {
+      align-self: flex-start;
+    }
+  }
+
+  .assignments-table, .to-assign-table, .to-unassign-table {
+    .mat-header-row,
+    .mat-row {
+      flex-direction: column;
+      align-items: start;
+      padding: 12px 0;
+    }
+
+    .mat-header-cell,
+    .mat-cell {
+      padding: 8px 0;
+    }
+
+    .mat-column-actions {
+      width: auto;
+      text-align: left;
+      padding-top: 16px;
+    }
+  }
+}
+
+// Mejoras visuales
+.section {
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+button[mat-icon-button] {
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+.mat-raised-button:disabled {
+  opacity: 0.6;
+}

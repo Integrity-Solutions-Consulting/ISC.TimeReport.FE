@@ -1,3 +1,4 @@
+
 export interface LeaderWithPerson {
   projectID: number;
   leadershipType: boolean;
@@ -96,17 +97,64 @@ export interface PersonApiResponse {
   totalPages: number;
 }
 
-interface Project {
+export interface LeaderAssignmentPayload {
+  personID: number;
+  personProjectMiddle: PersonProjectMiddle[];
+}
+
+export interface PersonProjectMiddle {
+  projectID: number;
+  leadershipType: boolean;
+  startDate: string;
+  endDate?: string;
+  responsibilities?: string;
+  status: boolean;
+}
+
+export interface LeaderAssignment {
+  id: number;
+  responsibility: string;
+  startDate: string;
+  endDate: string;
+  leadershipType: boolean;
+  status: boolean;
+  projectos: any;
+  projectId?: number;
+  projectName?: string;
+}
+
+export interface LeaderGroup {
+  person: {
+    id: number;
+    genderId: number;
+    nationalityId: number;
+    identificationTypeId: number;
+    identificationNumber: string;
+    personType: any;
+    firstName: string;
+    lastName: string;
+    birthDate: string | null;
+    email: string;
+    phone: string;
+    address: string;
+    status: boolean;
+  };
+  leaderMiddle: LeaderAssignment[];
+}
+
+export interface Project {
   id: number;
   clientID: number;
   projectStatusID: number;
+  projectTypeID: number;
   code: string;
   name: string;
   description: string;
   startDate: string;
   endDate: string;
-  actualStartDate: string;
-  actualEndDate: string;
+  actualStartDate: string | null;
+  actualEndDate: string | null;
   budget: number;
+  hours: number;
   status: boolean;
 }

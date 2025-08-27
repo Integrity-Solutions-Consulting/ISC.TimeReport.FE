@@ -1,9 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
-import { Leader, LeaderWithPerson, LeaderWithPersonID, ApiResponse } from '../interfaces/leader.interface';
+import { Leader, LeaderWithPerson, LeaderWithPersonID, ApiResponse, LeaderAssignmentPayload, LeaderGroup } from '../interfaces/leader.interface';
 import { BehaviorSubject, catchError, finalize, forkJoin, map, Observable, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
+import { Project } from '../../projects/interfaces/project.interface';
 
 @Injectable({
     providedIn: 'root'
@@ -148,6 +149,33 @@ export class LeadersService {
         projectTypes: this.getProyectTypes(),
         projectStatus: this.getProyectStatus()
       });
+  }
+
+  assignLeaderToProject(payload: LeaderAssignmentPayload): Observable<any> {
+    return this.http.post(`${this.urlBase}/api/Leader/assign-leader-to-project`, payload);
+  }
+
+  getAllLeadersGrouped(): Observable<LeaderGroup[]> {
+    return this.http.get<LeaderGroup[]>(`${this.urlBase}/api/Leader/get-all-leaders-grouped`);
+  }
+
+  getAllProjects(pageNumber: number = 1, pageSize: number = 10000, search: string = ''): Observable<{items: Project[], totalItems: number}> {
+    let params = new HttpParams()
+      .set('pageNumber', pageNumber.toString())
+      .set('pageSize', pageSize.toString());
+
+    if (search) {
+      params = params.set('search', search);
     }
+
+    return this.http.get<{items: Project[], totalItems: number}>(`${this.urlBase}/api/Project/GetAllProjects`, { params });
+  }
+
+  getLeadersWithProjects(): Observable<{leaders: LeaderGroup[], projects: Project[]}> {
+    return forkJoin({
+      leaders: this.getAllLeadersGrouped(),
+      projects: this.getAllProjects().pipe(map(response => response.items))
+    });
+  }
 
 }

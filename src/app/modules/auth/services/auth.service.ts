@@ -12,7 +12,6 @@ import { Router } from "@angular/router";
   providedIn: 'root'
 })
 export class AuthService {
-  private _httpClient = inject(HttpClient);
   private urlBase: string = environment.URL_BASE;
   private _isAuthenticated = signal<boolean>(false);
   private _userMenus = signal<string[]>([]);
@@ -20,9 +19,11 @@ export class AuthService {
   private usernameSubject = new BehaviorSubject<string>(this.getUsernameFromStorage());
   username$ = this.usernameSubject.asObservable();
   private currentEmployeeId = new BehaviorSubject<number | null>(null);
-  private router = inject(Router);
 
-  constructor() {
+  constructor(
+    private _httpClient: HttpClient,
+    private router: Router
+  ) {
     this.initializeAuthState();
     this.loadInitialData();
   }
@@ -109,7 +110,6 @@ export class AuthService {
   getMenus(): string[] {
     const menus = localStorage.getItem('menus');
     return menus ? JSON.parse(menus) : [];
-    console.log(menus);
   }
 
   /*getRoles(): Role[] {
