@@ -300,7 +300,6 @@ export class DashboardComponent implements OnInit{
 
   loadDataForDate(date: Date | string | null): void {
     const formattedDate = this.formatDate(date);
-    console.log('Fecha formateada:', formattedDate);
 
     // Especificamos el tipo de respuesta esperada
     this.http.get<ActividadResponse[]>(`${this.urlBase}/api/Dashboard/horas-por-actividad?fecha=${formattedDate}`,

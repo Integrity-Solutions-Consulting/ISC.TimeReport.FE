@@ -23,6 +23,7 @@ import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatMenuModule } from '@angular/material/menu';
+import { AssignmentLeaderDialogComponent } from '../leader-assignment/leader-assignment.component';
 
 @Injectable()
 export class LeaderPaginatorIntl implements MatPaginatorIntl {
@@ -92,7 +93,7 @@ export class LeaderListComponent implements OnInit{
 
   searchControl = new FormControl('');
 
-  displayedColumns: string[] = ['idtype', 'idnumber', 'leadertype', 'names', 'surnames', 'project', 'status', 'options'];
+  displayedColumns: string[] = ['idnumber', 'leadertype', 'names', 'status', 'contact', 'options'];
 
   totalItems: number = 0;
   pageSize: number = 10;
@@ -311,5 +312,23 @@ export class LeaderListComponent implements OnInit{
 
   viewLeaderDetails(projectId: number): void {
     this.router.navigate([projectId], { relativeTo: this.route });
+  }
+
+  openAssignDialog(leader?: any): void {
+    const dialogRef = this.dialog.open(AssignmentLeaderDialogComponent, {
+      width: '1000px',
+      maxHeight: '80vh',
+      data: {
+        leader: leader, // Opcional: pasar el líder si se hace clic en una fila específica
+        leaderId: leader.id // Pre-seleccionar la persona si existe
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.snackBar.open("Líder asignado con éxito", "Cerrar", {duration: 5000});
+        this.loadLeaders(); // Recargar la lista después de la asignación
+      }
+    });
   }
 }
