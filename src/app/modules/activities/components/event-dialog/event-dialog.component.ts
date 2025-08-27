@@ -164,8 +164,13 @@ export class EventDialogComponent implements OnInit {
   onDurationChange(): void {
     if (this.isFullDay) {
       this.event.hours = 8;
-    } else if (typeof this.event.hours !== 'number' || isNaN(this.event.hours) || this.event.hours < 1 || this.event.hours > 8) {
-      this.event.hours = 4;
+    } else {
+      // Cuando cambia a modo "horas", establecer un valor por defecto solo si no hay valor actual
+      if (this.event.hours === null || this.event.hours === undefined || this.event.hours === '') {
+        this.event.hours = 4;
+      } else {
+        this.validateHours(); // Validar el valor existente
+      }
     }
   }
 
@@ -235,8 +240,22 @@ export class EventDialogComponent implements OnInit {
 
   validateHours(): void {
     if (!this.isFullDay) {
+      // Si el valor está vacío o no es un número, establecer como null/undefined
+      if (this.event.hours === '' || isNaN(Number(this.event.hours))) {
+        this.event.hours = null;
+        return;
+      }
+
       const hours = Number(this.event.hours);
-      this.event.hours = isNaN(hours) ? 4 : Math.max(1, Math.min(8, hours));
+
+      // Forzar valores entre 1 y 8
+      if (hours < 1) {
+        this.event.hours = 1;
+      } else if (hours > 8) {
+        this.event.hours = 8;
+      } else {
+        this.event.hours = hours;
+      }
     }
   }
 
@@ -274,6 +293,7 @@ export class EventDialogComponent implements OnInit {
 
     if (!this.isFullDay) {
       const hours = Number(this.event.hours);
+      // Verificar que hours no sea NaN y esté en el rango correcto
       if (isNaN(hours) || hours < 1 || hours > 8) {
         return false;
       }
@@ -303,6 +323,15 @@ export class EventDialogComponent implements OnInit {
     }
 
     return true;
+  }
+
+  onHoursKeyPress(event: KeyboardEvent): void {
+    const allowedChars = /[0-9]/;
+    const inputChar = String.fromCharCode(event.charCode);
+
+    if (!allowedChars.test(inputChar)) {
+      event.preventDefault();
+    }
   }
 
   onCancel(): void {
