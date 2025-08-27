@@ -1,104 +1,85 @@
-  .form-container {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+/* Estilos base del contenedor del diálogo */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 16px;
+}
+
+/* Contenedor de duración */
+.duration-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+
+  span {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
   }
+}
 
-  .duration-container {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin: 16px 0;
+/* Contenedor de fila para elementos a lado y lado */
+.row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
 
-    span {
-      font-size: 14px;
-      color: rgba(0, 0, 0, 0.6);
-    }
-  }
+.half-width {
+  flex: 1;
+  min-width: 150px;
+}
 
-  .row {
-    display: flex;
-    gap: 16px;
+.full-width {
+  width: 100%;
+}
 
-    .half-width {
-      flex: 1;
-    }
-  }
+/* Estilos para los selectores de color (si se usan) */
+.color-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-  .full-width {
-    width: 100%;
-  }
+.color-demo {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
 
-  .color-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+.color-preview {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
 
-  .color-demo {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-  }
+/* Ajustes para el textarea de la descripción */
+.fixed-textarea {
+  resize: none;
+  height: 120px;
+  min-height: 120px;
+  max-height: 120px;
+  overflow-y: auto;
+}
 
-  .color-preview {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    margin-left: 8px;
-  }
-/* En tu archivo de estilos */
 .textarea-container {
-  /* Asegura que el textarea ocupe todo el espacio disponible */
   width: 100%;
 
-  /* Estilos específicos para el textarea */
-  .mat-mdc-text-field-wrapper {
-    align-items: flex-start !important; /* Alinea el contenido arriba */
-    padding-top: 8px; /* Espacio adicional arriba */
-  }
-
-  textarea {
-    resize: vertical;
-    height: auto !important;
-    max-height: none !important;
-    overflow: auto !important;
-  }
-
-  /* Ajusta el área de texto para que no quede pegada a los bordes */
-  .mdc-text-field__input {
-    padding: 8px 0 !important;
-  }
-
-  /* Ajusta el notch (el borde flotante) */
   .mat-mdc-form-field-flex {
-    min-height: 100px; /* Altura mínima para el contenedor */
-  }
-
-  mat-dialog-content .mat-form-field-wrapper {
-    height: auto;
+    min-height: 100px;
   }
 }
 
-mat-dialog-content .mat-form-field-wrapper .mat-form-field-flex .mat-form-field-infix textarea.mat-input-element {
-  resize: vertical;
-  height: auto !important;
-  max-height: none !important;
-  overflow: auto !important;
-}
-
+/* Estilos para los iconos de ayuda */
 .field-with-help {
   display: flex;
   align-items: flex-start;
   margin-bottom: 16px;
   position: relative;
-}
-
-.field-with-help .full-width,
-.field-with-help .half-width,
-.field-with-help .duration-container {
-  flex: 1;
 }
 
 .help-icon {
@@ -107,43 +88,100 @@ mat-dialog-content .mat-form-field-wrapper .mat-form-field-flex .mat-form-field-
   justify-content: center;
   width: 20px;
   height: 20px;
-  background-color: #1976d2; /* Azul de Material Design */
+  background-color: #1976d2;
   color: white;
   border-radius: 50%;
   font-size: 14px;
   font-weight: bold;
   margin-left: 8px;
-  margin-top: 12px; /* Alineación vertical con los campos */
+  margin-top: 12px;
   cursor: help;
   transition: background-color 0.3s;
 }
 
 .help-icon:hover {
-  background-color: #1565c0; /* Azul más oscuro al hacer hover */
+  background-color: #1565c0;
 }
 
-/* Ajustes para el campo de duración */
-.duration-container {
+/* Estilos para el encabezado del diálogo */
+mat-dialog-title {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  padding: 12px 0;
+  padding: 16px 24px;
 }
 
-// En tu archivo SCSS (event-dialog.component.scss)
-.fixed-textarea {
-  resize: none; /* Evita que el usuario pueda redimensionar */
-  height: 120px; /* Altura fija más grande */
-  min-height: 120px; /* Altura mínima igual a la altura */
-  max-height: 120px; /* Altura máxima igual a la altura */
-  overflow-y: auto; /* Permite scroll si el contenido es muy largo */
+/* Estilos para el contenido del diálogo */
+mat-dialog-content {
+  padding: 0 24px;
+  overflow-y: auto; /* Mantenemos el overflow aquí para un mejor control */
+  flex: 1; /* Nuevo: Permite que mat-dialog-content crezca y ocupe el espacio disponible */
 }
 
-// O si prefieres una altura aún mayor:
-.larger-textarea {
-  resize: none;
-  height: 150px;
-  min-height: 150px;
-  max-height: 150px;
-  overflow-y: auto;
+/* Estilos para los botones de acción */
+mat-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px;
+}
+
+/*
+  NUEVO: Ajuste general del contenedor del diálogo
+  Esto es la clave para la solución. Hacemos que todo el diálogo sea
+  un contenedor flexible y permitimos que el contenido se desplace.
+*/
+.mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh; /* Ajustamos la altura máxima del diálogo */
+}
+
+
+/* --- Media Queries para responsividad --- */
+
+/* Pantallas de hasta 768px (tablets en modo retrato, móviles grandes) */
+@media (max-width: 768px) {
+  .form-container {
+    padding: 0 8px;
+  }
+
+  .row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .half-width {
+    min-width: 100%;
+  }
+
+  .field-with-help {
+    margin-bottom: 8px;
+  }
+
+  mat-dialog-title {
+    padding: 12px 16px;
+  }
+
+  mat-dialog-content {
+    padding: 0 16px;
+  }
+
+  mat-dialog-actions {
+    flex-direction:row; /* Apila los botones de acción */
+    align-items: stretch;
+    padding: 8px 16px;
+    gap: 8px;
+  }
+}
+
+/* Pantallas de hasta 480px (móviles pequeños) */
+@media (max-width: 480px) {
+  mat-dialog-title {
+    font-size: 1.2rem;
+  }
+
+  .help-icon {
+    margin-top: 8px;
+  }
 }

@@ -14,7 +14,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router, RouterModule } from '@angular/router';
 import { Project, ProjectWithID } from '../../../projects/interfaces/project.interface';
 import { ProjectService } from '../../../projects/services/project.service';
-import { Activity, ActivityType } from '../../interfaces/activity.interface';
+import { Activity, ActivityType, Holiday } from '../../interfaces/activity.interface';
 import { Observable, take, map, catchError, throwError, of, Subscription } from 'rxjs';
 import { ApiResponse } from '../../interfaces/activity.interface';
 import { ReportDialogComponent } from '../report-dialog/report-dialog.component';
@@ -60,10 +60,17 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
   currentEmployeeId: number | null = null;
   projectList: ProjectWithID[] = [];
   activityTypes: ActivityType[] = [];
+  holidays: Holiday[] = [];
   private subscriptions: Subscription = new Subscription();
   isLoadingProjects = false;
   @ViewChild('calendar') calendarComponent!: FullCalendarComponent;
   private calendar: any;
+
+  private isHoliday(date: Date): boolean {
+    const dateString = date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    return this.holidays.some(holiday => holiday.holidayDate === dateString);
+  }
+
   calendarOptions = signal<CalendarOptions>({
     plugins: [
       interactionPlugin,
@@ -107,12 +114,19 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         info.el.style.color = this.getTextColor(eventColor);
       }
     },
-    eventChange: this.handleEventChange.bind(this)
-    /* you can update a remote database when these fire:
-    eventAdd:
-    eventChange:
-    eventRemove:
-    */
+    eventChange: this.handleEventChange.bind(this),
+
+    dayCellDidMount: (info) => {
+      if (this.isHoliday(info.date)) {
+        info.el.classList.add('fc-holiday');
+        info.el.style.backgroundColor = '#fde4e8ff'; // Fondo rojo claro
+        info.el.style.cursor = 'not-allowed';
+      }
+    },
+    // Añade esta propiedad para validar selecciones
+    selectAllow: (selectInfo) => {
+      return !this.isHoliday(selectInfo.start);
+    }
   });
   currentEvents = signal<EventApi[]>([]);
 
@@ -131,6 +145,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.loadActivityTypes();
+    this.loadHolidays();
     this.loadProjects().pipe(take(1)).subscribe(() => {
       this.loadInitialData();
     });
@@ -199,6 +214,23 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
     // Opción 3: Desde el AuthService (si tiene un método)
     return this.authService.getCurrentEmployeeId();
+  }
+
+  private loadHolidays(): void {
+    const holidaysSub = this.activityService.getAllHolidays().subscribe({
+      next: (response) => {
+        this.holidays = response.data;
+        // Forzar re-render del calendario para aplicar estilos de feriados
+        if (this.calendarComponent && this.calendarComponent.getApi()) {
+          this.calendarComponent.getApi().render();
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar feriados:', error);
+        this.snackBar.open('Error al cargar días feriados', 'Cerrar', { duration: 3000 });
+      }
+    });
+    this.subscriptions.add(holidaysSub);
   }
 
   private async loadInitialData(): Promise<void> {
@@ -343,6 +375,11 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
   handleDateSelect(selectInfo: DateSelectArg) {
 
+    if (this.isHoliday(selectInfo.start)) {
+      this.snackBar.open('No se pueden crear actividades en días feriados', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
     if (!this.currentEmployeeId) {
       this.snackBar.open('No se pudo identificar al empleado', 'Cerrar');
       return;
@@ -386,6 +423,11 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   handleAddActivity() {
+
+    if (this.isHoliday(new Date())) {
+      this.snackBar.open('No se pueden crear actividades en días feriados', 'Cerrar', { duration: 3000 });
+      return;
+    }
 
     if (!this.currentEmployeeId) {
       this.snackBar.open('No se pudo identificar al empleado', 'Cerrar');
@@ -453,6 +495,10 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     }
 
     const activityDate = this.ensureDateObject(eventData.activityDate);
+    if (this.isHoliday(activityDate)) {
+      this.snackBar.open('No se pueden crear actividades en días feriados', 'Cerrar', { duration: 3000 });
+      return;
+    }
 
     const activityPayload = {
       projectID: eventData.projectID,
@@ -665,6 +711,13 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
   handleEventChange(changeInfo: any): void {
     const event = changeInfo.event;
+
+    if (this.isHoliday(event.start)) {
+      this.snackBar.open('No se pueden mover actividades a días feriados', 'Cerrar', { duration: 3000 });
+      changeInfo.revert(); // Revertir el cambio
+      return;
+    }
+
     const extendedProps = event.extendedProps;
 
     const updatedData = {

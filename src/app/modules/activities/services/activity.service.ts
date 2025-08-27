@@ -4,7 +4,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { catchError, forkJoin, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
-import { Activity, ActivityType, ApiResponse,} from '../interfaces/activity.interface';
+import { Activity, ActivityType, ApiResponse, HolidaysResponse,} from '../interfaces/activity.interface';
 import { AuthService } from '../../auth/services/auth.service';
 import { ProjectService } from '../../projects/services/project.service';
 
@@ -26,6 +26,10 @@ export class ActivityService {
       return throwError(() => error);
     })
     );
+  }
+
+  getAllHolidays(): Observable<HolidaysResponse> {
+    return this.http.get<HolidaysResponse>(`${this.urlBase}/api/Holiday/get-all-holiday`);
   }
 
   getDatedActivities(employeeId: number, filters?: { clientId?: number; dateFrom?: string; dateTo?: string }) {
