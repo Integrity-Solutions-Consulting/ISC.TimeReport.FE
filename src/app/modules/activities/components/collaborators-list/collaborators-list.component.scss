@@ -42,6 +42,7 @@
     flex: 1;
     min-width: 180px;
     height: 56px;
+    margin-bottom: 18px;
 
     .toggle-label {
       font-size: 14px;
@@ -60,6 +61,7 @@
     align-items: center;
     justify-content: center;
     white-space: nowrap;
+    margin-bottom: 18px;
 
     mat-icon {
       margin-right: 8px;

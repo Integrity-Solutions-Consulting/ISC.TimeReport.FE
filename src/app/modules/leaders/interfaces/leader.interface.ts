@@ -82,7 +82,7 @@ export interface Person {
 }
 
 export interface ApiResponse {
-  items: Leader[];
+  items: LeaderWithIDandPerson[];
   totalItems: number;
   pageNumber: number;
   pageSize: number;
@@ -156,5 +156,13 @@ export interface Project {
   actualEndDate: string | null;
   budget: number;
   hours: number;
+  status: boolean;
+}
+
+export interface UniqueLeader {
+  id: number;
+  person: Person;
+  projects: number[]; // IDs de proyectos a los que está asignado
+  leadershipType: boolean;
   status: boolean;
 }

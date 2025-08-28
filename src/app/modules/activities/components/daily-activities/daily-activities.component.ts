@@ -117,6 +117,13 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     eventChange: this.handleEventChange.bind(this),
 
     dayCellDidMount: (info) => {
+      const isWeekend = info.date.getDay() === 0 || info.date.getDay() === 6;
+
+      if (isWeekend) {
+        info.el.style.backgroundColor = '#e6f2ff'; // Azul claro
+        info.el.style.cursor = 'default';
+      }
+
       if (this.isHoliday(info.date)) {
         info.el.classList.add('fc-holiday');
         info.el.style.backgroundColor = '#fde4e8ff'; // Fondo rojo claro
@@ -221,9 +228,12 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
       next: (response) => {
         this.holidays = response.data;
         // Forzar re-render del calendario para aplicar estilos de feriados
-        if (this.calendarComponent && this.calendarComponent.getApi()) {
-          this.calendarComponent.getApi().render();
-        }
+        // Usamos setTimeout para asegurarnos de que el calendario esté listo
+        setTimeout(() => {
+          if (this.calendarComponent && this.calendarComponent.getApi()) {
+            this.calendarComponent.getApi().render();
+          }
+        }, 0);
       },
       error: (error) => {
         console.error('Error al cargar feriados:', error);
