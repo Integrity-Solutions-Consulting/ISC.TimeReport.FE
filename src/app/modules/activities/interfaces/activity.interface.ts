@@ -61,7 +61,7 @@ export interface Collaborator {
     tradeName: string;
     legalName: string;
   };
-  horasRegistradasMes?: number;
+  horasRegistradasPeriodo?: number;
 }
 
 export interface ActivityType {

@@ -385,8 +385,11 @@ export class AssignmentDialogComponent implements OnInit, OnDestroy {
 
   removeResource(index: number, isExisting: boolean = false) {
     if (isExisting) {
-      // En lugar de eliminar, marcar para eliminación
-      this.existingAssignments[index].markedForDeletion = true;
+      // TOGGLE: Si ya está marcado para eliminación, lo reactivamos
+      // Si NO está marcado, lo marcamos para eliminación
+      this.existingAssignments[index].markedForDeletion =
+        !this.existingAssignments[index].markedForDeletion;
+
       this.existingAssignments = [...this.existingAssignments]; // Trigger change detection
     } else {
       this.selectedResources.splice(index, 1);
