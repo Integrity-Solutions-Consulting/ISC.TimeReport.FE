@@ -77,20 +77,6 @@
       </div>
     </div>
 
-    <!-- Duración -->
-    <div class="field-with-help">
-      <div class="duration-container">
-        <span>Duración:</span>
-        <mat-button-toggle-group [(ngModel)]="isFullDay" (change)="onDurationChange()" name="durationToggle" class="duration-toggle-group">
-          <mat-button-toggle [value]="true">Día Completo</mat-button-toggle>
-          <mat-button-toggle [value]="false">Horas</mat-button-toggle>
-        </mat-button-toggle-group>
-      </div>
-      <div class="help-icon" [matTooltip]="'Selecciona si la actividad ocupa todo el día o solo algunas horas. Día completo registrará 8 horas automáticamente.'" matTooltipPosition="right">
-        ?
-      </div>
-    </div>
-
     <!-- Fecha y Horas -->
     <div class="field-with-help">
       <div class="row">
@@ -106,22 +92,22 @@
           <mat-datepicker #activityDatePicker></mat-datepicker>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" *ngIf="!isFullDay" class="half-width">
-  <mat-label>Número de Horas</mat-label>
-  <input matInput
-         type="text"
-         [(ngModel)]="event.hours"
-         name="hours"
-         [required]="!isFullDay"
-         (input)="validateHours()"
-         (keypress)="onHoursKeyPress($event)"
-         placeholder="1-8">
-  <mat-error *ngIf="!isFullDay && (!event.hours || event.hours < 1 || event.hours > 8)">
-    Horas inválidas (debe ser entre 1 y 8).
-  </mat-error>
-</mat-form-field>
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Número de Horas</mat-label>
+          <input matInput
+                 type="text"
+                 [(ngModel)]="event.hours"
+                 name="hours"
+                 required
+                 (input)="validateHours()"
+                 (keypress)="onHoursKeyPress($event)"
+                 placeholder="0.5-8">
+          <mat-error *ngIf="!event.hours || event.hours < 0.5 || event.hours > 8">
+            Horas inválidas (debe ser entre 0.5 y 8).
+          </mat-error>
+        </mat-form-field>
       </div>
-      <div class="help-icon" [matTooltip]="'Selecciona la fecha de la actividad y, si no es día completo, ingresa el número de horas trabajadas (máximo 8 por día).'" matTooltipPosition="right">
+      <div class="help-icon" [matTooltip]="'Selecciona la fecha de la actividad e ingresa el número de horas trabajadas (mínimo 0.5, máximo 8 por día).'" matTooltipPosition="right">
         ?
       </div>
     </div>
