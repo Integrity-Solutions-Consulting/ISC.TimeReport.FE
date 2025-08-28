@@ -1,7 +1,7 @@
 import { Component , signal, ChangeDetectorRef, ViewChild, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FullCalendarModule, FullCalendarComponent } from '@fullcalendar/angular';
-import { CalendarOptions, DateSelectArg, EventClickArg, EventApi } from '@fullcalendar/core';
+import { CalendarOptions, DateSelectArg, EventClickArg, EventApi, EventContentArg } from '@fullcalendar/core';
 import interactionPlugin from '@fullcalendar/interaction';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -116,6 +116,8 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     },
     eventChange: this.handleEventChange.bind(this),
 
+    displayEventTime: false,
+
     dayCellDidMount: (info) => {
       const isWeekend = info.date.getDay() === 0 || info.date.getDay() === 6;
 
@@ -129,6 +131,18 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         info.el.style.backgroundColor = '#fde4e8ff'; // Fondo rojo claro
         info.el.style.cursor = 'not-allowed';
       }
+    },
+
+    eventContent: (info: EventContentArg) => {
+      const hours = info.event.extendedProps['hoursQuantity'];
+      const title = info.event.title;
+
+      // Check if it's not a full-day event (hours < 8) and display hours
+      if (hours && hours < 8) {
+        return { html: `<b>${hours}h</b> <i>${title}</i>` };
+      }
+      // For full-day events or when hours aren't specified, just show the title
+      return { html: `<i>${title}</i>` };
     },
     // Añade esta propiedad para validar selecciones
     selectAllow: (selectInfo) => {
@@ -323,8 +337,14 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         const project = this.projectList.find(p => p.id === activity.projectID);
         const activityType = this.activityTypes.find(t => t.id === activity.activityTypeID);
         const color = activityType?.colorCode || '#9E9E9E';
-        const rawTitle = `${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`;
-        const truncatedTitle = rawTitle.length > 30 ? rawTitle.substring(0, 16) + '...' : rawTitle;
+        let rawTitle: string;
+        if (hoursQuantity && hoursQuantity > 0 && hoursQuantity < 8) {
+          rawTitle = `${hoursQuantity}h - ${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`;
+        } else {
+          rawTitle = `${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`;
+        }
+
+        const truncatedTitle = rawTitle.length > 20 ? rawTitle.substring(0, 17) + '...' : rawTitle;
 
         const eventData = {
           id: activity.id.toString(),
