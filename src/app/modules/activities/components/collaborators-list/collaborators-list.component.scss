@@ -19,7 +19,7 @@
 
   mat-form-field {
     flex: 1;
-    min-width: 200px; /* Para que no se hagan muy pequeños */
+    min-width: 50px; /* Para que no se hagan muy pequeños */
     height: 56px;
     display: flex;
     align-items: center;
@@ -34,6 +34,21 @@
       align-items: center;
     }
   }
+
+.year-selector,
+.month-selector {
+  width: 120px !important; /* o el ancho que prefieras */
+  min-width: 120px !important;
+  max-width: 120px !important;
+
+  .mat-form-field-wrapper {
+    width: 100% !important;
+  }
+
+  .mat-form-field-flex {
+    width: 100% !important;
+  }
+}
 
 .period-toggle-container {
   display: flex;

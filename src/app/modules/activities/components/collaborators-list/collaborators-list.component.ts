@@ -78,7 +78,7 @@ export class CollaboratorsListComponent implements OnInit {
   urlBase: string = environment.URL_BASE;
 
   monthControl = new FormControl<number>(new Date().getMonth());
-  periodToggleControl = new FormControl<boolean>(false);
+  periodToggleControl = new FormControl<boolean>(this.shouldUseFullMonth());
   yearControl = new FormControl<number>(new Date().getFullYear());
 
   months = [
@@ -130,6 +130,8 @@ export class CollaboratorsListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.periodToggleControl.setValue(this.shouldUseFullMonth());
+
     this.loadHolidaysAndData();
 
     // Suscribirse a cambios de mes y año para recalcular días laborables
@@ -141,8 +143,15 @@ export class CollaboratorsListComponent implements OnInit {
     });
   }
 
+  private shouldUseFullMonth(): boolean {
+    const today = new Date();
+    const currentDay = today.getDate();
+    return currentDay > 15;
+  }
+
   // Método para cargar feriados y luego los datos
   loadHolidaysAndData() {
+    this.updatePeriodToggleBasedOnCurrentDate();
     this.loadHolidays().subscribe({
       next: () => {
         this.calculateBusinessDays();
@@ -154,6 +163,21 @@ export class CollaboratorsListComponent implements OnInit {
         this.loadData();
       }
     });
+  }
+
+  private updatePeriodToggleBasedOnCurrentDate(): void {
+    const selectedMonth = this.monthControl.value;
+    const selectedYear = this.yearControl.value;
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    // Solo actualizar automáticamente si estamos viendo el mes y año actual
+    if (selectedMonth === currentMonth && selectedYear === currentYear) {
+      const shouldUseFullMonth = this.shouldUseFullMonth();
+      if (this.periodToggleControl.value !== shouldUseFullMonth) {
+        this.periodToggleControl.setValue(shouldUseFullMonth, { emitEvent: false });
+      }
+    }
   }
 
   private loadHolidays() {
@@ -200,6 +224,14 @@ export class CollaboratorsListComponent implements OnInit {
     const selectedMonth = this.monthControl.value ?? new Date().getMonth();
     const selectedYear = this.yearControl.value ?? new Date().getFullYear();
     const isFullMonth = this.periodToggleControl.value ?? false;
+
+    if (isFullMonth) {
+        // Mes completo: calcular todos los días laborables del mes
+        return this.calculateBusinessDaysForMonth(selectedMonth, selectedYear);
+      } else {
+        // Quincena: calcular días laborables del 1 al 15
+        return this.calculateBusinessDaysForFortnight(selectedMonth, selectedYear);
+      }
   }
 
   // Verificar si una fecha es feriado
@@ -484,6 +516,7 @@ export class CollaboratorsListComponent implements OnInit {
   loadData() {
     const selectedMonth = this.monthControl.value ?? new Date().getMonth();
     const selectedYear = this.yearControl.value ?? new Date().getFullYear();
+    const mesCompleto = this.periodToggleControl.value ?? false;
 
     this.calculateBusinessDays();
 
@@ -493,7 +526,8 @@ export class CollaboratorsListComponent implements OnInit {
         {
           params: {
             month: selectedMonth + 1,
-            year: selectedYear
+            year: selectedYear,
+            mesCompleto: mesCompleto.toString()
           }
         }
       ).pipe(
@@ -602,12 +636,12 @@ export class CollaboratorsListComponent implements OnInit {
                 proyecto: result.project?.name || 'No asignado',
                 cliente: result.client?.tradeName || result.client?.legalName || 'No asignado',
                 lider: leaderName,
-                horas: emp.horasRegistradasMes,
-                estado: this.getEstado(emp.horasRegistradasMes),
+                horas: emp.horasRegistradasPeriodo,
+                estado: this.getEstado(emp.horasRegistradasPeriodo),
                 projectData: result.project,
                 clientData: result.client,
                 leaderData: result.leader,
-                horasRegistradasMes: emp.horasRegistradasMes
+                horasRegistradasPeriodo: emp.horasRegistradasPeriodo
               };
             }).filter(colaborador => colaborador.proyecto !== 'No asignado');
 
