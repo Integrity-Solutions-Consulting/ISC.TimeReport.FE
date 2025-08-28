@@ -35,24 +35,18 @@
     }
   }
 
-  .period-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    flex: 1;
-    min-width: 180px;
-    height: 56px;
-    margin-bottom: 18px;
+.period-toggle-container {
+  display: flex;
+  align-items: center;
+  margin: 0 16px;
+  margin-bottom: 18px;
 
-    .toggle-label {
-      font-size: 14px;
-      white-space: nowrap;
-    }
-
-    .mat-slide-toggle {
-      margin: 0 8px;
-    }
+  .toggle-label {
+    margin-right: 8px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
   }
+}
 
   .download-button {
     background-color: var(--itg-primary);

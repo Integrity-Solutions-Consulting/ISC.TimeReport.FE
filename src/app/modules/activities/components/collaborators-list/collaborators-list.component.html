@@ -27,11 +27,13 @@
       </mat-select>
     </mat-form-field>
 
-    <!-- Quincena/Mes Toggle -->
-    <div class="period-toggle">
-      <span class="toggle-label">Quincena</span>
-      <mat-slide-toggle [formControl]="periodToggleControl"></mat-slide-toggle>
-      <span class="toggle-label">Mes Completo</span>
+    <!-- Quincena/Mes Toggle - Cambiado a Button Toggle -->
+    <div class="period-toggle-container">
+      <span class="toggle-label">Periodo:</span>
+      <mat-button-toggle-group [formControl]="periodToggleControl" class="period-toggle-group">
+        <mat-button-toggle [value]="false" class="period-toggle-button">Quincena</mat-button-toggle>
+        <mat-button-toggle [value]="true" class="period-toggle-button">Mes Completo</mat-button-toggle>
+      </mat-button-toggle-group>
     </div>
 
     <button mat-flat-button
