@@ -60,6 +60,19 @@ b { /* used for event dates/times */
   .fc-event-main-frame {
     border-left: 3px solid var(--fc-border-color) !important;
   }
+
+  .fc-event-time {
+    font-weight: bold;
+    margin-right: 4px;
+  }
+
+  .fc-event-title {
+    flex-grow: 1;
+  }
+}
+
+.fc-event b.ng-star-inserted:first-child {
+  display: none;
 }
 
 /* Asegura que los colores de fondo se apliquen */

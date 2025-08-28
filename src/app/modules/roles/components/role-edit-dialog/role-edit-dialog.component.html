@@ -39,7 +39,7 @@
   <button mat-raised-button style="background-color: var(--itg-primary); color: var(--itg-bg);"
     (click)="onSave()"
     [disabled]="roleForm.invalid || isSaving">
-    <span *ngIf="!isSaving">{{isEditMode ? 'Actualizar' : 'Crear'}}</span>
+    <span *ngIf="!isSaving">{{isEditMode ? 'Guardar' : 'Crear'}}</span>
     <mat-spinner *ngIf="isSaving" diameter="20" strokeWidth="2"></mat-spinner>
   </button>
 </mat-dialog-actions>

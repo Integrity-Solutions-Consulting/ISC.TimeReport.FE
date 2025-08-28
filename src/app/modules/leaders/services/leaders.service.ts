@@ -39,6 +39,10 @@ export class LeadersService {
       return this.http.get<ApiResponse>(`${this.urlBase}/api/Leader/GetAllLeaders`, { params });
   }
 
+  getAllLeaders(): Observable<any> {
+    return this.http.get<any>(`${this.urlBase}/api/Leader/GetAllLeaders?PageNumber=1&PageSize=9999`);
+  }
+
   getLeaderByID(id: number): Observable<Leader> {
     return this.http.get<Leader>(`${this.urlBase}/api/Leader/GetLeaderByID/${id}`);
   }

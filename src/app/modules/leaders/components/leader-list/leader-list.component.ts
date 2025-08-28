@@ -81,11 +81,13 @@ export class LeaderListComponent implements OnInit{
     private route: ActivatedRoute
   ) {}
 
-  leaders: Leader[] = [];
+  allLeaders: Leader[] = []; // Almacenar todos los líderes
+  displayedLeaders: Leader[] = []; // Líderes para mostrar en la página actual
   projects: any[] = [];
 
   selection = new SelectionModel<any>(true, []);
 
+  // Mantener el dataSource como Leader[] en lugar de UniqueLeader[]
   dataSource: MatTableDataSource<Leader> = new MatTableDataSource<Leader>();
 
   @ViewChild(MatSort) sort!: MatSort;
@@ -99,20 +101,23 @@ export class LeaderListComponent implements OnInit{
   pageSize: number = 10;
   currentPage: number = 0;
   currentSearch: string = '';
-  lastSearch: string = '';
 
   ngOnInit(): void {
-    this.loadLeaders(this.currentPage + 1, this.pageSize, this.currentSearch);
+    // Cargar todos los líderes (9999) pero mantener paginación visual
+    this.loadAllLeaders();
+
     this.searchControl.valueChanges.pipe(
-          debounceTime(300),
-          distinctUntilChanged()
-        ).subscribe(value => {
-          this.currentSearch = value || ''; // Update the search string
-          this.currentPage = 0;             // Reset internal 0-based page index to 0
-          this.paginator.firstPage();       // Reset MatPaginator to first page (pageIndex becomes 0)
-          // Calls loadEmployees, passing (0 + 1) = 1 as the page number for the backend
-          this.loadLeaders(1, this.pageSize, this.currentSearch);
-        });
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(value => {
+      this.currentSearch = value || '';
+      this.currentPage = 0;
+      if (this.paginator) {
+        this.paginator.firstPage();
+      }
+      this.applyFilter(); // Aplicar filtro localmente
+    });
+
     this.loadProjects();
   }
 
@@ -127,12 +132,15 @@ export class LeaderListComponent implements OnInit{
     return project ? project.name : 'Proyecto no encontrado';
   }
 
-  loadLeaders(pageNumber: number = 1, pageSize: number = 10, search: string = ''): void {
-    this.leaderService.getLeaders(pageNumber, pageSize, search).subscribe({
+  // Cargar todos los líderes
+  loadAllLeaders(): void {
+    this.leaderService.getAllLeaders().subscribe({
       next: (response) => {
         if (response?.items) {
-          this.dataSource.data = response.items; // Actualiza solo los datos
-          this.totalItems = response.totalItems;
+          // Eliminar duplicados antes de almacenar
+          this.allLeaders = this.removeDuplicateLeaders(response.items);
+          this.totalItems = this.allLeaders.length;
+          this.applyFilter(); // Aplicar filtro inicial
         }
       },
       error: (err) => {
@@ -142,14 +150,55 @@ export class LeaderListComponent implements OnInit{
     });
   }
 
+  // Eliminar duplicados por ID de persona
+  private removeDuplicateLeaders(leaders: Leader[]): Leader[] {
+    const uniqueLeadersMap = new Map<number, Leader>();
+
+    leaders.forEach(leader => {
+      // Usar el ID de la persona como clave para evitar duplicados
+      if (!uniqueLeadersMap.has(leader.person.id)) {
+        uniqueLeadersMap.set(leader.person.id, leader);
+      }
+    });
+
+    return Array.from(uniqueLeadersMap.values());
+  }
+
+  // Aplicar filtro localmente
+  applyFilter(): void {
+    let filteredData = this.allLeaders;
+
+    // Aplicar filtro de búsqueda
+    if (this.currentSearch) {
+      const searchLower = this.currentSearch.toLowerCase();
+      filteredData = this.allLeaders.filter(leader =>
+        leader.person.firstName.toLowerCase().includes(searchLower) ||
+        leader.person.lastName.toLowerCase().includes(searchLower) ||
+        leader.person.identificationNumber.includes(this.currentSearch)
+      );
+    }
+
+    this.totalItems = filteredData.length;
+
+    // Actualizar paginación
+    this.updateDisplayedLeaders(filteredData);
+  }
+
+  // Actualizar líderes mostrados según paginación
+  updateDisplayedLeaders(data: Leader[]): void {
+    const startIndex = this.currentPage * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.displayedLeaders = data.slice(startIndex, endIndex);
+    this.dataSource.data = this.displayedLeaders;
+  }
+
   onPageChange(event: PageEvent): void {
     this.pageSize = event.pageSize;
-    this.currentPage = event.pageIndex + 1;
-    this.loadLeaders(this.currentPage, this.pageSize, this.currentSearch);
+    this.currentPage = event.pageIndex;
+    this.applyFilter(); // Reaplicar filtro con nueva paginación
   }
 
   private loadProjects() {
-
     // Usamos valores grandes para pageSize para obtener todos los proyectos
     this.projectService.getProjectsForTables(1, 1000).subscribe({
       next: (response) => {
@@ -175,7 +224,7 @@ export class LeaderListComponent implements OnInit{
             this.leaderService.createLeaderWithPerson(result.data).subscribe({
               next: () => {
                 this.snackBar.open("Líder creado con éxito", "Cerrar", {duration: 5000});
-                this.loadLeaders();
+                this.loadAllLeaders(); // Recargar todos los líderes
               },
               error: (err) => {
                 this.snackBar.open("Error al crear líder: " + err.message, "Cerrar", {duration: 5000});
@@ -185,7 +234,7 @@ export class LeaderListComponent implements OnInit{
             this.leaderService.createLeaderWithPersonID(result.data).subscribe({
               next: () => {
                 this.snackBar.open("Líder creado con éxito", "Cerrar", {duration: 5000});
-                this.loadLeaders();
+                this.loadAllLeaders(); // Recargar todos los líderes
               },
               error: (err) => {
                 this.snackBar.open("Error al crear líder: " + err.message, "Cerrar", {duration: 5000});
@@ -213,7 +262,7 @@ export class LeaderListComponent implements OnInit{
     dialogRef.afterClosed().subscribe(result => {
       if (result?.success) {
         this.snackBar.open('Líder actualizado con éxito', 'Cerrar', { duration: 5000 });
-        this.loadLeaders(); // Recargar la lista
+        this.loadAllLeaders(); // Recargar todos los líderes
       }
     });
   }
@@ -228,7 +277,7 @@ export class LeaderListComponent implements OnInit{
 
   isAllSelected() {
     const numSelected = this.selection.selected.length;
-    const numRows = this.leaders.length;
+    const numRows = this.allLeaders.length;
     return numSelected === numRows;
   }
 
@@ -238,7 +287,7 @@ export class LeaderListComponent implements OnInit{
       return;
     }
 
-    this.selection.select(...this.leaders);
+    this.selection.select(...this.allLeaders);
   }
 
   toggleLeaderStatus(leader: LeaderWithIDandPerson): void {
@@ -266,7 +315,7 @@ export class LeaderListComponent implements OnInit{
           }).subscribe({
             next: () => {
               this.snackBar.open('Líder desactivado con éxito', 'Cerrar', { duration: 3000 });
-              this.loadLeaders(); // Reload the list
+              this.loadAllLeaders(); // Recargar todos los líderes
             },
             error: (err) => {
               this.snackBar.open('Error al desactivar líder', 'Cerrar', { duration: 3000 });
@@ -286,7 +335,7 @@ export class LeaderListComponent implements OnInit{
           }).subscribe({
             next: () => {
               this.snackBar.open('Líder activado con éxito', 'Cerrar', { duration: 3000 });
-              this.loadLeaders(); // Reload the list
+              this.loadAllLeaders(); // Recargar todos los líderes
             },
             error: (err) => {
               this.snackBar.open('Error al activar líder', 'Cerrar', { duration: 3000 });
@@ -300,15 +349,6 @@ export class LeaderListComponent implements OnInit{
       }
     });
   }
-
-  /*applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
-  }*/
 
   viewLeaderDetails(projectId: number): void {
     this.router.navigate([projectId], { relativeTo: this.route });
@@ -327,7 +367,7 @@ export class LeaderListComponent implements OnInit{
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.snackBar.open("Líder asignado con éxito", "Cerrar", {duration: 5000});
-        this.loadLeaders(); // Recargar la lista después de la asignación
+        this.loadAllLeaders(); // Recargar todos los líderes
       }
     });
   }
