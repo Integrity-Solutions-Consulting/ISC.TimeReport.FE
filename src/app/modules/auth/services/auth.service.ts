@@ -167,54 +167,42 @@ export class AuthService {
   }
 
   private setSession(authResult: AuthResponse): Observable<void> {
-    return new Observable(observer => {
-      if (!authResult.data?.token) {
-        observer.error(new Error('Invalid authentication response: token is missing'));
-        return;
-      }
+    if (!authResult.data?.token) {
+      return throwError(() => new Error('Invalid authentication response: token is missing'));
+    }
 
-      // Guardar datos sincrónicos primero
-      localStorage.setItem('token', authResult.data.token);
-      localStorage.setItem('employeeID', authResult.data.employeeID.toString());
+    // Guardar datos básicos
+    localStorage.setItem('token', authResult.data.token);
+    localStorage.setItem('employeeID', authResult.data.employeeID.toString());
 
-      // Guardar información COMPLETA del usuario (incluyendo módulos y roles)
-      localStorage.setItem('userData', JSON.stringify(authResult.data));
+    // Guardar toda la data del usuario
+    localStorage.setItem('userData', JSON.stringify(authResult.data));
+    localStorage.setItem('user', JSON.stringify({
+      userID: authResult.data.userID,
+      employeeID: authResult.data.employeeID
+    }));
 
-      // Guardar información básica del usuario (mantener por compatibilidad)
-      localStorage.setItem('user', JSON.stringify({
-        userID: authResult.data.userID,
-        employeeID: authResult.data.employeeID
-      }));
+    // Guardar roles y módulos
+    const menuPaths = authResult.data.modules.map((module: Module) => module.modulePath);
+    localStorage.setItem('menus', JSON.stringify(menuPaths));
+    this._userMenus.set(menuPaths);
 
-      // Procesar módulos y roles (mantener por compatibilidad)
-      const menuPaths = authResult.data.modules.map((module: Module) => module.modulePath);
-      localStorage.setItem('menus', JSON.stringify(menuPaths));
-      this._userMenus.set(menuPaths);
+    localStorage.setItem('roles', JSON.stringify(authResult.data.roles));
+    this._userRoles.set(authResult.data.roles);
 
-      localStorage.setItem('roles', JSON.stringify(authResult.data.roles));
-      this._userRoles.set(authResult.data.roles);
+    localStorage.setItem('modules', JSON.stringify(authResult.data.modules));
 
-      // Guardar módulos completos para el menú
-      localStorage.setItem('modules', JSON.stringify(authResult.data.modules));
-
-      // Obtener información del empleado (asíncrono)
-      this.getEmployeeInfo(authResult.data.employeeID).subscribe({
-        next: (employee) => {
-          if (employee) {
-            const fullName = `${employee.person.firstName} ${employee.person.lastName}`;
-            localStorage.setItem('userFullName', fullName);
-            this.usernameSubject.next(fullName);
-          }
-          observer.next();
-          observer.complete();
-        },
-        error: (err) => {
-          console.error('Error getting employee info:', err);
-          observer.next(); // Continuamos aunque falle esto
-          observer.complete();
+    // Ahora pedimos info del empleado y devolvemos un flujo reactivo
+    return this.getEmployeeInfo(authResult.data.employeeID).pipe(
+      tap((employee) => {
+        if (employee) {
+          const fullName = `${employee.person.firstName} ${employee.person.lastName}`;
+          localStorage.setItem('userFullName', fullName);
+          this.usernameSubject.next(fullName);
         }
-      });
-    });
+      }),
+      map(() => void 0) // devolvemos un Observable<void>
+    );
   }
 
   private getEmployeeInfo(employeeID: number): Observable<any> {
@@ -259,6 +247,7 @@ export class AuthService {
     localStorage.removeItem('userData'); // ← Añadir esta línea
     localStorage.removeItem('modules'); // ← Añadir esta línea
     localStorage.removeItem('userFullName'); // ← Añadir esta línea si existe
+    localStorage.removeItem('employeeID');
   }
 
   getCurrentUser(): {

@@ -50,7 +50,11 @@ export class LoginPage implements OnInit {
   showPassword = false
   rememberMe = false
 
-  loginForm!: FormGroup
+  loginForm: FormGroup = this.fb.group({
+    username: ["", [Validators.required, Validators.email]],
+    password: ["", [Validators.required, Validators.minLength(6)]],
+    rememberMe: [false]
+  });
 
   // Propiedades para el carrusel
   carouselImages = [
@@ -62,15 +66,18 @@ export class LoginPage implements OnInit {
   private intervalId: any;
 
   ngOnInit(): void {
-    this.loginForm = this.fb.group({
+    /*this.loginForm = this.fb.group({
       username: ["", [Validators.required, Validators.email]],
       password: ["", [Validators.required, Validators.minLength(6)]],
-    })
+      rememberMe: [false]
+    });*/
 
-    const rememberedEmail = localStorage.getItem("rememberedEmail")
+    const rememberedEmail = localStorage.getItem("rememberedEmail");
     if (rememberedEmail) {
-      this.loginForm.patchValue({ username: rememberedEmail }) // Corrected 'email' to 'username'
-      this.rememberMe = true
+      this.loginForm.patchValue({
+        username: rememberedEmail,
+        rememberMe: true
+      });
     }
 
     this.startAutoRotation();
@@ -112,40 +119,33 @@ export class LoginPage implements OnInit {
 
   login(): void {
     if (this.loginForm.invalid) {
-      this.mensajeError = "Por favor, complete todos los campos correctamente."
-      this.mostrarError = true
-      setTimeout(() => (this.mostrarError = false), 4000)
-      this.loginForm.markAllAsTouched()
-      this.formInvalid = true
-      return
+      this.mensajeError = "Por favor, complete todos los campos correctamente.";
+      this.mostrarError = true;
+      setTimeout(() => (this.mostrarError = false), 4000);
+      this.loginForm.markAllAsTouched();
+      this.formInvalid = true;
+      return;
     }
 
-    this.formInvalid = false
-    this.isLoading = true
+    this.formInvalid = false;
+    this.isLoading = true;
 
-    const credentials: LoginRequest = this.loginForm.value
-
-    if (this.rememberMe) {
-      localStorage.setItem("rememberedEmail", credentials.username)
-    } else {
-      localStorage.removeItem("rememberedEmail")
-    }
+    const credentials: LoginRequest = this.loginForm.value;
 
     this.authService.login(credentials).subscribe({
       next: (response) => {
-        // Handle successful login
-        const { token, roles, modules, employeeID } = response.data
-
-        localStorage.setItem("token", token)
-        localStorage.setItem("roles", JSON.stringify(roles))
-        localStorage.setItem("modules", JSON.stringify(modules))
-        localStorage.setItem("employeeID", employeeID.toString());
-
-        // Now that the data is saved, we can navigate.
-        if (this.authService.isAdmin()) {
-          this.router.navigate(["/menu"])
+        // Guardar email si el usuario lo marcó
+        if (this.loginForm.value.rememberMe) {
+          localStorage.setItem("rememberedEmail", credentials.username);
         } else {
-          this.router.navigate(["/menu/activities"])
+          localStorage.removeItem("rememberedEmail");
+        }
+
+        // Redirigir según rol
+        if (this.authService.isAdmin()) {
+          this.router.navigate(["/menu"]);
+        } else {
+          this.router.navigate(["/menu/activities"]);
         }
 
         this.isLoading = false;
@@ -156,26 +156,25 @@ export class LoginPage implements OnInit {
         this.isLoading = false;
 
         if (err.status === 401) {
-          this.mensajeError = "Usuario o contraseña incorrectos."
+          this.mensajeError = "Usuario o contraseña incorrectos.";
         } else if (err.status === 404) {
-          this.mensajeError = "El usuario no existe."
+          this.mensajeError = "El usuario no existe.";
         } else {
-          this.mensajeError = "Ocurrió un error inesperado. Intenta de nuevo."
-        }
-
-        // This is the important part: clear the form AFTER the error is handled.
-        this.loginForm.reset();
-
-        if (this.rememberMe) {
-          const rememberedEmail = localStorage.getItem("rememberedEmail");
-          if (rememberedEmail) {
-            this.loginForm.patchValue({ username: rememberedEmail }); // Corrected 'email' to 'username'
-          }
+          this.mensajeError = "Ocurrió un error inesperado. Intenta de nuevo.";
         }
 
         this.mostrarError = true;
         setTimeout(() => (this.mostrarError = false), 4000);
+
+        // Restaurar el email si estaba recordado
+        const rememberedEmail = localStorage.getItem("rememberedEmail");
+        this.loginForm.reset({
+          username: rememberedEmail || "",
+          password: "",
+          rememberMe: !!rememberedEmail
+        });
       },
-    })
+    });
   }
+
 }
