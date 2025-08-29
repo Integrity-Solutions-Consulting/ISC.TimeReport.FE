@@ -4,7 +4,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
-import { OrderByPipe } from '../menu/order-by-pipe'
+import { OrderByPipe } from '../menu/order-by-pipe';
+import { AuthService } from '../../modules/auth/services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -15,158 +16,92 @@ import { OrderByPipe } from '../menu/order-by-pipe'
 })
 export class MenuComponent implements OnInit {
   menuItems: any[] = [];
-  userRoles: string[] = [];
-  isAdmin: boolean = false;
-  isManager: boolean = false;
-  isLeader: boolean = false;
-  isCollaborator: boolean = false;
+
+  constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    this.loadUserData();
     this.generateMenu();
   }
 
-  private loadUserData(): void {
-    const roles = JSON.parse(localStorage.getItem('roles') || '[]');
-    this.userRoles = roles.map((role: any) => role.roleName);
-
-    this.isAdmin = this.userRoles.includes('Administrador');
-    this.isManager = this.userRoles.includes('Gerente');
-    this.isLeader = this.userRoles.includes('Lider');
-    this.isCollaborator = this.userRoles.includes('Colaborador');
-  }
-
   private generateMenu(): void {
-    const modules = JSON.parse(localStorage.getItem('modules') || '[]');
-    const filteredModules = this.filterModules(modules);
-
-    // Ordenar módulos por displayOrder
-    filteredModules.sort((a: any, b: any) => a.displayOrder - b.displayOrder);
-
-    // Caso especial para Colaborador que no es también Líder, Gerente o Admin
-    if (this.isCollaborator && !this.isLeader && !this.isManager && !this.isAdmin) {
-      this.menuItems = this.createCollaboratorMenu(filteredModules);
-      return;
-    }
-
-    this.menuItems = this.createStandardMenu(filteredModules);
+    const allowedModules = this.authService.getAllowedModules();
+    allowedModules.sort((a: any, b: any) => a.displayOrder - b.displayOrder);
+    this.menuItems = this.createMenuStructure(allowedModules);
   }
 
-  private filterModules(modules: any[]): any[] {
-    if (this.isAdmin) {
-      return modules; // Admin ve todo
-    }
-
-    const allowedModules: number[] = [];
-
-    // Módulos base para todos los roles excepto Colaborador puro
-    if (this.isManager || this.isLeader || this.isCollaborator) {
-      allowedModules.push(2, 3, 4); // Proyectos, Actividades, Seguimiento
-    }
-
-    if (this.isManager) {
-      allowedModules.push(6, 7); // Clientes, Líderes
-    }
-
-    if (this.isAdmin) {
-      allowedModules.push(1, 5, 8, 9); // Dashboard, Colaboradores, Roles, Users
-    }
-
-    return modules.filter((module: any) => allowedModules.includes(module.id));
-  }
-
-  /**
-   * Genera el menú para el rol de 'Colaborador' puro.
-   * La principal diferencia es que también se asegura de añadir el prefijo '/menu/'.
-   * @param modules Lista de módulos filtrados.
-   * @returns Un arreglo con los items del menú.
-   */
-  private createCollaboratorMenu(modules: any[]): any[] {
-    const actividades = modules.find((m: any) => m.id === 3); // Actividades
-    if (!actividades) return [];
-
-    // Aplicamos el prefijo /menu/ al path del módulo antes de retornarlo
-    const processedModule = {
-      ...actividades,
-      modulePath: `/menu/${actividades.modulePath.startsWith('/') ? actividades.modulePath.substring(1) : actividades.modulePath}`
-    };
-
-    return [{
-      type: 'item',
-      ...processedModule
-    }];
-  }
-
-  private createStandardMenu(modules: any[]): any[] {
+  private createMenuStructure(modules: any[]): any[] {
     const menuItems: any[] = [];
 
-    // Procesamos todos los módulos para agregar el prefijo /menu/ solo una vez
+    // Procesar todos los módulos para agregar el prefijo /menu/
     const processedModules = modules.map(module => ({
       ...module,
       modulePath: `/menu/${module.modulePath.startsWith('/') ? module.modulePath.substring(1) : module.modulePath}`
     }));
 
-    // Ítems antes del Time Report
-    const preTimeReportModules = processedModules.filter(m =>
-      m.moduleName === 'Dashboard' ||
-      m.moduleName === 'Proyectos'
+    // Agrupar módulos en categorías lógicas
+    const dashboardModule = processedModules.find(m => m.moduleName === 'Dashboard');
+    const proyectosModule = processedModules.find(m => m.moduleName === 'Proyectos');
+    const timeReportModules = processedModules.filter(m =>
+      m.moduleName === 'Actividades' || m.moduleName === 'Seguimiento'
+    );
+    const managementModules = processedModules.filter(m =>
+      ['Colaboradores', 'Clientes', 'Líderes'].includes(m.moduleName)
+    );
+    const configModules = processedModules.filter(m =>
+      ['Roles', 'Usuarios'].includes(m.moduleName)
     );
 
-    preTimeReportModules.forEach(module => {
+    // Agregar Dashboard si existe
+    if (dashboardModule) {
       menuItems.push({
         type: 'item',
-        ...module
+        ...dashboardModule,
+        displayOrder: dashboardModule.displayOrder || 1
       });
-    });
+    }
 
-    // Panel Time Report - Usamos los módulos ya procesados SIN volver a agregar /menu/
-    const timeReportModules = processedModules.filter(m =>
-      m.moduleName === 'Actividades' ||
-      m.moduleName === 'Seguimiento'
-    );
+    // Agregar Proyectos si existe
+    if (proyectosModule) {
+      menuItems.push({
+        type: 'item',
+        ...proyectosModule,
+        displayOrder: proyectosModule.displayOrder || 2
+      });
+    }
 
+    // Agregar Time Report como panel expandible si hay módulos relacionados
     if (timeReportModules.length > 0) {
       menuItems.push({
         type: 'expansion',
         moduleName: 'Time Report',
         icon: 'alarm',
         expanded: false,
-        options: timeReportModules, // <-- Usamos los módulos ya procesados
+        options: timeReportModules,
         displayOrder: 3
       });
     }
 
-    // Ítems después del Time Report
-    const postTimeReportModules = processedModules.filter(m =>
-      m.moduleName === 'Colaboradores' ||
-      m.moduleName === 'Clientes' ||
-      m.moduleName === 'Líderes'
-    );
-
-    postTimeReportModules.forEach(module => {
+    // Agregar módulos de gestión individualmente
+    managementModules.forEach(module => {
       menuItems.push({
         type: 'item',
-        ...module
+        ...module,
+        displayOrder: module.displayOrder
       });
     });
 
-    // Panel Configuración - Usamos los módulos ya procesados SIN volver a agregar /menu/
-    const configModules = processedModules.filter(m =>
-      m.moduleName === 'Roles' ||
-      m.moduleName === 'Usuarios'
-    );
-
+    // Agregar Configuración como panel expandible si hay módulos relacionados
     if (configModules.length > 0) {
       menuItems.push({
         type: 'expansion',
         moduleName: 'Configuración',
         icon: 'settings',
         expanded: false,
-        options: configModules, // <-- Usamos los módulos ya procesados
+        options: configModules,
         displayOrder: 8
       });
     }
 
-    return menuItems.sort((a, b) => a.displayOrder - b.displayOrder);
+    return menuItems.sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
   }
 }

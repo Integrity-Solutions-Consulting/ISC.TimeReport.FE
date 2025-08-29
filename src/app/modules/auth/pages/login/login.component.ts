@@ -1,3 +1,4 @@
+// login.component.ts
 import { Component, type OnInit, inject } from "@angular/core"
 import { FormBuilder, type FormGroup, Validators, ReactiveFormsModule, FormsModule } from "@angular/forms"
 import { AuthService } from "../../services/auth.service"
@@ -66,14 +67,12 @@ export class LoginPage implements OnInit {
       password: ["", [Validators.required, Validators.minLength(6)]],
     })
 
-    // Load remembered email if exists
     const rememberedEmail = localStorage.getItem("rememberedEmail")
     if (rememberedEmail) {
-      this.loginForm.patchValue({ email: rememberedEmail })
+      this.loginForm.patchValue({ username: rememberedEmail }) // Corrected 'email' to 'username'
       this.rememberMe = true
     }
 
-    // Iniciar carrusel automático
     this.startAutoRotation();
   }
 
@@ -126,7 +125,6 @@ export class LoginPage implements OnInit {
 
     const credentials: LoginRequest = this.loginForm.value
 
-    // Handle remember me functionality
     if (this.rememberMe) {
       localStorage.setItem("rememberedEmail", credentials.username)
     } else {
@@ -135,6 +133,7 @@ export class LoginPage implements OnInit {
 
     this.authService.login(credentials).subscribe({
       next: (response) => {
+        // Handle successful login
         const { token, roles, modules, employeeID } = response.data
 
         localStorage.setItem("token", token)
@@ -142,13 +141,19 @@ export class LoginPage implements OnInit {
         localStorage.setItem("modules", JSON.stringify(modules))
         localStorage.setItem("employeeID", employeeID.toString());
 
-        //this.loginForm.reset()
-        //this.isLoading = false
-        //this.router.navigate(["/menu"])
-        //this.authService.updateUsername();
+        // Now that the data is saved, we can navigate.
+        if (this.authService.isAdmin()) {
+          this.router.navigate(["/menu"])
+        } else {
+          this.router.navigate(["/menu/activities"])
+        }
+
+        this.isLoading = false;
+        this.loginForm.reset();
+        this.authService.updateUsername();
       },
       error: (err) => {
-        this.isLoading = false
+        this.isLoading = false;
 
         if (err.status === 401) {
           this.mensajeError = "Usuario o contraseña incorrectos."
@@ -158,18 +163,18 @@ export class LoginPage implements OnInit {
           this.mensajeError = "Ocurrió un error inesperado. Intenta de nuevo."
         }
 
-        this.loginForm.reset()
+        // This is the important part: clear the form AFTER the error is handled.
+        this.loginForm.reset();
 
-        // Restore email if remember me is checked
         if (this.rememberMe) {
-          const rememberedEmail = localStorage.getItem("rememberedEmail")
+          const rememberedEmail = localStorage.getItem("rememberedEmail");
           if (rememberedEmail) {
-            this.loginForm.patchValue({ email: rememberedEmail })
+            this.loginForm.patchValue({ username: rememberedEmail }); // Corrected 'email' to 'username'
           }
         }
 
-        this.mostrarError = true
-        setTimeout(() => (this.mostrarError = false), 4000)
+        this.mostrarError = true;
+        setTimeout(() => (this.mostrarError = false), 4000);
       },
     })
   }

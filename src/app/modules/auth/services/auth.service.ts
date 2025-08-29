@@ -57,23 +57,14 @@ export class AuthService {
         if (response.code !== 200) {
           throw new Error(response.message);
         }
-
+        // The setSession method now returns an Observable<void>,
+        // which we switch to.
         return this.setSession(response).pipe(
           map(() => {
             this._isAuthenticated.set(true);
-            return response;
+            return response; // We return the original response
           })
         );
-      }),
-      tap(() => {
-        // Redirigir después de que TODO esté cargado
-        setTimeout(() => {
-          if (this.isAdmin()) {
-            this.router.navigate(['/menu']);
-          } else {
-            this.router.navigate(['/menu/activities']);
-          }
-        }, 50); // Pequeño delay para asegurar que Angular procese los cambios
       }),
       catchError(error => {
         this.clearSession();
@@ -186,19 +177,25 @@ export class AuthService {
       localStorage.setItem('token', authResult.data.token);
       localStorage.setItem('employeeID', authResult.data.employeeID.toString());
 
-      // Guardar información básica del usuario
+      // Guardar información COMPLETA del usuario (incluyendo módulos y roles)
+      localStorage.setItem('userData', JSON.stringify(authResult.data));
+
+      // Guardar información básica del usuario (mantener por compatibilidad)
       localStorage.setItem('user', JSON.stringify({
         userID: authResult.data.userID,
         employeeID: authResult.data.employeeID
       }));
 
-      // Procesar módulos y roles
+      // Procesar módulos y roles (mantener por compatibilidad)
       const menuPaths = authResult.data.modules.map((module: Module) => module.modulePath);
       localStorage.setItem('menus', JSON.stringify(menuPaths));
       this._userMenus.set(menuPaths);
 
       localStorage.setItem('roles', JSON.stringify(authResult.data.roles));
       this._userRoles.set(authResult.data.roles);
+
+      // Guardar módulos completos para el menú
+      localStorage.setItem('modules', JSON.stringify(authResult.data.modules));
 
       // Obtener información del empleado (asíncrono)
       this.getEmployeeInfo(authResult.data.employeeID).subscribe({
@@ -228,11 +225,40 @@ export class AuthService {
     );
   }
 
+  getAllowedModules(): any[] {
+    const userModules = this.getUserModules();
+    const userRoles = JSON.parse(localStorage.getItem('roles') || '[]');
+    const roleNames = userRoles.map((role: any) => role.roleName);
+
+    // Mapeo de roles a módulos permitidos (basado en tu endpoint GetRoles)
+    const roleModuleMap: {[key: string]: number[]} = {
+      'Administrador': [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      'Gerente': [2, 3, 4, 6, 7],
+      'Lider': [2, 3, 4],
+      'Colaborador': [3],
+      'Recursos Humanos': [1, 4, 5],
+      'Administrativo': [1, 4, 6]
+    };
+
+    // Obtener todos los módulos permitidos para los roles del usuario
+    const allowedModuleIds = new Set<number>();
+    roleNames.forEach((roleName: string) => {
+      const moduleIds = roleModuleMap[roleName] || [];
+      moduleIds.forEach(id => allowedModuleIds.add(id));
+    });
+
+    // Filtrar módulos basado en los IDs permitidos
+    return userModules.filter((module: any) => allowedModuleIds.has(module.id));
+  }
+
   private clearSession(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('menus');
     localStorage.removeItem('roles');
     localStorage.removeItem('user');
+    localStorage.removeItem('userData'); // ← Añadir esta línea
+    localStorage.removeItem('modules'); // ← Añadir esta línea
+    localStorage.removeItem('userFullName'); // ← Añadir esta línea si existe
   }
 
   getCurrentUser(): {
@@ -330,6 +356,31 @@ export class AuthService {
     if (employeeId) {
       this.currentEmployeeId.next(parseInt(employeeId, 10));
     }
+  }
+
+  getUserModules(): any[] {
+    try {
+      // Primero intentar obtener de userData (más completo)
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        const parsedData = JSON.parse(userData);
+        return parsedData.modules || [];
+      }
+
+      // Si no existe userData, intentar con modules
+      const modules = localStorage.getItem('modules');
+      return modules ? JSON.parse(modules) : [];
+    } catch (error) {
+      console.error('Error getting user modules:', error);
+      return [];
+    }
+  }
+
+  hasModuleAccess(moduleName: string): boolean {
+    const modules = this.getUserModules();
+    return modules.some((module: any) =>
+      module.moduleName === moduleName && module.status === true
+    );
   }
 
   getRolesOfUser(userId: number): Observable<any> {
