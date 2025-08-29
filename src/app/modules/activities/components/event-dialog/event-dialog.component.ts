@@ -26,13 +26,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     CommonModule,
     MatDialogModule,
     MatButtonModule,
-    MatButtonToggleModule,
     MatInputModule,
     MatFormFieldModule,
     MatDatepickerModule,
     MatNativeDateModule,
     MatSelectModule,
-    MatSlideToggleModule,
     MatDividerModule,
     MatTooltipModule,
     FormsModule,
@@ -64,7 +62,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 export class EventDialogComponent implements OnInit {
 
   projects: ProjectWithID[] = [];
-  isFullDay = true;
   activityTypes: ActivityType[] = [];
   availableColors: { name: string; value: string }[] = [];
 
@@ -74,7 +71,7 @@ export class EventDialogComponent implements OnInit {
     details: '',
     activityDescription: '',
     activityDate: new Date(),
-    hours: 8,
+    hours: 4, // Valor por defecto cambiado a 4 horas
     requirementCode: ''
   };
 
@@ -112,17 +109,14 @@ export class EventDialogComponent implements OnInit {
     }
 
     if (this.data.isEdit) {
-      this.isFullDay = this.event.hours === 8;
       this.event.activityDate = new Date(this.event.activityDate);
-
       if (this.data.event.activityDescription) {
         this.event.activityDescription = this.data.event.activityDescription;
       }
     } else {
-      this.isFullDay = true;
-      this.event.hours = 8;
+      // Valor por defecto para nuevas actividades
+      this.event.hours = 4;
     }
-    this.onDurationChange();
   }
 
   private loadActivityTypes(): void {
@@ -159,19 +153,6 @@ export class EventDialogComponent implements OnInit {
       name: type.name,
       value: type.colorCode
     }));
-  }
-
-  onDurationChange(): void {
-    if (this.isFullDay) {
-      this.event.hours = 8;
-    } else {
-      // Cuando cambia a modo "horas", establecer un valor por defecto solo si no hay valor actual
-      if (this.event.hours === null || this.event.hours === undefined || this.event.hours === '') {
-        this.event.hours = 4;
-      } else {
-        this.validateHours(); // Validar el valor existente
-      }
-    }
   }
 
   loadProjects(): void {
@@ -216,7 +197,6 @@ export class EventDialogComponent implements OnInit {
 
   preparePayload(): any {
     console.log('Valores actuales:', {
-      isFullDay: this.isFullDay,
       eventHours: this.event.hours,
       activityTypeID: this.event.activityTypeID,
       projectID: this.event.projectID,
@@ -227,35 +207,32 @@ export class EventDialogComponent implements OnInit {
       id: this.data.isEdit ? this.event.id : undefined,
       projectID: Number(this.event.projectID),
       activityTypeID: this.event.activityTypeID,
-      hoursQuantity: this.isFullDay ? 8 : Number(this.event.hours || 4),
+      hoursQuantity: Number(this.event.hours || 4),
       activityDate: this.event.activityDate,
       activityDescription: this.event.activityDescription,
       requirementCode: this.event.requirementCode,
-      notes: this.event.details || '',
-      fullDay: this.isFullDay
+      notes: this.event.details || ''
     };
     console.log(payload);
     return payload;
   }
 
   validateHours(): void {
-    if (!this.isFullDay) {
-      // Si el valor está vacío o no es un número, establecer como null/undefined
-      if (this.event.hours === '' || isNaN(Number(this.event.hours))) {
-        this.event.hours = null;
-        return;
-      }
+    // Si el valor está vacío o no es un número, establecer como null
+    if (this.event.hours === '' || isNaN(Number(this.event.hours))) {
+      this.event.hours = null;
+      return;
+    }
 
-      const hours = Number(this.event.hours);
+    const hours = Number(this.event.hours);
 
-      // Forzar valores entre 1 y 8
-      if (hours < 1) {
-        this.event.hours = 1;
-      } else if (hours > 8) {
-        this.event.hours = 8;
-      } else {
-        this.event.hours = hours;
-      }
+    // Forzar valores entre 0.5 y 8
+    if (hours < 0.5) {
+      this.event.hours = 0.5;
+    } else if (hours > 8) {
+      this.event.hours = 8;
+    } else {
+      this.event.hours = hours;
     }
   }
 
@@ -291,12 +268,10 @@ export class EventDialogComponent implements OnInit {
       return false;
     }
 
-    if (!this.isFullDay) {
-      const hours = Number(this.event.hours);
-      // Verificar que hours no sea NaN y esté en el rango correcto
-      if (isNaN(hours) || hours < 1 || hours > 8) {
-        return false;
-      }
+    const hours = Number(this.event.hours);
+    // Verificar que hours no sea NaN y esté en el rango correcto (0.5 a 8)
+    if (isNaN(hours) || hours < 0.5 || hours > 8) {
+      return false;
     }
 
     if (this.event.activityDescription.length > 200) {
@@ -316,7 +291,7 @@ export class EventDialogComponent implements OnInit {
         });
       }
 
-      const proposedHours = this.isFullDay ? 8 : Number(this.event.hours);
+      const proposedHours = Number(this.event.hours);
       if ((currentHoursForDay + proposedHours) > 8) {
         return false;
       }
@@ -326,11 +301,20 @@ export class EventDialogComponent implements OnInit {
   }
 
   onHoursKeyPress(event: KeyboardEvent): void {
-    const allowedChars = /[0-9]/;
+    const allowedChars = /[0-9.]/;
     const inputChar = String.fromCharCode(event.charCode);
 
-    if (!allowedChars.test(inputChar)) {
+    // Permitir números, punto y teclas de control
+    if (!allowedChars.test(inputChar) && event.charCode !== 0) {
       event.preventDefault();
+    }
+
+    // Si es un punto, verificar que no haya ya un punto
+    if (inputChar === '.') {
+      const currentValue = (event.target as HTMLInputElement).value;
+      if (currentValue.includes('.')) {
+        event.preventDefault();
+      }
     }
   }
 
