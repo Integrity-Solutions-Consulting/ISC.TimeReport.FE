@@ -6,6 +6,7 @@
     <!-- Tipo de Actividad -->
     <div class="field-with-help">
       <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tipo de Actividad</mat-label>
         <mat-select [(ngModel)]="event.activityTypeID" required placeholder="Tipo de Actividad" name="activityType">
           @for (type of activityTypes; track type.id) {
             <mat-option [value]="type.id">{{type.name}}</mat-option>
@@ -46,7 +47,13 @@
               [(ngModel)]="event.requirementCode"
               placeholder="Código de Requerimiento"
               [required]="!event.projectId"
+              #descInput="ngModel"
+              maxlength="50"
               name="requirementCode">
+        <mat-hint align="end">{{event.requirementCode?.length || 0}}/50</mat-hint>
+        <mat-error *ngIf="descInput.errors?.['maxlength']">
+          La descripción no puede exceder los 50 caracteres
+        </mat-error>
       </mat-form-field>
       <div class="help-icon" [matTooltip]="'Ingresa el código del requerimiento o ticket asociado a esta actividad (ej. JIRA-123, PROY-456)'" matTooltipPosition="right">
         ?
