@@ -62,8 +62,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
   activityTypes: ActivityType[] = [];
   holidays: Holiday[] = [];
   monthlyHours = signal<number>(0);
-  currentMonth = signal<string>('');
-  private monthlyHoursButton: HTMLElement | null = null;
+  dailyHoursMap = new Map<string, number>();
   private subscriptions: Subscription = new Subscription();
   isLoadingProjects = false;
   @ViewChild('calendar') calendarComponent!: FullCalendarComponent;
@@ -103,13 +102,9 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         text: 'Agregar Actividad',
         click: this.handleAddActivity.bind(this)
       },
-      generateReport: {
-        text: 'Generar Reporte',
-        click: this.handleGenerateReport.bind(this)
-      },
-      monthlyHours: {
-        text: 'Cargando horas...', // El texto se actualizará dinámicamente
-        click: () => {} // No necesita acción al hacer clic
+      monthlyHours: { // Nuevo botón para horas mensuales (solo visual)
+        text: 'Horas Registradas: 0', // Texto inicial
+        click: () => {} // Función vacía para deshabilitar el clic
       }
     },
     eventDidMount: (info) => {
@@ -127,27 +122,24 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
     dayCellDidMount: (info) => {
       const isWeekend = info.date.getDay() === 0 || info.date.getDay() === 6;
-      const dateKey = info.date.toISOString().split('T')[0];
-      const isHoliday = this.isHoliday(info.date);
-      const hasFullHours = this.daysWithFullHours.has(dateKey);
+      const dateString = info.date.toISOString().split('T')[0];
+      const dayHours = this.dailyHoursMap.get(dateString) || 0;
 
       if (isWeekend) {
         info.el.style.backgroundColor = '#e6f2ff'; // Azul claro
         info.el.style.cursor = 'default';
       }
 
-      if (isHoliday) {
+      if (this.isHoliday(info.date)) {
         info.el.classList.add('fc-holiday');
         info.el.style.backgroundColor = '#fde4e8ff'; // Fondo rojo claro
         info.el.style.cursor = 'not-allowed';
       }
 
-      // Aplicar estilo para días con 8 horas completas
-      if (hasFullHours && !isHoliday) {
-        info.el.classList.add('fc-full-hours');
+      // Añadir clase para días completos (8 horas)
+      if (dayHours >= 8) {
+        info.el.classList.add('fc-day-completed');
         info.el.style.backgroundColor = '#e8f5e9'; // Verde claro
-        //info.el.style.border = '2px solid #4caf50'; // Borde verde
-        info.el.title = 'Día completo (8 horas registradas)';
       }
     },
 
@@ -169,8 +161,6 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
   });
   currentEvents = signal<EventApi[]>([]);
 
-  private daysWithFullHours: Set<string> = new Set();
-
   constructor(
     private changeDetector: ChangeDetectorRef,
     private dialog: MatDialog,
@@ -189,16 +179,56 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     this.loadHolidays();
     this.loadProjects().pipe(take(1)).subscribe(() => {
       this.loadInitialData();
-      // Inicializar el botón después de que la vista esté cargada
+
+      // Configurar el calendario después de la inicialización
       setTimeout(() => {
-        this.initMonthlyHoursButton();
-        this.setupCalendarMonthChangeListener(); // Configurar listener de cambio de mes
-      }, 0);
+        this.calendar = this.calendarComponent.getApi();
+
+        // Actualizar el botón cuando cambia el mes
+        this.calendar.on('datesSet', () => {
+          this.loadActivities(); // Recargar actividades para el nuevo mes
+        });
+      }, 500);
     });
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+  }
+
+  handleMonthlyHoursClick(): void {
+    // Podemos mostrar un tooltip o información adicional al hacer clic
+    const currentDate = new Date();
+    const monthName = currentDate.toLocaleString('es-ES', { month: 'long' });
+    const year = currentDate.getFullYear();
+
+    this.snackBar.open(
+      `Total de horas registradas en ${monthName} de ${year}: ${this.monthlyHours()}`,
+      'Cerrar',
+      { duration: 4000, panelClass: ['hours-snackbar'] }
+    );
+  }
+
+  private updateMonthlyHoursButton(): void {
+    // Esperar un ciclo de detección de cambios para asegurar que el DOM esté actualizado
+    setTimeout(() => {
+      const button = document.querySelector('.fc-monthlyHours-button');
+      if (button) {
+        button.textContent = `Horas Registradas: ${this.formatHours(this.monthlyHours())}`;
+
+        // Cambiar color según las horas (opcional)
+        if (this.monthlyHours() > 0) {
+          button.classList.add('has-hours');
+        } else {
+          button.classList.remove('has-hours');
+        }
+      }
+    }, 0);
+  }
+
+  private formatHours(hours: number): string {
+    // Formatear horas con 2 decimales si es necesario
+    return hours % 1 === 0 ? hours.toString() : hours.toFixed(1);
   }
 
   private loadActivityTypes(): void {
@@ -215,10 +245,32 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.add(activityTypesSub);
   }
 
-  private initMonthlyHoursButton(): void {
-    // Encontrar el botón por su clase o atributo personalizado
-    this.monthlyHoursButton = document.querySelector('.fc-monthlyHours-button');
-    this.updateMonthlyHoursButton();
+  private setupCalendarCustomElements(): void {
+    // Crear contenedor para el contador de horas mensuales
+    const toolbar = document.querySelector('.fc-header-toolbar');
+    if (toolbar) {
+      const hoursCounter = document.createElement('div');
+      hoursCounter.id = 'monthly-hours-counter';
+      hoursCounter.style.marginRight = '10px';
+      hoursCounter.style.fontWeight = 'bold';
+      hoursCounter.style.color = '#333';
+      hoursCounter.textContent = `Horas del mes: ${this.monthlyHours()}`;
+
+      // Insertar antes del botón "Generar Reporte"
+      const generateReportBtn = toolbar.querySelector('.fc-generateReport-button');
+      if (generateReportBtn) {
+        toolbar.insertBefore(hoursCounter, generateReportBtn);
+      } else {
+        toolbar.appendChild(hoursCounter);
+      }
+    }
+  }
+
+  private updateMonthlyHoursCounter(): void {
+    const hoursCounter = document.getElementById('monthly-hours-counter');
+    if (hoursCounter) {
+      hoursCounter.textContent = `Horas del mes: ${this.monthlyHours()}`;
+    }
   }
 
   private getDefaultActivityTypes(): ActivityType[] {
@@ -331,7 +383,6 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
         if (this.calendarComponent && this.calendarComponent.getApi()) {
           this.mapActivitiesToEvents(filteredActivities);
-          this.updateMonthlyHoursButton();
         } else if (retryCount < 5) {
           setTimeout(() => this.loadActivities(retryCount + 1), 500);
         } else {
@@ -354,129 +405,154 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     const calendarApi = this.calendarComponent.getApi();
     calendarApi.removeAllEvents();
 
-    // Reiniciar el conjunto de días con horas completas
-    this.daysWithFullHours = new Set();
-
-        // Obtener el mes y año actual del calendario
-    const currentDate = calendarApi.getDate();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    this.currentMonth.set(this.formatMonthYear(currentDate));
-
-    // Calcular horas por día
-    const hoursByDay: {[key: string]: number} = {};
-    let totalMonthlyHours = 0;
+    // Reiniciar contadores
+    this.monthlyHours.set(0);
+    this.dailyHoursMap.clear();
 
     activities.forEach(activity => {
       try {
-        const activityDate = this.parseActivityDate(activity.activityDate);
-        const activityMonth = activityDate.getMonth();
-        const activityYear = activityDate.getFullYear();
+        const startDate = this.parseActivityDate(activity.activityDate);
+        const dateKey = startDate.toISOString().split('T')[0];
+        const hoursQuantity = activity.hoursQuantity;
 
-        // Filtrar solo actividades del mes actual para el cálculo de horas
-        if (activityMonth === currentMonth && activityYear === currentYear) {
-          const dateKey = activityDate.toISOString().split('T')[0];
-          const hours = activity.hoursQuantity || 0;
-
-          // Sumar horas por día
-          hoursByDay[dateKey] = (hoursByDay[dateKey] || 0) + hours;
-
-          // Sumar al total mensual
-          totalMonthlyHours += hours;
-
-          // Si el día alcanza o supera las 8 horas, marcarlo
-          if (hoursByDay[dateKey] >= 8) {
-            this.daysWithFullHours.add(dateKey);
-          }
+        if (this.isDateInCurrentMonth(startDate)) {
+          this.monthlyHours.update(hours => hours + hoursQuantity);
         }
+
+        const currentHours = this.dailyHoursMap.get(dateKey) || 0;
+        this.dailyHoursMap.set(dateKey, currentHours + hoursQuantity);
+
+        const allDayEvent = hoursQuantity === 8;
+        let endDate: Date | undefined = undefined;
+
+        if (!allDayEvent) {
+          const startDateTime = new Date(startDate);
+          endDate = new Date(startDateTime.getTime() + hoursQuantity * 60 * 60 * 1000);
+        }
+
+        const project = this.projectList.find(p => p.id === activity.projectID);
+        const activityType = this.activityTypes.find(t => t.id === activity.activityTypeID);
+        const color = activityType?.colorCode || '#9E9E9E';
+        let rawTitle: string;
+        if (hoursQuantity && hoursQuantity > 0 && hoursQuantity < 8) {
+          rawTitle = `${hoursQuantity}h - ${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`;
+        } else {
+          rawTitle = `${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`;
+        }
+
+        const truncatedTitle = rawTitle.length > 20 ? rawTitle.substring(0, 17) + '...' : rawTitle;
+
+        const eventData = {
+          id: activity.id.toString(),
+          title: truncatedTitle,
+          start: startDate,
+          end: endDate,
+          allDay: allDayEvent,
+          backgroundColor: color,
+          borderColor: color,
+          textColor: this.getTextColor(color),
+          extendedProps: {
+            activityTypeID: activity.activityTypeID,
+            projectID: activity.projectID,
+            activityDescription: activity.activityDescription,
+            notes: activity.notes,
+            hoursQuantity: activity.hoursQuantity,
+            requirementCode: activity.requirementCode,
+            employeeID: activity.employeeID // Añadir esto para debug
+          }
+        };
+
+        const addedEvent = calendarApi.addEvent(eventData);
       } catch (error) {
         console.error(`Error procesando actividad ${activity.id}:`, activity, error);
       }
     });
-
-  // SEGUNDO: Crear eventos para TODAS las actividades (todos los meses)
-  activities.forEach(activity => {
-    try {
-      const startDate = this.parseActivityDate(activity.activityDate);
-      const hoursQuantity = activity.hoursQuantity;
-      const allDayEvent = hoursQuantity === 8;
-      let endDate: Date | undefined = undefined;
-
-      if (!allDayEvent) {
-        const startDateTime = new Date(startDate);
-        endDate = new Date(startDateTime.getTime() + hoursQuantity * 60 * 60 * 1000);
-      }
-
-      const project = this.projectList.find(p => p.id === activity.projectID);
-      const activityType = this.activityTypes.find(t => t.id === activity.activityTypeID);
-      const color = activityType?.colorCode || '#9E9E9E';
-      let rawTitle: string;
-      if (hoursQuantity && hoursQuantity > 0 && hoursQuantity < 8) {
-        rawTitle = `${hoursQuantity}h - ${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`;
-      } else {
-        rawTitle = `${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`;
-      }
-
-      const truncatedTitle = rawTitle.length > 20 ? rawTitle.substring(0, 17) + '...' : rawTitle;
-
-      const eventData = {
-        id: activity.id.toString(),
-        title: truncatedTitle,
-        start: startDate,
-        end: endDate,
-        allDay: allDayEvent,
-        backgroundColor: color,
-        borderColor: color,
-        textColor: this.getTextColor(color),
-        extendedProps: {
-          activityTypeID: activity.activityTypeID,
-          projectID: activity.projectID,
-          activityDescription: activity.activityDescription,
-          notes: activity.notes,
-          hoursQuantity: activity.hoursQuantity,
-          requirementCode: activity.requirementCode,
-          employeeID: activity.employeeID
-        }
-      };
-
-      const addedEvent = calendarApi.addEvent(eventData);
-    } catch (error) {
-      console.error(`Error procesando actividad ${activity.id}:`, activity, error);
-    }
-  });
-
-    // Actualizar el contador de horas mensuales
-    this.monthlyHours.set(totalMonthlyHours);
-
-    this.currentMonth.set(this.formatMonthYear(currentDate));
-
+    calendarApi.render();
     this.updateMonthlyHoursButton();
+    this.updateDayCells();
+  }
 
+  private isDateInCurrentMonth(date: Date): boolean {
+    if (!this.calendarComponent || !this.calendarComponent.getApi()) {
+      return false;
+    }
+
+    const calendarApi = this.calendarComponent.getApi();
+    const currentDate = calendarApi.getDate();
+    return date.getMonth() === currentDate.getMonth() &&
+           date.getFullYear() === currentDate.getFullYear();
+  }
+
+  private updateDayCells(): void {
+    // Esperar a que el calendario se renderice completamente
     setTimeout(() => {
-      if (this.calendarComponent && this.calendarComponent.getApi()) {
-        this.calendarComponent.getApi().render();
-      }
-    }, 0);;
-  }
+      this.dailyHoursMap.forEach((hours, dateString) => {
+        const dayCell = this.findDayCellByDate(dateString);
+        if (dayCell) {
+          this.addHoursToDayCell(dayCell, hours);
 
-  // Método para formatear mes y año
-  private formatMonthYear(date: Date): string {
-    // Capitalizar la primera letra del mes
-    const formatted = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-  }
-
-  private setupCalendarMonthChangeListener(): void {
-    if (this.calendarComponent && this.calendarComponent.getApi()) {
-      const calendarApi = this.calendarComponent.getApi();
-
-      // Escuchar eventos de cambio de fecha
-      calendarApi.on('datesSet', (dateInfo) => {
-        // Recargar actividades para recalcular horas del nuevo mes
-        this.loadActivities().then(() => {
-          this.updateMonthlyHoursButton();
-        });
+          // Colorear celda si tiene 8 horas
+          if (hours >= 8) {
+            dayCell.classList.add('fc-day-completed');
+          } else {
+            dayCell.classList.remove('fc-day-completed');
+          }
+        }
       });
+    }, 100);
+  }
+
+  private findDayCellByDate(dateString: string): HTMLElement | null {
+    const dayCells = document.querySelectorAll('.fc-daygrid-day');
+    for (const cell of Array.from(dayCells)) {
+      const cellDate = cell.getAttribute('data-date');
+      if (cellDate === dateString) {
+        return cell as HTMLElement;
+      }
+    }
+    return null;
+  }
+
+  private addHoursToDayCell(dayCell: HTMLElement, hours: number): void {
+    // Buscar o crear el contenedor de horas
+    let hoursContainer = dayCell.querySelector('.daily-hours') as HTMLElement;
+
+    if (!hoursContainer) {
+      hoursContainer = document.createElement('div');
+      hoursContainer.className = 'daily-hours';
+      hoursContainer.style.position = 'absolute';
+      hoursContainer.style.top = '2px';
+      hoursContainer.style.left = '2px';
+      hoursContainer.style.fontSize = '10px';
+      hoursContainer.style.fontWeight = 'bold';
+      hoursContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+      hoursContainer.style.padding = '1px 3px';
+      hoursContainer.style.borderRadius = '3px';
+      hoursContainer.style.zIndex = '5';
+
+      // Encontrar un lugar seguro para insertar el contenedor de horas
+      const dayNumber = dayCell.querySelector('.fc-daygrid-day-number');
+      const dayFrame = dayCell.querySelector('.fc-daygrid-day-frame');
+
+      if (dayNumber && dayNumber.parentNode === dayCell) {
+        // Insertar antes del número del día si es hijo directo
+        dayCell.insertBefore(hoursContainer, dayNumber);
+      } else if (dayFrame) {
+        // Insertar dentro del frame del día
+        dayFrame.insertBefore(hoursContainer, dayFrame.firstChild);
+      } else {
+        // Insertar directamente en la celda como último recurso
+        dayCell.appendChild(hoursContainer);
+      }
+    }
+
+    hoursContainer.textContent = `${this.formatHours(hours)}h`;
+
+    // Cambiar color del texto según las horas
+    if (hours >= 8) {
+      hoursContainer.style.color = '#2e7d32'; // Verde oscuro
+    } else {
+      hoursContainer.style.color = '#f57c00'; // Naranja
     }
   }
 
@@ -650,9 +726,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     this.activityService.createActivity(activityPayload).subscribe({
       next: (response) => {
         this.snackBar.open('Actividad creada correctamente', 'Cerrar', { duration: 3000 });
-        this.loadActivities().then(() => {
-          this.updateMonthlyHoursButton();
-        });
+        this.loadActivities();
       },
       error: (error) => {
         if (error.status === 401) {
@@ -660,7 +734,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
           this.router.navigate(['/login']);
         } else {
           console.error('Error al crear actividad:', error);
-          this.snackBar.open('Error al crear actividad: ' + 'Ocurrió un error inesperado.', 'Cerrar');
+          this.snackBar.open('Error al crear actividad: ' + (error.error?.message || error.message || 'Error desconocido'), 'Cerrar');
         }
       }
     });
@@ -831,10 +905,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         this.activityService.updateActivity(Number(result.id), updateData).subscribe({
           next: () => {
             this.snackBar.open('Actividad actualizada correctamente', 'Cerrar', { duration: 3000 });
-            this.loadActivities().then(() => {
-              // Actualizar el contador después de cargar las actividades
-              this.updateMonthlyHoursButton();
-            });
+            this.loadActivities(); // Recargar actividades después de actualizar
           },
           error: (error) => {
             console.error('Error al actualizar actividad', error);
@@ -976,20 +1047,5 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
   handleEvents(events: EventApi[]) {
     this.currentEvents.set(events);
     this.changeDetector.detectChanges(); // workaround for pressionChangedAfterItHasBeenCheckedError
-    this.updateMonthlyHoursButton();
-  }
-
-    // Actualizar el texto del botón de horas mensuales cuando cambien los datos
-  private updateMonthlyHoursButton(): void {
-    if (this.monthlyHoursButton) {
-      const hours = this.monthlyHours();
-      const month = this.currentMonth();
-      this.monthlyHoursButton.innerHTML = `
-        <span class="monthly-hours-display">
-          <span class="hours-label">Horas de ${month}:</span>
-          <span class="hours-value">${hours}</span>
-        </span>
-      `;
-    }
   }
 }
