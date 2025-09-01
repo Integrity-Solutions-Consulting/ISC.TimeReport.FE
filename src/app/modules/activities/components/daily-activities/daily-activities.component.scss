@@ -75,6 +75,89 @@ b { /* used for event dates/times */
   display: none;
 }
 
+.fc-day.fc-full-hours {
+  background-color: #e8f5e9 !important;
+
+  &:hover {
+    background-color: #c8e6c9 !important;
+  }
+}
+
+.fc-toolbar .fc-toolbar-chunk .fc-monthlyHours-button {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  cursor: default !important;
+  padding: 6px 12px;
+
+  &:hover {
+    background: transparent !important;
+  }
+}
+
+.monthly-hours-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 12px;
+  line-height: 1.2;
+
+  .hours-label {
+    color: #666;
+    font-weight: normal;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .hours-value {
+    color: #2c3e50;
+    font-weight: bold;
+    font-size: 14px;
+  }
+}
+
+.fc-header-toolbar {
+  align-items: center;
+
+  .fc-toolbar-chunk {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.fc-day.fc-holiday.fc-full-hours {
+  background-color: #fde4e8ff !important;
+  border: 2px solid #f44336 !important;
+}
+
+.fc-day[title] {
+  position: relative;
+
+  &::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 1000;
+  }
+
+  &:hover::after {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
 /* Asegura que los colores de fondo se apliquen */
 .fc-event .fc-event-main {
   background-color: inherit !important;
