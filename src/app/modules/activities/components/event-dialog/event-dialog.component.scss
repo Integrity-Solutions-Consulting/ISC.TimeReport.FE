@@ -198,7 +198,14 @@ mat-dialog-actions {
 }
 
 mat-checkbox {
-  margin-bottom: 16px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.warning-text {
+  color: #f57c00;
+  font-size: 12px;
+  margin-top: 8px;
 }
 
 /* Pantallas de hasta 480px (móviles pequeños) */
