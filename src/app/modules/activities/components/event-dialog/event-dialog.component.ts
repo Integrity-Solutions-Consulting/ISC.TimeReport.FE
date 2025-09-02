@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatInputModule } from '@angular/material/input';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -16,8 +16,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { ActivityService } from '../../services/activity.service';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
 import { TextFieldModule } from '@angular/cdk/text-field';
-import { ActivityType } from '../../interfaces/activity.interface';
+import { ActivityType, Holiday } from '../../interfaces/activity.interface';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-event-dialog',
@@ -75,13 +77,23 @@ export class EventDialogComponent implements OnInit {
     requirementCode: ''
   };
 
+    // Variables para recurrencia
+  isRecurring: boolean = false;
+  recurrenceStartDate: Date | null = null;
+  recurrenceEndDate: Date | null = null;
+  recurrenceDaysCount: number = 0;
+  minRecurrenceDate: Date = new Date();
+  holidays: Holiday[] = [];
+
   currentEmployeeId: number | null = null;
 
   constructor(
     private projectService: ProjectService,
     private activityService: ActivityService,
     public dialogRef: MatDialogRef<EventDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {
     if (data.event) {
       this.event = { ...this.event, ...data.event };
@@ -257,6 +269,33 @@ export class EventDialogComponent implements OnInit {
   trimDescription(): void {
     if (this.event.activityDescription && this.event.activityDescription.length > 200) {
       this.event.activityDescription = this.event.activityDescription.substring(0, 200);
+    }
+  }
+
+  async onDelete(): Promise<void> {
+    const confirmDialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '600px',
+      data: {
+        title: 'Confirmar eliminación',
+        message: '¿Estás seguro de que deseas eliminar esta actividad?',
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    const result = await confirmDialogRef.afterClosed().toPromise();
+
+    if (result) {
+      this.activityService.deleteActivity(this.event.id).subscribe({
+        next: () => {
+          this.snackBar.open('Actividad eliminada correctamente', 'Cerrar', { duration: 3000 });
+          this.dialogRef.close({ deleted: true });
+        },
+        error: (error) => {
+          console.error('Error al eliminar actividad', error);
+          this.snackBar.open('Error al eliminar actividad', 'Cerrar', { duration: 3000 });
+        }
+      });
     }
   }
 

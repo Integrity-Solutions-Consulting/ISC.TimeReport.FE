@@ -331,6 +331,15 @@ export class ProjectService {
       return this.http.get<Position[]>(`${this.urlBase}/api/Catalog/positions`);
     }
 
+    getProjectStatuses(): Observable<any[]> {
+      return this.http.get<any[]>(`${this.urlBase}/api/Catalog/project-statuses`).pipe(
+        catchError(error => {
+          console.error('Error fetching project statuses:', error);
+          return of([]);
+        })
+      );
+    }
+
     isAdmin(): boolean {
       try {
         const userData = JSON.parse(localStorage.getItem('userData') || '{}');

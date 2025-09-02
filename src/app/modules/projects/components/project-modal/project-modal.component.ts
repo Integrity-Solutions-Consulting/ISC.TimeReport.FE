@@ -83,6 +83,8 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
   isLoading = false;
   projectTypes: any[] = [];
   formattedProjectTypes: any[] = [];
+  projectStatuses: any[] = [];
+  isLoadingStatuses = false;
 
   // Para ngx-mat-select-search
   public clientFilterCtrl: FormControl<string | null> = new FormControl<string>('');
@@ -109,20 +111,11 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
     });
   }
 
-  projectCodes = [
-    { id: 1, name: 'Planificación' },
-    { id: 2, name: 'Aprobado' },
-    { id: 3, name: 'En Progreso' },
-    { id: 4, name: 'En Espera' },
-    { id: 5, name: 'Cancelado' },
-    { id: 6, name: 'Completado' },
-    { id: 7, name: 'Aplazado' }
-  ];
-
   ngOnInit(): void {
     this.initForm();
     this.loadClients();
     this.loadProjectTypes();
+    this.loadProjectStatuses();
 
     if (this.data?.project) {
       this.isEditMode = true;
@@ -208,6 +201,22 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
     });
 
     this.filteredClients.next(filteredClients);
+  }
+
+  private loadProjectStatuses(): void {
+    this.isLoadingStatuses = true;
+    this.projectService.getProjectStatuses().subscribe({
+      next: (statuses) => {
+        this.projectStatuses = statuses;
+        this.isLoadingStatuses = false;
+      },
+      error: (err) => {
+        console.error('Error loading project statuses:', err);
+        this.isLoadingStatuses = false;
+        // Opcional: puedes cargar estados por defecto en caso de error
+        this.projectStatuses = [];
+      }
+    });
   }
 
   private loadClients(): void {

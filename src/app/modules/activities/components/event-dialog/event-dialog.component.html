@@ -126,4 +126,7 @@
   <button mat-raised-button style="background-color: var(--itg-primary); color: var(--itg-bg)" [mat-dialog-close]="preparePayload()" [disabled]="!isFormValid()">
     {{ data.isEdit ? 'Guardar' : 'Agregar' }}
   </button>
+  @if (data.isEdit) {
+    <button mat-raised-button style="background-color: var(--status-bug-reported); color: var(--status-bug-reported-bg)" (click)="onDelete()">Eliminar</button>
+  }
 </mat-dialog-actions>
