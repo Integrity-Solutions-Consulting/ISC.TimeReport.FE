@@ -21,6 +21,7 @@ import { ReportDialogComponent } from '../report-dialog/report-dialog.component'
 import { AuthService } from '../../../auth/services/auth.service';
 import { provideNativeDateAdapter, DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'daily-activities',
@@ -31,7 +32,8 @@ import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } 
     MatDialogModule,
     MatButtonModule,
     MatSnackBarModule,
-    RouterModule
+    RouterModule,
+    ConfirmDialogComponent
   ],
   providers: [
     ActivityService,
@@ -133,7 +135,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
       if (this.isHoliday(info.date)) {
         info.el.classList.add('fc-holiday');
         info.el.style.backgroundColor = '#fde4e8ff'; // Fondo rojo claro
-        info.el.style.cursor = 'not-allowed';
+        //info.el.style.cursor = 'not-allowed';
       }
 
       // Añadir clase para días completos (8 horas)
@@ -156,7 +158,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     },
     // Añade esta propiedad para validar selecciones
     selectAllow: (selectInfo) => {
-      return !this.isHoliday(selectInfo.start);
+      return true;
     }
   });
   currentEvents = signal<EventApi[]>([]);
@@ -585,17 +587,24 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     return '#34A853'; // Verde para no billables aprobadas
   }
 
-  handleDateSelect(selectInfo: DateSelectArg) {
-
+  async handleDateSelect(selectInfo: DateSelectArg): Promise<void> {
+    // Cambiamos la verificación de feriados a advertencia en lugar de impedir
     if (this.isHoliday(selectInfo.start)) {
-      this.snackBar.open('No se pueden crear actividades en días feriados', 'Cerrar', { duration: 3000 });
-      return;
+      const confirmed = await this.showConfirmationDialog(
+        'Día feriado',
+        'Este día es feriado. ¿Está seguro de que desea crear una actividad?'
+      );
+
+      if (!confirmed) {
+        return;
+      }
     }
 
     if (!this.currentEmployeeId) {
       this.snackBar.open('No se pudo identificar al empleado', 'Cerrar');
       return;
     }
+
     this.projectService.getProjectsByUserRole(this.currentEmployeeId ?? undefined).subscribe({
       next: (projectsResponse) => {
         const dialogRef = this.dialog.open(EventDialogComponent, {
@@ -634,11 +643,17 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  handleAddActivity() {
-
+  async handleAddActivity(): Promise<void> {
+    // Cambiamos la verificación de feriados a advertencia en lugar de impedir
     if (this.isHoliday(new Date())) {
-      this.snackBar.open('No se pueden crear actividades en días feriados', 'Cerrar', { duration: 3000 });
-      return;
+      const confirmed = await this.showConfirmationDialog(
+        'Día feriado',
+        'Hoy es feriado. ¿Está seguro de que desea crear una actividad?'
+      );
+
+      if (!confirmed) {
+        return;
+      }
     }
 
     if (!this.currentEmployeeId) {
@@ -681,6 +696,24 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         console.error('Error loading projects for dialog', error);
         this.snackBar.open('Error al cargar proyectos', 'Cerrar', { duration: 3000 });
       }
+    });
+  }
+
+  private showConfirmationDialog(title: string, message: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '600px',
+        data: {
+          title,
+          message,
+          confirmText: 'Sí, continuar',
+          cancelText: 'Cancelar'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        resolve(!!result);
+      });
     });
   }
 
