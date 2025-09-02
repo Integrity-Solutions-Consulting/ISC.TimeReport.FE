@@ -103,6 +103,10 @@ export class ActivityService {
     return new Date(date).toISOString().split('T')[0];
   }
 
+  deleteActivity(activityId: number): Observable<any> {
+    return this.http.delete(`${this.urlBase}/api/DailyActivity/InactivateActivity/${activityId}`);
+  }
+
   exportExcel(params: HttpParams): Observable<Blob> {
     return this.http.get(`${this.urlBase}/api/TimeReport/export-excel`, {
       params,

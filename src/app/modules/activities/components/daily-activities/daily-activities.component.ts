@@ -378,9 +378,9 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         const filteredActivities = response.data.filter((activity: Activity) => {
           if (this.currentEmployeeId === null) {
             console.warn('EmployeeID es null - mostrando todas las actividades');
-            return true; // Mostrar todas si no hay employeeID
+            return activity.status; // Mostrar todas si no hay employeeID
           }
-          return activity.employeeID === this.currentEmployeeId;
+          return activity.employeeID === this.currentEmployeeId && activity.status;
         });
 
         if (this.calendarComponent && this.calendarComponent.getApi()) {
@@ -897,7 +897,6 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     return activityTypes[activityType] || 1; // Si no existe, devuelve 1 (Desarrollo) por defecto
   }
 
-  // --- Manejo del click en un evento existente para editar ---
   handleEventClick(clickInfo: EventClickArg) {
     const extendedProps = clickInfo.event.extendedProps;
 
@@ -924,7 +923,11 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
+      if (result && result.deleted) {
+        // Si se eliminó la actividad, recargar el calendario
+        this.snackBar.open('Actividad eliminada correctamente', 'Cerrar', { duration: 3000 });
+        this.loadActivities();
+      } else if (result) {
         const updateData = {
           projectID: result.projectID,
           activityTypeID: result.activityTypeID,
