@@ -16,7 +16,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { ActivityService } from '../../services/activity.service';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
 import { TextFieldModule } from '@angular/cdk/text-field';
-import { ActivityType } from '../../interfaces/activity.interface';
+import { ActivityType, Holiday } from '../../interfaces/activity.interface';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -76,6 +76,14 @@ export class EventDialogComponent implements OnInit {
     hours: 4, // Valor por defecto cambiado a 4 horas
     requirementCode: ''
   };
+
+    // Variables para recurrencia
+  isRecurring: boolean = false;
+  recurrenceStartDate: Date | null = null;
+  recurrenceEndDate: Date | null = null;
+  recurrenceDaysCount: number = 0;
+  minRecurrenceDate: Date = new Date();
+  holidays: Holiday[] = [];
 
   currentEmployeeId: number | null = null;
 
