@@ -118,6 +118,80 @@
         ?
       </div>
     </div>
+
+    <!-- Checkbox para Actividad Recurrente -->
+    <div class="field-with-help">
+      <mat-checkbox [(ngModel)]="isRecurring" (change)="onRecurringChange()" name="isRecurring">
+        Actividad Recurrente
+      </mat-checkbox>
+      <div class="help-icon" [matTooltip]="'Marca esta opción si deseas crear la misma actividad en múltiples días consecutivos'" matTooltipPosition="right">
+        ?
+      </div>
+    </div>
+
+    <!-- Sección de Recurrencia (solo visible cuando isRecurring es true) -->
+    <div *ngIf="isRecurring" class="recurrence-section">
+      <div class="field-with-help">
+        <div class="row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Fecha Inicio</mat-label>
+            <input matInput
+                  [matDatepicker]="startDatePicker"
+                  [(ngModel)]="recurrenceStartDate"
+                  required
+                  name="recurrenceStartDate"
+                  placeholder="dd/mm/aaaa"
+                  (dateChange)="onRecurrenceDatesChange()">
+            <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #startDatePicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Fecha Fin</mat-label>
+            <input matInput
+                  [matDatepicker]="endDatePicker"
+                  [(ngModel)]="recurrenceEndDate"
+                  required
+                  name="recurrenceEndDate"
+                  placeholder="dd/mm/aaaa"
+                  (dateChange)="onRecurrenceDatesChange()">
+            <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #endDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div class="help-icon" [matTooltip]="'Selecciona el rango de fechas para la actividad recurrente. Se crearán actividades para todos los días en este rango.'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
+
+      <!-- Checkbox para incluir fines de semana -->
+      <div class="field-with-help">
+        <mat-checkbox [(ngModel)]="includeWeekends" (change)="onRecurrenceDatesChange()">
+          Incluir fines de semana
+        </mat-checkbox>
+        <div class="help-icon" [matTooltip]="'Marca esta opción si deseas incluir sábados y domingos en las actividades recurrentes'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
+
+      <!-- Checkbox para incluir feriados -->
+      <div class="field-with-help">
+        <mat-checkbox [(ngModel)]="includeHolidays" (change)="onRecurrenceDatesChange()">
+          Incluir días feriados
+        </mat-checkbox>
+        <div class="help-icon" [matTooltip]="'Marca esta opción si deseas incluir días feriados en las actividades recurrentes'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
+
+      <!-- Información de resumen -->
+      <div *ngIf="recurrenceDaysCount > 0" class="recurrence-summary">
+        <p>Se crearán {{recurrenceDaysCount}} actividades entre
+          {{recurrenceStartDate | date:'dd/MM/yyyy'}} y
+          {{recurrenceEndDate | date:'dd/MM/yyyy'}}</p>
+      </div>
+    </div>
+
   </div>
 </mat-dialog-content>
 
@@ -126,4 +200,7 @@
   <button mat-raised-button style="background-color: var(--itg-primary); color: var(--itg-bg)" [mat-dialog-close]="preparePayload()" [disabled]="!isFormValid()">
     {{ data.isEdit ? 'Guardar' : 'Agregar' }}
   </button>
+  @if (data.isEdit) {
+    <button mat-raised-button style="background-color: var(--status-bug-reported); color: var(--status-bug-reported-bg)" (click)="onDelete()">Eliminar</button>
+  }
 </mat-dialog-actions>

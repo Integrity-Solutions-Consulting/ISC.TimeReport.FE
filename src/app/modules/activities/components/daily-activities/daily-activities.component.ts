@@ -21,6 +21,7 @@ import { ReportDialogComponent } from '../report-dialog/report-dialog.component'
 import { AuthService } from '../../../auth/services/auth.service';
 import { provideNativeDateAdapter, DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'daily-activities',
@@ -31,7 +32,8 @@ import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } 
     MatDialogModule,
     MatButtonModule,
     MatSnackBarModule,
-    RouterModule
+    RouterModule,
+    ConfirmDialogComponent
   ],
   providers: [
     ActivityService,
@@ -103,7 +105,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         click: this.handleAddActivity.bind(this)
       },
       monthlyHours: { // Nuevo botón para horas mensuales (solo visual)
-        text: 'Horas Registradas: 0', // Texto inicial
+        text: '', // Texto inicial
         click: () => {} // Función vacía para deshabilitar el clic
       }
     },
@@ -133,7 +135,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
       if (this.isHoliday(info.date)) {
         info.el.classList.add('fc-holiday');
         info.el.style.backgroundColor = '#fde4e8ff'; // Fondo rojo claro
-        info.el.style.cursor = 'not-allowed';
+        //info.el.style.cursor = 'not-allowed';
       }
 
       // Añadir clase para días completos (8 horas)
@@ -156,7 +158,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     },
     // Añade esta propiedad para validar selecciones
     selectAllow: (selectInfo) => {
-      return !this.isHoliday(selectInfo.start);
+      return true;
     }
   });
   currentEvents = signal<EventApi[]>([]);
@@ -376,9 +378,9 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         const filteredActivities = response.data.filter((activity: Activity) => {
           if (this.currentEmployeeId === null) {
             console.warn('EmployeeID es null - mostrando todas las actividades');
-            return true; // Mostrar todas si no hay employeeID
+            return activity.status; // Mostrar todas si no hay employeeID
           }
-          return activity.employeeID === this.currentEmployeeId;
+          return activity.employeeID === this.currentEmployeeId && activity.status;
         });
 
         if (this.calendarComponent && this.calendarComponent.getApi()) {
@@ -585,17 +587,24 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     return '#34A853'; // Verde para no billables aprobadas
   }
 
-  handleDateSelect(selectInfo: DateSelectArg) {
-
+  async handleDateSelect(selectInfo: DateSelectArg): Promise<void> {
+    // Cambiamos la verificación de feriados a advertencia en lugar de impedir
     if (this.isHoliday(selectInfo.start)) {
-      this.snackBar.open('No se pueden crear actividades en días feriados', 'Cerrar', { duration: 3000 });
-      return;
+      const confirmed = await this.showConfirmationDialog(
+        'Día feriado',
+        'Este día es feriado. ¿Está seguro de que desea crear una actividad?'
+      );
+
+      if (!confirmed) {
+        return;
+      }
     }
 
     if (!this.currentEmployeeId) {
       this.snackBar.open('No se pudo identificar al empleado', 'Cerrar');
       return;
     }
+
     this.projectService.getProjectsByUserRole(this.currentEmployeeId ?? undefined).subscribe({
       next: (projectsResponse) => {
         const dialogRef = this.dialog.open(EventDialogComponent, {
@@ -616,14 +625,19 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
             activityTypes: this.activityTypes
           }
         });
-
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
-            this.createActivity({
-              ...result,
-              projectID: result.projectID,
-              employeeID: this.currentEmployeeId
-            });
+            // Si es un array, son actividades recurrentes
+            if (Array.isArray(result)) {
+              this.createRecurrentActivities(result);
+            } else {
+              // Si es un objeto, es una actividad única
+              this.createActivity({
+                ...result,
+                projectID: result.projectID,
+                employeeID: this.currentEmployeeId
+              });
+            }
           }
         });
       },
@@ -634,11 +648,17 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  handleAddActivity() {
-
+  async handleAddActivity(): Promise<void> {
+    // Cambiamos la verificación de feriados a advertencia en lugar de impedir
     if (this.isHoliday(new Date())) {
-      this.snackBar.open('No se pueden crear actividades en días feriados', 'Cerrar', { duration: 3000 });
-      return;
+      const confirmed = await this.showConfirmationDialog(
+        'Día feriado',
+        'Hoy es feriado. ¿Está seguro de que desea crear una actividad?'
+      );
+
+      if (!confirmed) {
+        return;
+      }
     }
 
     if (!this.currentEmployeeId) {
@@ -669,11 +689,22 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
-            this.createActivity({
-              ...result,
-              projectID: result.projectID,
-              employeeID: this.currentEmployeeId // Asegúrate de incluir esto
-            });
+            // Si es un array, son actividades recurrentes
+            if (Array.isArray(result)) {
+              if (result.length > 30) {
+                // Mostrar confirmación para muchas actividades
+                this.confirmMultipleActivities(result);
+              } else {
+                this.createRecurrentActivities(result);
+              }
+            } else {
+              // Si es un objeto, es una actividad única
+              this.createActivity({
+                ...result,
+                projectID: result.projectID,
+                employeeID: this.currentEmployeeId
+              });
+            }
           }
         });
       },
@@ -681,6 +712,82 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         console.error('Error loading projects for dialog', error);
         this.snackBar.open('Error al cargar proyectos', 'Cerrar', { duration: 3000 });
       }
+    });
+  }
+
+  // Método para confirmar la creación de muchas actividades
+  private confirmMultipleActivities(activities: any[]): void {
+    const confirmDialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '500px',
+      data: {
+        title: 'Confirmar creación múltiple',
+        message: `Estás a punto de crear ${activities.length} actividades. ¿Estás seguro de que deseas continuar?`,
+        confirmText: 'Sí, crear todas',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    confirmDialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.createRecurrentActivities(activities);
+      }
+    });
+  }
+
+  // Nuevo método para crear actividades recurrentes
+  private createRecurrentActivities(activities: any[]): void {
+    let createdCount = 0;
+    let errorCount = 0;
+
+    activities.forEach(activity => {
+      const activityPayload = {
+        ...activity,
+        employeeID: this.currentEmployeeId
+      };
+
+      this.activityService.createActivity(activityPayload).subscribe({
+        next: () => {
+          createdCount++;
+          if (createdCount + errorCount === activities.length) {
+            this.snackBar.open(
+              `Se crearon ${createdCount} de ${activities.length} actividades recurrentes`,
+              'Cerrar',
+              { duration: 5000 }
+            );
+            this.loadActivities();
+          }
+        },
+        error: (error) => {
+          errorCount++;
+          console.error('Error al crear actividad recurrente:', error);
+          if (createdCount + errorCount === activities.length) {
+            this.snackBar.open(
+              `Se crearon ${createdCount} de ${activities.length} actividades. ${errorCount} fallaron.`,
+              'Cerrar',
+              { duration: 5000 }
+            );
+            this.loadActivities();
+          }
+        }
+      });
+    });
+  }
+
+  private showConfirmationDialog(title: string, message: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '600px',
+        data: {
+          title,
+          message,
+          confirmText: 'Sí, continuar',
+          cancelText: 'Cancelar'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        resolve(!!result);
+      });
     });
   }
 
@@ -864,7 +971,6 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     return activityTypes[activityType] || 1; // Si no existe, devuelve 1 (Desarrollo) por defecto
   }
 
-  // --- Manejo del click en un evento existente para editar ---
   handleEventClick(clickInfo: EventClickArg) {
     const extendedProps = clickInfo.event.extendedProps;
 
@@ -891,7 +997,11 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
+      if (result && result.deleted) {
+        // Si se eliminó la actividad, recargar el calendario
+        this.snackBar.open('Actividad eliminada correctamente', 'Cerrar', { duration: 3000 });
+        this.loadActivities();
+      } else if (result) {
         const updateData = {
           projectID: result.projectID,
           activityTypeID: result.activityTypeID,

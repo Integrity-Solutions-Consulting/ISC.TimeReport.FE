@@ -356,7 +356,7 @@ export class LeaderListComponent implements OnInit{
 
   openAssignDialog(leader?: any): void {
     const dialogRef = this.dialog.open(AssignmentLeaderDialogComponent, {
-      width: '1000px',
+      width: '1200px',
       maxHeight: '80vh',
       data: {
         leader: leader, // Opcional: pasar el líder si se hace clic en una fila específica

@@ -1,25 +1,30 @@
-<!-- leader-assignments-dialog.component.html -->
-<h2 mat-dialog-title>
+<!-- leader-assignment.component.html -->
+<h2 mat-dialog-title class="dialog-title">
+  <mat-icon class="title-icon">assignment_ind</mat-icon>
   Asignaciones de Proyectos - {{leader?.person?.firstName}} {{leader?.person?.lastName}}
 </h2>
+
 <mat-dialog-content>
   <div class="dialog-content">
     <!-- Información del líder -->
     <div class="leader-info" *ngIf="leader">
       <div class="info-row">
         <div class="info-item">
-          <strong>Identificación:</strong>
-          {{leader.person.identificationNumber}}
+          <mat-icon class="info-icon">badge</mat-icon>
+          <strong>Identificación:</strong> {{leader.person.identificationNumber}}
         </div>
         <div class="info-item">
+          <mat-icon class="info-icon">email</mat-icon>
           <strong>Email:</strong> {{leader.person.email}}
         </div>
       </div>
       <div class="info-row">
         <div class="info-item">
-          <strong>Teléfono:</strong> {{leader.person.phone}}
+          <mat-icon class="info-icon">phone</mat-icon>
+          <strong>Teléfono:</strong> {{leader.person.phone || 'N/A'}}
         </div>
         <div class="info-item">
+          <mat-icon class="info-icon">circle</mat-icon>
           <strong>Estado:</strong>
           <span [class.active]="leader.status" [class.inactive]="!leader.status">
             {{leader.status ? 'Activo' : 'Inactivo'}}
@@ -30,98 +35,179 @@
 
     <div class="loading-spinner" *ngIf="loading">
       <mat-spinner diameter="40"></mat-spinner>
-      <p>Cargando asignaciones...</p>
+      <p>Cargando proyectos...</p>
     </div>
 
-    <div *ngIf="!loading && dataSource.data.length === 0" class="no-data">
-      <mat-icon>assignment</mat-icon>
-      <p>No se encontraron asignaciones de proyectos para este líder</p>
-      <button mat-raised-button color="primary" (click)="addAssignment()">
-        <mat-icon>add</mat-icon>
-        Agregar primera asignación
-      </button>
-    </div>
+    <!-- Formulario para agregar asignaciones -->
+    <div *ngIf="!loading" class="assignment-form-section">
+      <h3 class="section-title">
+        <mat-icon>add_circle</mat-icon>
+        Agregar Nueva Asignación
+      </h3>
 
-    <div *ngIf="!loading && dataSource.data.length > 0" class="assignments-container">
-      <div class="table-header">
-        <h3>Proyectos Asignados ({{dataSource.data.length}})</h3>
-        <button mat-raised-button color="primary" (click)="addAssignment()">
+      <form [formGroup]="assignmentForm" class="assignment-form">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="project-select">
+            <mat-label>Seleccionar Proyecto</mat-label>
+            <mat-select formControlName="selectedProject" required>
+              <mat-option *ngFor="let project of getAvailableProjects()" [value]="project.id">
+                {{project.code}} - {{project.name}}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>folder</mat-icon>
+            <mat-error *ngIf="assignmentForm.get('selectedProject')?.hasError('required')">
+              Proyecto es requerido
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Responsabilidades</mat-label>
+            <input matInput formControlName="responsibility" placeholder="Descripción de responsabilidades" required>
+            <mat-icon matPrefix>description</mat-icon>
+            <mat-error *ngIf="assignmentForm.get('responsibility')?.hasError('required')">
+              Responsabilidad es requerida
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha Inicio</mat-label>
+            <input matInput [matDatepicker]="startPicker" formControlName="startDate" required>
+            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+            <mat-icon matPrefix>event</mat-icon>
+            <mat-error *ngIf="assignmentForm.get('startDate')?.hasError('required')">
+              Fecha inicio es requerida
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha Fin</mat-label>
+            <input matInput [matDatepicker]="endPicker" formControlName="endDate">
+            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+            <mat-icon matPrefix>event_available</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Tipo de Liderazgo</mat-label>
+            <mat-select formControlName="leadershipType" required>
+              <mat-option [value]="true">
+                <mat-icon>corporate_fare</mat-icon>
+                Integrity
+              </mat-option>
+              <mat-option [value]="false">
+                <mat-icon>business_center</mat-icon>
+                Externo
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>leaderboard</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="status" required>
+              <mat-option [value]="true">
+                <mat-icon>check_circle</mat-icon>
+                Activo
+              </mat-option>
+              <mat-option [value]="false">
+                <mat-icon>cancel</mat-icon>
+                Inactivo
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>status</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <button mat-raised-button color="primary" (click)="addAssignment()" [disabled]="!assignmentForm.valid" class="add-button">
           <mat-icon>add</mat-icon>
-          Nueva Asignación
+          Agregar Asignación
         </button>
-      </div>
+      </form>
+    </div>
 
-      <table mat-table [dataSource]="dataSource" class="assignments-table">
-        <!-- Columna Proyecto -->
-        <ng-container matColumnDef="project">
-          <th mat-header-cell *matHeaderCellDef> Proyecto </th>
-          <td mat-cell *matCellDef="let assignment">
+    <!-- Lista de asignaciones actuales -->
+    <div *ngIf="!loading && assignedProjects.length > 0" class="assignments-section">
+      <h3 class="section-title">
+        <mat-icon>assignment</mat-icon>
+        Proyectos Asignados ({{assignedProjects.length}})
+      </h3>
+
+      <div class="assignments-grid">
+        <div class="assignment-card" *ngFor="let assignment of assignedProjects; let i = index">
+          <div class="assignment-header">
             <div class="project-info">
-              <div class="project-name">{{assignment.projectName}}</div>
-              <div *ngIf="!assignment.projectName.includes('no encontrado')" class="project-id">
-                ID: {{assignment.id}}
+              <mat-icon class="project-icon">folder</mat-icon>
+              <div>
+                <div class="project-name">{{assignment.projectName}}</div>
+                <div class="project-details">
+                  <span class="detail-item">
+                    <mat-icon>date_range</mat-icon>
+                    {{formatDateDisplay(assignment.startDate)}} - {{formatDateDisplay(assignment.endDate) || 'N/A'}}
+                  </span>
+                </div>
               </div>
             </div>
-          </td>
-        </ng-container>
-
-        <!-- Columna Responsabilidad -->
-        <ng-container matColumnDef="responsibility">
-          <th mat-header-cell *matHeaderCellDef> Responsabilidad </th>
-          <td mat-cell *matCellDef="let assignment">{{assignment.responsibility}}</td>
-        </ng-container>
-
-        <!-- Columna Fecha Inicio -->
-        <ng-container matColumnDef="startDate">
-          <th mat-header-cell *matHeaderCellDef> Inicio </th>
-          <td mat-cell *matCellDef="let assignment">{{formatDate(assignment.startDate)}}</td>
-        </ng-container>
-
-        <!-- Columna Fecha Fin -->
-        <ng-container matColumnDef="endDate">
-          <th mat-header-cell *matHeaderCellDef> Fin </th>
-          <td mat-cell *matCellDef="let assignment">{{formatDate(assignment.endDate)}}</td>
-        </ng-container>
-
-        <!-- Columna Tipo de Liderazgo -->
-        <ng-container matColumnDef="leadershipType">
-          <th mat-header-cell *matHeaderCellDef> Tipo </th>
-          <td mat-cell *matCellDef="let assignment">
-            <span [class.integrity]="assignment.leadershipType" [class.external]="!assignment.leadershipType">
-              {{getLeadershipTypeName(assignment.leadershipType)}}
-            </span>
-          </td>
-        </ng-container>
-
-        <!-- Columna Estado -->
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef> Estado </th>
-          <td mat-cell *matCellDef="let assignment">
-            <span [class.active]="assignment.status" [class.inactive]="!assignment.status">
-              {{getStatusName(assignment.status)}}
-            </span>
-          </td>
-        </ng-container>
-
-        <!-- Columna Acciones -->
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef> Acciones </th>
-          <td mat-cell *matCellDef="let assignment">
-            <button mat-icon-button (click)="editAssignment(assignment)" title="Editar">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button (click)="deleteAssignment(assignment)" title="Eliminar">
+            <button mat-icon-button color="warn" (click)="removeAssignment(i)" class="delete-btn" matTooltip="Eliminar asignación">
               <mat-icon>delete</mat-icon>
             </button>
-          </td>
-        </ng-container>
+          </div>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
+          <div class="assignment-details">
+            <div class="detail-row">
+              <span class="detail-label">
+                <mat-icon>description</mat-icon>
+                Responsabilidad:
+              </span>
+              <span class="detail-value">{{assignment.responsibility || 'Sin especificar'}}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">
+                <mat-icon>leaderboard</mat-icon>
+                Tipo:
+              </span>
+              <span class="detail-value" [class.integrity]="assignment.leadershipType" [class.external]="!assignment.leadershipType">
+                {{getLeadershipTypeName(assignment.leadershipType)}}
+              </span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">
+                <mat-icon>status</mat-icon>
+                Estado:
+              </span>
+              <span class="detail-value" [class.active]="assignment.status" [class.inactive]="!assignment.status">
+                {{getStatusName(assignment.status)}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && assignedProjects.length === 0" class="no-assignments">
+      <mat-icon class="no-data-icon">assignment</mat-icon>
+      <p>No hay proyectos asignados</p>
+      <span class="hint">Agrega proyectos usando el formulario superior</span>
+    </div>
+
+    <div class="saving-spinner" *ngIf="saving">
+      <mat-spinner diameter="30"></mat-spinner>
+      <p>Guardando asignaciones...</p>
     </div>
   </div>
 </mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button (click)="onClose()">Cerrar</button>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-button (click)="onClose()" class="cancel-btn">
+    <mat-icon>cancel</mat-icon>
+    Cancelar
+  </button>
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="saving || assignedProjects.length === 0" class="save-btn">
+    <mat-icon>{{saving ? 'hourglass_empty' : 'save'}}</mat-icon>
+    {{saving ? 'Guardando...' : 'Guardar Cambios'}}
+  </button>
 </mat-dialog-actions>

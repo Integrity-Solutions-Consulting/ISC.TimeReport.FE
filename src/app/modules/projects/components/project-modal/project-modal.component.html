@@ -74,8 +74,12 @@
       <div class="field-with-help">
         <mat-form-field appearance="outline" class="form-field-half">
           <mat-select formControlName="projectStatusId" placeholder="Estado del Proyecto">
-            @for (code of projectCodes; track code.id) {
-              <mat-option [value]="code.id">{{code.name}}</mat-option>
+            @if (isLoadingStatuses) {
+              <mat-option disabled>Cargando estados...</mat-option>
+            } @else {
+              @for (status of projectStatuses; track status.id) {
+                <mat-option [value]="status.id">{{status.statusName}}</mat-option>
+              }
             }
           </mat-select>
         </mat-form-field>
