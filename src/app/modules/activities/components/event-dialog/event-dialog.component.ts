@@ -109,6 +109,8 @@ export class EventDialogComponent implements OnInit {
 
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     this.currentEmployeeId = userData.data?.employeeID || null;
+
+    this.minRecurrenceDate = new Date();
   }
 
   ngOnInit(): void {
@@ -128,7 +130,130 @@ export class EventDialogComponent implements OnInit {
     } else {
       // Valor por defecto para nuevas actividades
       this.event.hours = 4;
+      this.loadHolidays();
     }
+  }
+
+  private loadHolidays(): void {
+    this.activityService.getAllHolidays().subscribe({
+      next: (response) => {
+        this.holidays = response.data || [];
+      },
+      error: (error) => {
+        console.error('Error al cargar feriados:', error);
+      }
+    });
+  }
+
+  onRecurringChange(): void {
+    if (this.isRecurring) {
+      // Establecer fechas por defecto para recurrencia
+      this.recurrenceStartDate = new Date(this.event.activityDate);
+      this.recurrenceEndDate = new Date(this.event.activityDate);
+      this.recurrenceEndDate.setDate(this.recurrenceEndDate.getDate() + 6); // Una semana por defecto
+      this.calculateRecurrenceDays();
+    } else {
+      this.recurrenceStartDate = null;
+      this.recurrenceEndDate = null;
+      this.recurrenceDaysCount = 0;
+    }
+  }
+
+  onRecurrenceDatesChange(): void {
+    if (this.recurrenceStartDate && this.recurrenceEndDate) {
+      this.calculateRecurrenceDays();
+    }
+  }
+
+  // Calcular cuántos días laborables hay en el rango
+  private calculateRecurrenceDays(): void {
+    if (!this.recurrenceStartDate || !this.recurrenceEndDate) {
+      this.recurrenceDaysCount = 0;
+      return;
+    }
+
+    let count = 0;
+    const currentDate = new Date(this.recurrenceStartDate);
+    const endDate = new Date(this.recurrenceEndDate);
+
+    // Asegurarse de que endDate no sea anterior a startDate
+    if (endDate < currentDate) {
+      this.recurrenceDaysCount = 0;
+      return;
+    }
+
+    while (currentDate <= endDate) {
+      // Saltar fines de semana (sábado=6, domingo=0)
+      if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
+        // Saltar feriados
+        const dateString = currentDate.toISOString().split('T')[0];
+        const isHoliday = this.holidays.some(holiday => holiday.holidayDate === dateString);
+
+        if (!isHoliday) {
+          count++;
+        }
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    this.recurrenceDaysCount = count;
+  }
+
+  // Verificar si una fecha es feriado
+  private isHoliday(date: Date): boolean {
+    const dateString = date.toISOString().split('T')[0];
+    return this.holidays.some(holiday => holiday.holidayDate === dateString);
+  }
+
+  // Verificar si una fecha es fin de semana
+  private isWeekend(date: Date): boolean {
+    const day = date.getDay();
+    return day === 0 || day === 6; // 0 es domingo, 6 es sábado
+  }
+
+  // Preparar el payload para actividades recurrentes
+  prepareRecurrencePayload(): any[] {
+    const payloads = [];
+
+    if (!this.recurrenceStartDate || !this.recurrenceEndDate) {
+      return [this.prepareSinglePayload()];
+    }
+
+    const currentDate = new Date(this.recurrenceStartDate);
+    const endDate = new Date(this.recurrenceEndDate);
+
+    while (currentDate <= endDate) {
+      // Saltar fines de semana y feriados
+      if (!this.isWeekend(currentDate) && !this.isHoliday(currentDate)) {
+        const payload = {
+          projectID: Number(this.event.projectID),
+          activityTypeID: this.event.activityTypeID,
+          hoursQuantity: Number(this.event.hours || 4),
+          activityDate: new Date(currentDate),
+          activityDescription: this.event.activityDescription,
+          requirementCode: this.event.requirementCode,
+          notes: this.event.details || ''
+        };
+        payloads.push(payload);
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return payloads;
+  }
+
+  // Preparar payload para una sola actividad
+  prepareSinglePayload(): any {
+    return {
+      id: this.data.isEdit ? this.event.id : undefined,
+      projectID: Number(this.event.projectID),
+      activityTypeID: this.event.activityTypeID,
+      hoursQuantity: Number(this.event.hours || 4),
+      activityDate: this.event.activityDate,
+      activityDescription: this.event.activityDescription,
+      requirementCode: this.event.requirementCode,
+      notes: this.event.details || ''
+    };
   }
 
   private loadActivityTypes(): void {
@@ -299,7 +424,9 @@ export class EventDialogComponent implements OnInit {
     }
   }
 
+  // Modificar isFormValid para incluir validación de recurrencia
   isFormValid(): boolean {
+    // Validaciones básicas existentes
     if (!this.event.activityTypeID ||
         !this.event.projectID ||
         !this.event.activityDescription ||
@@ -308,7 +435,6 @@ export class EventDialogComponent implements OnInit {
     }
 
     const hours = Number(this.event.hours);
-    // Verificar que hours no sea NaN y esté en el rango correcto (0.5 a 8)
     if (isNaN(hours) || hours < 0.5 || hours > 8) {
       return false;
     }
@@ -317,7 +443,23 @@ export class EventDialogComponent implements OnInit {
       return false;
     }
 
-    if (!this.data.isEdit) {
+    // Validaciones específicas para recurrencia
+    if (this.isRecurring) {
+      if (!this.recurrenceStartDate || !this.recurrenceEndDate) {
+        return false;
+      }
+
+      if (this.recurrenceStartDate > this.recurrenceEndDate) {
+        return false;
+      }
+
+      if (this.recurrenceDaysCount === 0) {
+        return false;
+      }
+    }
+
+    // Validación de horas por día (solo para no recurrencia o edición)
+    if (!this.isRecurring || this.data.isEdit) {
       let currentHoursForDay = 0;
       const selectedDate = this.formatDate(this.event.activityDate);
 
