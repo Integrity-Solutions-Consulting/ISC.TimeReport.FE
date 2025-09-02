@@ -155,8 +155,12 @@ export class LeadersService {
       });
   }
 
-  assignLeaderToProject(payload: LeaderAssignmentPayload): Observable<any> {
-    return this.http.post(`${this.urlBase}/api/Leader/assign-leader-to-project`, payload);
+  assignLeaderToProject(payload: any): Observable<any> {
+    this.showLoading();
+
+    // El payload ya viene con la estructura { request: ... }
+    return this.http.post(`${this.urlBase}/api/Leader/assign-leader-to-project`, payload)
+      .pipe(finalize(() => this.hideLoading()));
   }
 
   getAllLeadersGrouped(): Observable<LeaderGroup[]> {
