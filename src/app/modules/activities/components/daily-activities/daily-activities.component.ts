@@ -684,11 +684,15 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
-            this.createActivity({
-              ...result,
-              projectID: result.projectID,
-              employeeID: this.currentEmployeeId // Asegúrate de incluir esto
-            });
+            if (Array.isArray(result)) {
+              this.createRecurrentActivities(result);
+            } else {
+              this.createActivity({
+                ...result,
+                projectID: result.projectID,
+                employeeID: this.currentEmployeeId // Asegúrate de incluir esto
+              });
+            }
           }
         });
       },
@@ -696,6 +700,46 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         console.error('Error loading projects for dialog', error);
         this.snackBar.open('Error al cargar proyectos', 'Cerrar', { duration: 3000 });
       }
+    });
+  }
+
+  // Nuevo método para crear actividades recurrentes
+  private createRecurrentActivities(activities: any[]): void {
+    let createdCount = 0;
+    let errorCount = 0;
+
+    activities.forEach(activity => {
+      const activityPayload = {
+        ...activity,
+        employeeID: this.currentEmployeeId
+      };
+
+      this.activityService.createActivity(activityPayload).subscribe({
+        next: () => {
+          createdCount++;
+          if (createdCount + errorCount === activities.length) {
+            // Todas las actividades procesadas
+            this.snackBar.open(
+              `Se crearon ${createdCount} de ${activities.length} actividades recurrentes`,
+              'Cerrar',
+              { duration: 5000 }
+            );
+            this.loadActivities();
+          }
+        },
+        error: (error) => {
+          errorCount++;
+          console.error('Error al crear actividad recurrente:', error);
+          if (createdCount + errorCount === activities.length) {
+            this.snackBar.open(
+              `Se crearon ${createdCount} de ${activities.length} actividades. ${errorCount} fallaron.`,
+              'Cerrar',
+              { duration: 5000 }
+            );
+            this.loadActivities();
+          }
+        }
+      });
     });
   }
 

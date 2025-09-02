@@ -118,6 +118,60 @@
         ?
       </div>
     </div>
+
+    <!-- Checkbox para Actividad Recurrente -->
+    <div class="field-with-help">
+      <mat-checkbox [(ngModel)]="isRecurring" (change)="onRecurringChange()" name="isRecurring">
+        Actividad Recurrente
+      </mat-checkbox>
+      <div class="help-icon" [matTooltip]="'Marca esta opción si deseas crear la misma actividad en múltiples días consecutivos'" matTooltipPosition="right">
+        ?
+      </div>
+    </div>
+
+    <!-- Sección de Recurrencia (solo visible cuando isRecurring es true) -->
+    <div *ngIf="isRecurring" class="recurrence-section">
+      <div class="field-with-help">
+        <div class="row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Fecha Inicio</mat-label>
+            <input matInput
+                  [matDatepicker]="startDatePicker"
+                  [(ngModel)]="recurrenceStartDate"
+                  required
+                  name="recurrenceStartDate"
+                  [min]="minRecurrenceDate"
+                  placeholder="dd/mm/aaaa">
+            <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #startDatePicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Fecha Fin</mat-label>
+            <input matInput
+                  [matDatepicker]="endDatePicker"
+                  [(ngModel)]="recurrenceEndDate"
+                  required
+                  name="recurrenceEndDate"
+                  [min]="recurrenceStartDate || minRecurrenceDate"
+                  placeholder="dd/mm/aaaa">
+            <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #endDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div class="help-icon" [matTooltip]="'Selecciona el rango de fechas para la actividad recurrente. Se crearán actividades para todos los días laborables en este rango (excluyendo fines de semana y feriados).'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
+
+      <!-- Información de resumen -->
+      <div *ngIf="recurrenceDaysCount > 0" class="recurrence-summary">
+        <p>Se crearán {{recurrenceDaysCount}} actividades entre
+          {{recurrenceStartDate | date:'dd/MM/yyyy'}} y
+          {{recurrenceEndDate | date:'dd/MM/yyyy'}}</p>
+        <p class="note">* Excluyendo fines de semana y días feriados</p>
+      </div>
+    </div>
   </div>
 </mat-dialog-content>
 

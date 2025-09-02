@@ -175,6 +175,32 @@ mat-dialog-actions {
   }
 }
 
+.recurrence-section {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+.recurrence-summary {
+  margin-top: 12px;
+  padding: 8px;
+  background-color: #e8f5e9;
+  border-radius: 4px;
+  font-size: 14px;
+
+  .note {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+  }
+}
+
+mat-checkbox {
+  margin-bottom: 16px;
+}
+
 /* Pantallas de hasta 480px (móviles pequeños) */
 @media (max-width: 480px) {
   mat-dialog-title {
