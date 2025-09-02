@@ -95,7 +95,7 @@ export class ListProjectComponent implements OnInit{
 
     selection = new SelectionModel<any>(true, []);
 
-    displayedColumns: string[] = ['code', 'name', 'description', 'startDate', 'endDate', 'options'];
+    displayedColumns: string[] = ['code', 'name', 'description', 'startDate', 'endDate', 'leader', 'options'];
 
     readonly projectCodesMap: {[key: string]: string} = {
     '1': 'Planificación',
@@ -171,6 +171,16 @@ export class ListProjectComponent implements OnInit{
           this.snackBar.open('Error al cargar proyectos', 'Cerrar', {duration: 5000});
         }
       });
+    }
+
+    getLeaderName(project: any): string {
+        if (project.lider && project.lider.length > 0) {
+            const leader = project.lider[0];
+            if (leader.getPersonResponse) {
+                return `${leader.getPersonResponse.firstName} ${leader.getPersonResponse.lastName}`;
+            }
+        }
+        return 'Sin asignar';
     }
 
     onPageChange(event: PageEvent): void {

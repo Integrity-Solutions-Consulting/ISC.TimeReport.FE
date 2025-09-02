@@ -105,7 +105,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         click: this.handleAddActivity.bind(this)
       },
       monthlyHours: { // Nuevo botón para horas mensuales (solo visual)
-        text: 'Horas Registradas: 0', // Texto inicial
+        text: '', // Texto inicial
         click: () => {} // Función vacía para deshabilitar el clic
       }
     },
@@ -625,14 +625,19 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
             activityTypes: this.activityTypes
           }
         });
-
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
-            this.createActivity({
-              ...result,
-              projectID: result.projectID,
-              employeeID: this.currentEmployeeId
-            });
+            // Si es un array, son actividades recurrentes
+            if (Array.isArray(result)) {
+              this.createRecurrentActivities(result);
+            } else {
+              // Si es un objeto, es una actividad única
+              this.createActivity({
+                ...result,
+                projectID: result.projectID,
+                employeeID: this.currentEmployeeId
+              });
+            }
           }
         });
       },
@@ -684,13 +689,20 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
+            // Si es un array, son actividades recurrentes
             if (Array.isArray(result)) {
-              this.createRecurrentActivities(result);
+              if (result.length > 30) {
+                // Mostrar confirmación para muchas actividades
+                this.confirmMultipleActivities(result);
+              } else {
+                this.createRecurrentActivities(result);
+              }
             } else {
+              // Si es un objeto, es una actividad única
               this.createActivity({
                 ...result,
                 projectID: result.projectID,
-                employeeID: this.currentEmployeeId // Asegúrate de incluir esto
+                employeeID: this.currentEmployeeId
               });
             }
           }
@@ -699,6 +711,25 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
       error: (error) => {
         console.error('Error loading projects for dialog', error);
         this.snackBar.open('Error al cargar proyectos', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  // Método para confirmar la creación de muchas actividades
+  private confirmMultipleActivities(activities: any[]): void {
+    const confirmDialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '500px',
+      data: {
+        title: 'Confirmar creación múltiple',
+        message: `Estás a punto de crear ${activities.length} actividades. ¿Estás seguro de que deseas continuar?`,
+        confirmText: 'Sí, crear todas',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    confirmDialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.createRecurrentActivities(activities);
       }
     });
   }
@@ -718,7 +749,6 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         next: () => {
           createdCount++;
           if (createdCount + errorCount === activities.length) {
-            // Todas las actividades procesadas
             this.snackBar.open(
               `Se crearon ${createdCount} de ${activities.length} actividades recurrentes`,
               'Cerrar',

@@ -20,12 +20,14 @@ import { ActivityType, Holiday } from '../../interfaces/activity.interface';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-event-dialog',
   standalone: true,
   imports: [
     CommonModule,
+    MatCheckboxModule,
     MatDialogModule,
     MatButtonModule,
     MatInputModule,
@@ -84,6 +86,8 @@ export class EventDialogComponent implements OnInit {
   recurrenceDaysCount: number = 0;
   minRecurrenceDate: Date = new Date();
   holidays: Holiday[] = [];
+  includeWeekends: boolean = false;
+  includeHolidays: boolean = false;
 
   currentEmployeeId: number | null = null;
 
@@ -138,6 +142,10 @@ export class EventDialogComponent implements OnInit {
     this.activityService.getAllHolidays().subscribe({
       next: (response) => {
         this.holidays = response.data || [];
+        // Si estamos en modo recurrente, recalcular
+        if (this.isRecurring) {
+          this.calculateRecurrenceDays();
+        }
       },
       error: (error) => {
         console.error('Error al cargar feriados:', error);
@@ -183,13 +191,10 @@ export class EventDialogComponent implements OnInit {
     }
 
     while (currentDate <= endDate) {
-      // Saltar fines de semana (sábado=6, domingo=0)
-      if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
-        // Saltar feriados
-        const dateString = currentDate.toISOString().split('T')[0];
-        const isHoliday = this.holidays.some(holiday => holiday.holidayDate === dateString);
-
-        if (!isHoliday) {
+      // Saltar fines de semana si no están incluidos
+      if (this.includeWeekends || (!this.isWeekend(currentDate))) {
+        // Saltar feriados si no están incluidos
+        if (this.includeHolidays || (!this.isHoliday(currentDate))) {
           count++;
         }
       }
@@ -223,13 +228,16 @@ export class EventDialogComponent implements OnInit {
     const endDate = new Date(this.recurrenceEndDate);
 
     while (currentDate <= endDate) {
-      // Saltar fines de semana y feriados
-      if (!this.isWeekend(currentDate) && !this.isHoliday(currentDate)) {
+      // Incluir según las opciones seleccionadas
+      const includeDate = (this.includeWeekends || !this.isWeekend(currentDate)) &&
+                        (this.includeHolidays || !this.isHoliday(currentDate));
+
+      if (includeDate) {
         const payload = {
           projectID: Number(this.event.projectID),
           activityTypeID: this.event.activityTypeID,
           hoursQuantity: Number(this.event.hours || 4),
-          activityDate: new Date(currentDate),
+          activityDate: this.formatDate(new Date(currentDate)), // Usar formatDate
           activityDescription: this.event.activityDescription,
           requirementCode: this.event.requirementCode,
           notes: this.event.details || ''
@@ -333,25 +341,13 @@ export class EventDialogComponent implements OnInit {
   }
 
   preparePayload(): any {
-    console.log('Valores actuales:', {
-      eventHours: this.event.hours,
-      activityTypeID: this.event.activityTypeID,
-      projectID: this.event.projectID,
-      selectedProject: this.projects.find((p: ProjectWithID) => p.id === this.event.projectID)
-    });
-
-    const payload = {
-      id: this.data.isEdit ? this.event.id : undefined,
-      projectID: Number(this.event.projectID),
-      activityTypeID: this.event.activityTypeID,
-      hoursQuantity: Number(this.event.hours || 4),
-      activityDate: this.event.activityDate,
-      activityDescription: this.event.activityDescription,
-      requirementCode: this.event.requirementCode,
-      notes: this.event.details || ''
-    };
-    console.log(payload);
-    return payload;
+    // Si es recurrente, devolver array de actividades
+    if (this.isRecurring) {
+      return this.prepareRecurrencePayload();
+    } else {
+      // Si no es recurrente, devolver actividad única
+      return this.prepareSinglePayload();
+    }
   }
 
   validateHours(): void {
@@ -456,9 +452,15 @@ export class EventDialogComponent implements OnInit {
       if (this.recurrenceDaysCount === 0) {
         return false;
       }
+
+      // Advertencia si se crean muchas actividades
+      if (this.recurrenceDaysCount > 30) {
+        // Podrías mostrar una advertencia pero no impedir el envío
+        console.warn(`Se crearán ${this.recurrenceDaysCount} actividades, esto puede tomar un tiempo`);
+      }
     }
 
-    // Validación de horas por día (solo para no recurrencia o edición)
+    // Para actividades no recurrentes, validar horas por día
     if (!this.isRecurring || this.data.isEdit) {
       let currentHoursForDay = 0;
       const selectedDate = this.formatDate(this.event.activityDate);

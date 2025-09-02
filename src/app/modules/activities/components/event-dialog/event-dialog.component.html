@@ -140,8 +140,8 @@
                   [(ngModel)]="recurrenceStartDate"
                   required
                   name="recurrenceStartDate"
-                  [min]="minRecurrenceDate"
-                  placeholder="dd/mm/aaaa">
+                  placeholder="dd/mm/aaaa"
+                  (dateChange)="onRecurrenceDatesChange()">
             <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #startDatePicker></mat-datepicker>
           </mat-form-field>
@@ -153,13 +153,33 @@
                   [(ngModel)]="recurrenceEndDate"
                   required
                   name="recurrenceEndDate"
-                  [min]="recurrenceStartDate || minRecurrenceDate"
-                  placeholder="dd/mm/aaaa">
+                  placeholder="dd/mm/aaaa"
+                  (dateChange)="onRecurrenceDatesChange()">
             <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #endDatePicker></mat-datepicker>
           </mat-form-field>
         </div>
-        <div class="help-icon" [matTooltip]="'Selecciona el rango de fechas para la actividad recurrente. Se crearán actividades para todos los días laborables en este rango (excluyendo fines de semana y feriados).'" matTooltipPosition="right">
+        <div class="help-icon" [matTooltip]="'Selecciona el rango de fechas para la actividad recurrente. Se crearán actividades para todos los días en este rango.'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
+
+      <!-- Checkbox para incluir fines de semana -->
+      <div class="field-with-help">
+        <mat-checkbox [(ngModel)]="includeWeekends" (change)="onRecurrenceDatesChange()">
+          Incluir fines de semana
+        </mat-checkbox>
+        <div class="help-icon" [matTooltip]="'Marca esta opción si deseas incluir sábados y domingos en las actividades recurrentes'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
+
+      <!-- Checkbox para incluir feriados -->
+      <div class="field-with-help">
+        <mat-checkbox [(ngModel)]="includeHolidays" (change)="onRecurrenceDatesChange()">
+          Incluir días feriados
+        </mat-checkbox>
+        <div class="help-icon" [matTooltip]="'Marca esta opción si deseas incluir días feriados en las actividades recurrentes'" matTooltipPosition="right">
           ?
         </div>
       </div>
@@ -169,9 +189,9 @@
         <p>Se crearán {{recurrenceDaysCount}} actividades entre
           {{recurrenceStartDate | date:'dd/MM/yyyy'}} y
           {{recurrenceEndDate | date:'dd/MM/yyyy'}}</p>
-        <p class="note">* Excluyendo fines de semana y días feriados</p>
       </div>
     </div>
+
   </div>
 </mat-dialog-content>
 

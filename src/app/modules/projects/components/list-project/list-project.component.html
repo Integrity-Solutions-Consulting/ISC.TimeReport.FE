@@ -33,6 +33,11 @@
       <td mat-cell *matCellDef="let element">{{element.description}}</td>
     </ng-container>
 
+    <ng-container matColumnDef="leader">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Líder Técnico </th>
+      <td mat-cell *matCellDef="let element">{{getLeaderName(element)}}</td>
+    </ng-container>
+
     <ng-container matColumnDef="projectStatus">
       <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
       <td mat-cell *matCellDef="let element">{{getProjectStatusName(element.projectStatusID)}}</td>

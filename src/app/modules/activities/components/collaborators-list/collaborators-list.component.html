@@ -28,7 +28,7 @@
     </mat-form-field>
 
     <!-- Quincena/Mes Toggle - Cambiado a Button Toggle -->
-    <div class="period-toggle-container">
+    <div class="period-toggle-container" *ngIf="showPeriodToggle">
       <span class="toggle-label">Periodo:</span>
       <mat-button-toggle-group [formControl]="periodToggleControl" class="period-toggle-group">
         <mat-button-toggle [value]="false" class="period-toggle-button">Quincena</mat-button-toggle>
