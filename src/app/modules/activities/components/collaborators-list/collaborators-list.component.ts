@@ -114,12 +114,21 @@ export class CollaboratorsListComponent implements OnInit {
   pageSize = 10;
 
   currentYear = new Date().getFullYear();
+  currentMonth = new Date().getMonth();
   private clientNameToIdMap = new Map<string, number>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   years: number[] = this.generateYears(2020, new Date().getFullYear() + 1);
+
+  // Propiedad computada para determinar si mostrar el toggle
+  get showPeriodToggle(): boolean {
+    const selectedMonth = this.monthControl.value ?? new Date().getMonth();
+    const selectedYear = this.yearControl.value ?? new Date().getFullYear();
+
+    return selectedMonth === this.currentMonth && selectedYear === this.currentYear;
+  }
 
   private generateYears(start: number, end: number): number[] {
     const years = [];
@@ -135,12 +144,29 @@ export class CollaboratorsListComponent implements OnInit {
     this.loadHolidaysAndData();
 
     // Suscribirse a cambios de mes y año para recalcular días laborables
-    this.monthControl.valueChanges.subscribe(() => this.loadHolidaysAndData());
-    this.yearControl.valueChanges.subscribe(() => this.loadHolidaysAndData());
+    // y resetear el paginador a la primera página
+    this.monthControl.valueChanges.subscribe(() => {
+      this.resetPagination();
+      this.loadHolidaysAndData();
+    });
+
+    this.yearControl.valueChanges.subscribe(() => {
+      this.resetPagination();
+      this.loadHolidaysAndData();
+    });
+
     this.periodToggleControl.valueChanges.subscribe(() => {
+      this.resetPagination();
       this.calculateBusinessDays(); // Recalcular inmediatamente
       this.loadData(); // Recargar datos para actualizar estados
     });
+  }
+
+  // Método para resetear el paginador a la primera página
+  private resetPagination(): void {
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
   }
 
   private shouldUseFullMonth(): boolean {
@@ -177,6 +203,9 @@ export class CollaboratorsListComponent implements OnInit {
       if (this.periodToggleControl.value !== shouldUseFullMonth) {
         this.periodToggleControl.setValue(shouldUseFullMonth, { emitEvent: false });
       }
+    } else {
+      // Para meses que no son el actual, forzar a mes completo
+      this.periodToggleControl.setValue(true, { emitEvent: false });
     }
   }
 
@@ -552,6 +581,8 @@ export class CollaboratorsListComponent implements OnInit {
       next: ({ employees, activities, leaders }) => {
         if (!employees || employees.length === 0) {
           this.dataSource.data = [];
+          // Resetear paginación cuando no hay datos
+          this.resetPagination();
           return;
         }
 
@@ -657,17 +688,24 @@ export class CollaboratorsListComponent implements OnInit {
             this.dataSource.paginator = this.paginator;
             this.dataSource.sort = this.sort;
             this.totalItems = filteredCollaborators.length;
+
+            // Resetear a la primera página después de cargar nuevos datos
+            this.resetPagination();
           },
           error: (err) => {
             console.error('Error loading details:', err);
             this.dataSource.data = [];
             this.noDataMessage = 'Ocurrió un error al cargar los datos. Por favor, inténtalo de nuevo.';
+            // Resetear paginación incluso en caso de error
+            this.resetPagination();
           }
         });
       },
       error: (err) => {
         console.error('Error loading initial data:', err);
         this.dataSource.data = [];
+        // Resetear paginación incluso en caso de error
+        this.resetPagination();
       }
     });
   }
