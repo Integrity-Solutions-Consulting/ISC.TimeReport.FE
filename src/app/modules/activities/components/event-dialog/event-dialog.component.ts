@@ -122,6 +122,7 @@ export class EventDialogComponent implements OnInit {
 
     if (this.data.projects) {
       this.projects = this.data.projects;
+      this.setDefaultProject();
     } else {
       this.loadProjectsBasedOnRole();
     }
@@ -153,6 +154,22 @@ export class EventDialogComponent implements OnInit {
         console.error('Error al cargar feriados:', error);
       }
     });
+  }
+
+  private setDefaultProject(): void {
+    // Solo establecer proyecto por defecto si NO es edición y hay proyectos disponibles
+    if (!this.data.isEdit && this.projects.length > 0) {
+      // Si hay exactamente un proyecto, seleccionarlo automáticamente
+      if (this.projects.length === 1) {
+        this.event.projectID = this.projects[0].id;
+        this.onProjectChange(this.event.projectID); // Para actualizar el código de requerimiento
+      }
+      // Si hay más de un proyecto, seleccionar el primero
+      else if (this.projects.length > 1) {
+        this.event.projectID = this.projects[0].id;
+        this.onProjectChange(this.event.projectID);
+      }
+    }
   }
 
   onRecurringChange(): void {
@@ -275,12 +292,27 @@ export class EventDialogComponent implements OnInit {
             name: type.name,
             value: type.colorCode
           }));
+
+          // Si ya tenemos los proyectos pero no se ha establecido el default
+          if (this.projects.length > 0 && !this.data.isEdit && !this.event.projectID) {
+            this.setDefaultProject();
+          }
         },
         error: (err: any) => {
           console.error('Error al cargar tipos de actividad', err);
           this.setDefaultActivityTypes();
+
+          // Mismo caso aquí
+          if (this.projects.length > 0 && !this.data.isEdit && !this.event.projectID) {
+            this.setDefaultProject();
+          }
         }
       });
+    } else {
+      // Si los tipos ya están cargados pero necesitamos establecer proyecto default
+      if (this.projects.length > 0 && !this.data.isEdit && !this.event.projectID) {
+        this.setDefaultProject();
+      }
     }
   }
 
@@ -317,6 +349,7 @@ export class EventDialogComponent implements OnInit {
     if (isAdmin) {
       this.projectService.getAllProjects().subscribe((projects: ProjectWithID[]) => {
         this.projects = projects;
+        this.setDefaultProject(); // ← Añade esta línea
       });
     } else if (this.currentEmployeeId) {
       this.projectService.getProjectsByEmployee(this.currentEmployeeId, {
@@ -325,6 +358,7 @@ export class EventDialogComponent implements OnInit {
         search: ''
       }).subscribe((response: any) => {
         this.projects = response.items || [];
+        this.setDefaultProject(); // ← Añade esta línea
       });
     }
   }

@@ -21,6 +21,7 @@
     <!-- Proyecto -->
     <div class="field-with-help">
       <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Proyecto</mat-label>
         <mat-select [(ngModel)]="event.projectID"
                     (ngModelChange)="onProjectChange($event)"
                     required
@@ -43,6 +44,7 @@
     <!-- Código de Requerimiento -->
     <div class="field-with-help">
       <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Código de Requerimiento</mat-label>
         <input matInput
               [(ngModel)]="event.requirementCode"
               placeholder="Código de Requerimiento"

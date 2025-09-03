@@ -175,6 +175,13 @@ b { /* used for event dates/times */
   margin-top: 12px;
 }
 
+.fc-toolbar-title {
+  text-transform: capitalize;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
 // Contenedor principal del pie de página
 .calendar-footer {
   margin-top: 20px;
