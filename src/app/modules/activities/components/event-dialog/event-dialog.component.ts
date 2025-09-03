@@ -131,6 +131,8 @@ export class EventDialogComponent implements OnInit {
       if (this.data.event.activityDescription) {
         this.event.activityDescription = this.data.event.activityDescription;
       }
+      // Asegurar que no esté en modo recurrente cuando es edición
+      this.isRecurring = false;
     } else {
       // Valor por defecto para nuevas actividades
       this.event.hours = 4;

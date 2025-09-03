@@ -5,27 +5,25 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeadersService } from '../../services/leaders.service';
 import { ProjectService } from '../../../projects/services/project.service';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatInputModule } from '@angular/material/input';
 import { Subject, takeUntil } from 'rxjs';
-import { provideNativeDateAdapter } from '@angular/material/core';
 
 export interface LeaderAssignment {
   id: number;
   projectID: number;
   responsibility: string;
-  startDate: string; // Formato YYYY-MM-DD para el backend
-  endDate: string;   // Formato YYYY-MM-DD para el backend
   leadershipType: boolean;
   status: boolean;
   projectName?: string;
+  startDate?: string; // Solo para visualización
+  endDate?: string;   // Solo para visualización
 }
 
 @Component({
@@ -34,7 +32,6 @@ export interface LeaderAssignment {
   imports: [
     CommonModule,
     MatButtonModule,
-    MatDatepickerModule,
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
@@ -45,8 +42,7 @@ export interface LeaderAssignment {
     ReactiveFormsModule
   ],
   templateUrl: './leader-assignment.component.html',
-  styleUrls: ['./leader-assignment.component.scss'],
-  providers: [provideNativeDateAdapter(), DatePipe]
+  styleUrls: ['./leader-assignment.component.scss']
 })
 export class AssignmentLeaderDialogComponent implements OnInit {
   assignmentForm: FormGroup;
@@ -64,14 +60,11 @@ export class AssignmentLeaderDialogComponent implements OnInit {
     private fb: FormBuilder,
     private leaderService: LeadersService,
     private projectService: ProjectService,
-    private snackBar: MatSnackBar,
-    private datePipe: DatePipe
+    private snackBar: MatSnackBar
   ) {
     this.assignmentForm = this.fb.group({
       selectedProject: [null, Validators.required],
       responsibility: ['', Validators.required],
-      startDate: [null, Validators.required],
-      endDate: [null],
       leadershipType: [true, Validators.required],
       status: [true, Validators.required]
     });
@@ -96,8 +89,9 @@ export class AssignmentLeaderDialogComponent implements OnInit {
             ...assignment,
             projectID: assignment.projectId || assignment.id,
             projectName: this.getProjectName(assignment.projectId || assignment.id),
-            startDate: assignment.startDate, // Mantener formato original del backend
-            endDate: assignment.endDate      // Mantener formato original del backend
+            // Agregar fechas del proyecto para visualización
+            startDate: this.getProjectStartDate(assignment.projectId || assignment.id),
+            endDate: this.getProjectEndDate(assignment.projectId || assignment.id)
           }));
         }
 
@@ -116,14 +110,19 @@ export class AssignmentLeaderDialogComponent implements OnInit {
     return project ? `${project.code} - ${project.name}` : `Proyecto no encontrado (ID: ${projectId})`;
   }
 
+  getProjectStartDate(projectId: number): string {
+    const project = this.allProjects.find(p => p.id === projectId);
+    return project?.startDate ? this.formatDateDisplay(project.startDate) : 'N/A';
+  }
+
+  getProjectEndDate(projectId: number): string {
+    const project = this.allProjects.find(p => p.id === projectId);
+    return project?.endDate ? this.formatDateDisplay(project.endDate) : 'N/A';
+  }
+
   getAvailableProjects(): any[] {
     const assignedProjectIds = this.assignedProjects.map(ap => ap.projectID);
     return this.allProjects.filter(project => !assignedProjectIds.includes(project.id));
-  }
-
-  isValidDateFormat(date: string): boolean {
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    return regex.test(date);
   }
 
   addAssignment(): void {
@@ -134,11 +133,12 @@ export class AssignmentLeaderDialogComponent implements OnInit {
         id: 0,
         projectID: formValue.selectedProject,
         responsibility: formValue.responsibility,
-        startDate: this.formatDateForAPI(formValue.startDate),
-        endDate: formValue.endDate ? this.formatDateForAPI(formValue.endDate) : '',
         leadershipType: formValue.leadershipType,
         status: formValue.status,
-        projectName: this.getProjectName(formValue.selectedProject)
+        projectName: this.getProjectName(formValue.selectedProject),
+        // Solo para visualización, no se envían al backend
+        startDate: this.getProjectStartDate(formValue.selectedProject),
+        endDate: this.getProjectEndDate(formValue.selectedProject)
       };
 
       this.assignedProjects.push(newAssignment);
@@ -160,14 +160,11 @@ export class AssignmentLeaderDialogComponent implements OnInit {
 
     this.saving = true;
 
-    // Crear el payload con la estructura correcta que espera el backend
     const payload = {
         personID: this.leader.person.id,
         personProjectMiddle: this.assignedProjects.map(assignment => ({
           projectID: assignment.projectID,
           leadershipType: assignment.leadershipType,
-          startDate: assignment.startDate, // Ya debe estar en formato YYYY-MM-DD
-          endDate: assignment.endDate,     // Ya debe estar en formato YYYY-MM-DD
           responsibilities: assignment.responsibility,
           status: assignment.status
         }))
@@ -200,43 +197,18 @@ export class AssignmentLeaderDialogComponent implements OnInit {
     this.assignmentForm.reset({
       selectedProject: null,
       responsibility: '',
-      startDate: null,
-      endDate: null,
       leadershipType: true,
       status: true
     });
   }
 
-  formatDateForAPI(date: Date | null): string {
-    if (!date) return '';
-
-    // Formato YYYY-MM-DD que espera el backend
-    const year = date.getFullYear();
-    const month = ('0' + (date.getMonth() + 1)).slice(-2);
-    const day = ('0' + date.getDate()).slice(-2);
-
-    return `${year}-${month}-${day}`;
-  }
-
-  formatDateDisplay(date: string): string {
-    if (!date) return 'N/A';
-    // Convertir de YYYY-MM-DD (backend) a DD-MM-YYYY (visualización)
+  formatDateDisplay(dateString: string): string {
+    if (!dateString) return 'N/A';
     try {
-      const [year, month, day] = date.split('-');
-      return `${day}-${month}-${year}`;
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES'); // Formato DD/MM/YYYY
     } catch {
-      return date; // Si no está en el formato esperado, devolver tal cual
-    }
-  }
-
-  parseDateForInput(dateString: string): Date | null {
-    if (!dateString) return null;
-    try {
-      // Convertir de YYYY-MM-DD (backend) a Date object
-      const [year, month, day] = dateString.split('-').map(Number);
-      return new Date(year, month - 1, day);
-    } catch {
-      return null;
+      return dateString;
     }
   }
 

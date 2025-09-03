@@ -35,6 +35,11 @@ export class ChangePasswordComponent implements OnInit{
   private urlBase: string = environment.URL_BASE;
   isLoading: boolean = false;
 
+  // Variables para controlar la visibilidad de las contraseñas
+  hideOldPassword: boolean = true;
+  hideNewPassword: boolean = true;
+  hideConfirmPassword: boolean = true;
+
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
@@ -113,7 +118,7 @@ export class ChangePasswordComponent implements OnInit{
           } else if (error.status === 401) {
             errorMessage = 'La contraseña actual es incorrecta.';
           } else if (error.status === 400) {
-            errorMessage = 'La nueva contraseña no cumple con los requisitos.';
+            errorMessage = 'La contraseña actual es incorrecta.';
           }
 
           this.showSnackBar(errorMessage, 'error');
