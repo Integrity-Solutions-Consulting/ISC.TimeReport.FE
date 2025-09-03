@@ -224,8 +224,8 @@ export class AuthService {
       'Gerente': [2, 3, 4, 6, 7],
       'Lider': [2, 3, 4],
       'Colaborador': [3],
-      'Recursos Humanos': [1, 4, 5],
-      'Administrativo': [1, 4, 6]
+      'Recursos Humanos': [1, 3, 4, 5],
+      'Administrativo': [1, 3, 4, 6]
     };
 
     // Obtener todos los módulos permitidos para los roles del usuario

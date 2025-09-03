@@ -366,7 +366,7 @@ export class LeaderListComponent implements OnInit{
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.snackBar.open("Líder asignado con éxito", "Cerrar", {duration: 5000});
+        this.snackBar.open("Asignaciones actualizadas", "Cerrar", {duration: 5000});
         this.loadAllLeaders(); // Recargar todos los líderes
       }
     });

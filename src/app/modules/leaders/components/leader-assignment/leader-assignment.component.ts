@@ -122,7 +122,9 @@ export class AssignmentLeaderDialogComponent implements OnInit {
 
   getAvailableProjects(): any[] {
     const assignedProjectIds = this.assignedProjects.map(ap => ap.projectID);
-    return this.allProjects.filter(project => !assignedProjectIds.includes(project.id));
+    return this.allProjects.filter(project =>
+      !assignedProjectIds.includes(project.id) && project.status === true
+    );
   }
 
   addAssignment(): void {
@@ -152,6 +154,10 @@ export class AssignmentLeaderDialogComponent implements OnInit {
     this.assignedProjects.splice(index, 1);
   }
 
+  getActiveAssignments(): LeaderAssignment[] {
+    return this.assignedProjects.filter(assignment => assignment.status === true);
+  }
+
   onSubmit(): void {
     if (this.assignedProjects.length === 0) {
       this.snackBar.open('No hay asignaciones para guardar', 'Cerrar', { duration: 3000 });
@@ -175,7 +181,7 @@ export class AssignmentLeaderDialogComponent implements OnInit {
     this.leaderService.assignLeaderToProject(payload).subscribe({
       next: () => {
         this.saving = false;
-        this.snackBar.open('Asignaciones guardadas con éxito', 'Cerrar', { duration: 3000 });
+        this.snackBar.open('Se guardaron los cambios correctamente', 'Cerrar', { duration: 3000 });
         this.dialogRef.close(true);
       },
       error: (error) => {
