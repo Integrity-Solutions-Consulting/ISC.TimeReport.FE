@@ -23,8 +23,8 @@
 }
 
 .leader-info {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--itg-bg);
+  color: var(--itg-text);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 24px;
@@ -49,7 +49,7 @@
 
     strong {
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.9);
+      color: var(--itg-text);
     }
 
     .info-icon {
@@ -60,13 +60,15 @@
   }
 
   .active {
-    color: #a5d6a7;
-    font-weight: 500;
+    background-color: #cafccc;
+    color: #18961c;
+    font-weight: 1000;
   }
 
   .inactive {
-    color: #ef9a9a;
-    font-weight: 500;
+    background-color: #ef9a9a;
+    color: #f85050;
+    font-weight: 1000;
   }
 }
 

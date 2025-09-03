@@ -120,8 +120,18 @@ export class EventDialogComponent implements OnInit {
   ngOnInit(): void {
     this.loadActivityTypes();
 
+    if (this.data.event) {
+      this.event = {
+        ...this.event,
+        ...this.data.event,
+        // Asegurar que hours tenga el valor correcto
+        hours: this.data.event.hoursQuantity || this.data.event.hours || 4
+      };
+    }
+
     if (this.data.projects) {
       this.projects = this.data.projects;
+      this.setDefaultProject();
     } else {
       this.loadProjectsBasedOnRole();
     }
@@ -131,6 +141,8 @@ export class EventDialogComponent implements OnInit {
       if (this.data.event.activityDescription) {
         this.event.activityDescription = this.data.event.activityDescription;
       }
+      // Asegurar que no esté en modo recurrente cuando es edición
+      this.isRecurring = false;
     } else {
       // Valor por defecto para nuevas actividades
       this.event.hours = 4;
@@ -153,6 +165,22 @@ export class EventDialogComponent implements OnInit {
     });
   }
 
+  private setDefaultProject(): void {
+    // Solo establecer proyecto por defecto si NO es edición y hay proyectos disponibles
+    if (!this.data.isEdit && this.projects.length > 0) {
+      // Si hay exactamente un proyecto, seleccionarlo automáticamente
+      if (this.projects.length === 1) {
+        this.event.projectID = this.projects[0].id;
+        this.onProjectChange(this.event.projectID); // Para actualizar el código de requerimiento
+      }
+      // Si hay más de un proyecto, seleccionar el primero
+      else if (this.projects.length > 1) {
+        this.event.projectID = this.projects[0].id;
+        this.onProjectChange(this.event.projectID);
+      }
+    }
+  }
+
   onRecurringChange(): void {
     if (this.isRecurring) {
       // Establecer fechas por defecto para recurrencia
@@ -171,6 +199,23 @@ export class EventDialogComponent implements OnInit {
     if (this.recurrenceStartDate && this.recurrenceEndDate) {
       this.calculateRecurrenceDays();
     }
+  }
+
+  private getCurrentHoursExcludingSelf(): number {
+    let totalHours = 0;
+    const selectedDate = this.formatDate(this.event.activityDate);
+
+    if (this.data.currentCalendarEvents) {
+      this.data.currentCalendarEvents.forEach((event: any) => {
+        const eventStartDate = this.formatDate(event.start);
+        // Excluir la actividad actual que se está editando
+        if (eventStartDate === selectedDate && event.id !== this.event.id) {
+          totalHours += event.extendedProps?.hoursQuantity || 0;
+        }
+      });
+    }
+
+    return totalHours;
   }
 
   // Calcular cuántos días laborables hay en el rango
@@ -273,12 +318,27 @@ export class EventDialogComponent implements OnInit {
             name: type.name,
             value: type.colorCode
           }));
+
+          // Si ya tenemos los proyectos pero no se ha establecido el default
+          if (this.projects.length > 0 && !this.data.isEdit && !this.event.projectID) {
+            this.setDefaultProject();
+          }
         },
         error: (err: any) => {
           console.error('Error al cargar tipos de actividad', err);
           this.setDefaultActivityTypes();
+
+          // Mismo caso aquí
+          if (this.projects.length > 0 && !this.data.isEdit && !this.event.projectID) {
+            this.setDefaultProject();
+          }
         }
       });
+    } else {
+      // Si los tipos ya están cargados pero necesitamos establecer proyecto default
+      if (this.projects.length > 0 && !this.data.isEdit && !this.event.projectID) {
+        this.setDefaultProject();
+      }
     }
   }
 
@@ -315,6 +375,7 @@ export class EventDialogComponent implements OnInit {
     if (isAdmin) {
       this.projectService.getAllProjects().subscribe((projects: ProjectWithID[]) => {
         this.projects = projects;
+        this.setDefaultProject(); // ← Añade esta línea
       });
     } else if (this.currentEmployeeId) {
       this.projectService.getProjectsByEmployee(this.currentEmployeeId, {
@@ -323,6 +384,7 @@ export class EventDialogComponent implements OnInit {
         search: ''
       }).subscribe((response: any) => {
         this.projects = response.items || [];
+        this.setDefaultProject(); // ← Añade esta línea
       });
     }
   }
@@ -464,18 +526,19 @@ export class EventDialogComponent implements OnInit {
     if (!this.isRecurring || this.data.isEdit) {
       let currentHoursForDay = 0;
       const selectedDate = this.formatDate(this.event.activityDate);
+      const currentHours = this.getCurrentHoursExcludingSelf();
 
       if (this.data.currentCalendarEvents) {
         this.data.currentCalendarEvents.forEach((event: any) => {
           const eventStartDate = this.formatDate(event.start);
-          if (eventStartDate === selectedDate) {
+          if (eventStartDate === selectedDate && event.id !== this.event.id) {
             currentHoursForDay += event.extendedProps?.hoursQuantity || 0;
           }
         });
       }
 
       const proposedHours = Number(this.event.hours);
-      if ((currentHoursForDay + proposedHours) > 8) {
+      if ((currentHoursForDay + proposedHours) > 8 && !this.data.isEdit) {
         return false;
       }
     }
