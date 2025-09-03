@@ -120,6 +120,15 @@ export class EventDialogComponent implements OnInit {
   ngOnInit(): void {
     this.loadActivityTypes();
 
+    if (this.data.event) {
+      this.event = {
+        ...this.event,
+        ...this.data.event,
+        // Asegurar que hours tenga el valor correcto
+        hours: this.data.event.hoursQuantity || this.data.event.hours || 4
+      };
+    }
+
     if (this.data.projects) {
       this.projects = this.data.projects;
       this.setDefaultProject();
@@ -190,6 +199,23 @@ export class EventDialogComponent implements OnInit {
     if (this.recurrenceStartDate && this.recurrenceEndDate) {
       this.calculateRecurrenceDays();
     }
+  }
+
+  private getCurrentHoursExcludingSelf(): number {
+    let totalHours = 0;
+    const selectedDate = this.formatDate(this.event.activityDate);
+
+    if (this.data.currentCalendarEvents) {
+      this.data.currentCalendarEvents.forEach((event: any) => {
+        const eventStartDate = this.formatDate(event.start);
+        // Excluir la actividad actual que se está editando
+        if (eventStartDate === selectedDate && event.id !== this.event.id) {
+          totalHours += event.extendedProps?.hoursQuantity || 0;
+        }
+      });
+    }
+
+    return totalHours;
   }
 
   // Calcular cuántos días laborables hay en el rango
@@ -500,18 +526,19 @@ export class EventDialogComponent implements OnInit {
     if (!this.isRecurring || this.data.isEdit) {
       let currentHoursForDay = 0;
       const selectedDate = this.formatDate(this.event.activityDate);
+      const currentHours = this.getCurrentHoursExcludingSelf();
 
       if (this.data.currentCalendarEvents) {
         this.data.currentCalendarEvents.forEach((event: any) => {
           const eventStartDate = this.formatDate(event.start);
-          if (eventStartDate === selectedDate) {
+          if (eventStartDate === selectedDate && event.id !== this.event.id) {
             currentHoursForDay += event.extendedProps?.hoursQuantity || 0;
           }
         });
       }
 
       const proposedHours = Number(this.event.hours);
-      if ((currentHoursForDay + proposedHours) > 8) {
+      if ((currentHoursForDay + proposedHours) > 8 && !this.data.isEdit) {
         return false;
       }
     }

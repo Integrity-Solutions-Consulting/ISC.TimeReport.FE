@@ -468,7 +468,8 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
             notes: activity.notes,
             hoursQuantity: activity.hoursQuantity,
             requirementCode: activity.requirementCode,
-            employeeID: activity.employeeID // Añadir esto para debug
+            employeeID: activity.employeeID, // Añadir esto para debug
+            fullDay: allDayEvent
           }
         };
 
