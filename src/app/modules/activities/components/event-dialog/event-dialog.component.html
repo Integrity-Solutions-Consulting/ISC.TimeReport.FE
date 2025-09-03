@@ -21,6 +21,7 @@
     <!-- Proyecto -->
     <div class="field-with-help">
       <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Proyecto</mat-label>
         <mat-select [(ngModel)]="event.projectID"
                     (ngModelChange)="onProjectChange($event)"
                     required
@@ -43,6 +44,7 @@
     <!-- Código de Requerimiento -->
     <div class="field-with-help">
       <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Código de Requerimiento</mat-label>
         <input matInput
               [(ngModel)]="event.requirementCode"
               placeholder="Código de Requerimiento"
@@ -84,43 +86,46 @@
       </div>
     </div>
 
-    <!-- Fecha y Horas -->
-    <div class="field-with-help">
-      <div class="row">
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>Fecha Actividad</mat-label>
-          <input matInput
-                [matDatepicker]="activityDatePicker"
-                [(ngModel)]="event.activityDate"
-                required
-                name="activityDate"
-                placeholder="dd/mm/aaaa">
-          <mat-datepicker-toggle matSuffix [for]="activityDatePicker"></mat-datepicker-toggle>
-          <mat-datepicker #activityDatePicker></mat-datepicker>
-        </mat-form-field>
+    <!-- Campos para Actividad NO Recurrente -->
+    <div *ngIf="!isRecurring">
+      <!-- Fecha y Horas para actividad única -->
+      <div class="field-with-help">
+        <div class="row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Fecha Actividad</mat-label>
+            <input matInput
+                  [matDatepicker]="activityDatePicker"
+                  [(ngModel)]="event.activityDate"
+                  required
+                  name="activityDate"
+                  placeholder="dd/mm/aaaa">
+            <mat-datepicker-toggle matSuffix [for]="activityDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #activityDatePicker></mat-datepicker>
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>Número de Horas</mat-label>
-          <input matInput
-                 type="text"
-                 [(ngModel)]="event.hours"
-                 name="hours"
-                 required
-                 (input)="validateHours()"
-                 (keypress)="onHoursKeyPress($event)"
-                 placeholder="0.5-8">
-          <mat-error *ngIf="!event.hours || event.hours < 0.5 || event.hours > 8">
-            Horas inválidas (debe ser entre 0.5 y 8).
-          </mat-error>
-        </mat-form-field>
-      </div>
-      <div class="help-icon" [matTooltip]="'Selecciona la fecha de la actividad e ingresa el número de horas trabajadas (mínimo 0.5, máximo 8 por día).'" matTooltipPosition="right">
-        ?
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Número de Horas</mat-label>
+            <input matInput
+                  type="text"
+                  [(ngModel)]="event.hours"
+                  name="hours"
+                  required
+                  (input)="validateHours()"
+                  (keypress)="onHoursKeyPress($event)"
+                  placeholder="0.5-8">
+            <mat-error *ngIf="!event.hours || event.hours < 0.5 || event.hours > 8">
+              Horas inválidas (debe ser entre 0.5 y 8).
+            </mat-error>
+          </mat-form-field>
+        </div>
+        <div class="help-icon" [matTooltip]="'Selecciona la fecha de la actividad e ingresa el número de horas trabajadas (mínimo 0.5, máximo 8 por día).'" matTooltipPosition="right">
+          ?
+        </div>
       </div>
     </div>
 
-    <!-- Checkbox para Actividad Recurrente -->
-    <div class="field-with-help">
+    <!-- Checkbox para Actividad Recurrente (solo visible cuando no es edición) -->
+    <div class="field-with-help" *ngIf="!data.isEdit">
       <mat-checkbox [(ngModel)]="isRecurring" (change)="onRecurringChange()" name="isRecurring">
         Actividad Recurrente
       </mat-checkbox>
@@ -164,6 +169,27 @@
         </div>
       </div>
 
+      <!-- Campo de Horas para actividades recurrentes -->
+      <div class="field-with-help">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Horas por día</mat-label>
+          <input matInput
+                type="text"
+                [(ngModel)]="event.hours"
+                name="recurrenceHours"
+                required
+                (input)="validateHours()"
+                (keypress)="onHoursKeyPress($event)"
+                placeholder="0.5-8">
+          <mat-error *ngIf="!event.hours || event.hours < 0.5 || event.hours > 8">
+            Horas inválidas (debe ser entre 0.5 y 8).
+          </mat-error>
+        </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Ingresa el número de horas trabajadas por cada día (mínimo 0.5, máximo 8 por día).'" matTooltipPosition="right">
+          ?
+        </div>
+      </div>
+
       <!-- Checkbox para incluir fines de semana -->
       <div class="field-with-help">
         <mat-checkbox [(ngModel)]="includeWeekends" (change)="onRecurrenceDatesChange()">
@@ -196,11 +222,11 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-raised-button (click)="onCancel()">Cancelar</button>
-  <button mat-raised-button style="background-color: var(--itg-primary); color: var(--itg-bg)" [mat-dialog-close]="preparePayload()" [disabled]="!isFormValid()">
-    {{ data.isEdit ? 'Guardar' : 'Agregar' }}
-  </button>
   @if (data.isEdit) {
     <button mat-raised-button style="background-color: var(--status-bug-reported); color: var(--status-bug-reported-bg)" (click)="onDelete()">Eliminar</button>
   }
+  <button mat-raised-button style="background-color: var(--itg-primary); color: var(--itg-bg)" [mat-dialog-close]="preparePayload()" [disabled]="!isFormValid()">
+    {{ data.isEdit ? 'Guardar' : 'Agregar' }}
+  </button>
+  <button mat-raised-button (click)="onCancel()">Cancelar</button>
 </mat-dialog-actions>

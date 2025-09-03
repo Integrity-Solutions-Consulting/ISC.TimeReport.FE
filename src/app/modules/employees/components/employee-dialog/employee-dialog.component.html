@@ -186,7 +186,7 @@
       <div class="form-row">
         <!-- Fecha de Nacimiento -->
         <div class="field-with-help">
-          <mat-form-field appearance="outline" class="form-field-half">
+          <mat-form-field appearance="outline" class="form-field-half" required>
             <input matInput [matDatepicker]="picker3" formControlName="birthDate" placeholder="Fecha de Nacimiento">
             <mat-hint>DD/MM/YYYY</mat-hint>
             <mat-datepicker-toggle matIconSuffix [for]="picker3"></mat-datepicker-toggle>
@@ -283,7 +283,7 @@
       <div class="form-row">
         <!-- Fecha de Ingreso -->
         <div class="field-with-help">
-          <mat-form-field appearance="outline" class="form-field-half">
+          <mat-form-field appearance="outline" class="form-field-half" required>
             <input matInput [matDatepicker]="picker1" formControlName="hireDate" placeholder="Fecha de Ingreso">
             <mat-hint>DD/MM/YYYY</mat-hint>
             <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>

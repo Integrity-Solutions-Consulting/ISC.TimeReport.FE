@@ -47,11 +47,14 @@
 
       <form [formGroup]="assignmentForm" class="assignment-form">
         <div class="form-row">
-          <mat-form-field appearance="outline" class="project-select">
+          <mat-form-field appearance="outline">
             <mat-label>Seleccionar Proyecto</mat-label>
             <mat-select formControlName="selectedProject" required>
               <mat-option *ngFor="let project of getAvailableProjects()" [value]="project.id">
                 {{project.code}} - {{project.name}}
+                <span class="project-dates">
+                  ({{formatDateDisplay(project.startDate)}} - {{formatDateDisplay(project.endDate)}})
+                </span>
               </mat-option>
             </mat-select>
             <mat-icon matPrefix>folder</mat-icon>
@@ -61,8 +64,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Responsabilidades</mat-label>
-            <input matInput formControlName="responsibility" placeholder="Descripción de responsabilidades" required>
+            <input matInput formControlName="responsibility" placeholder="Responsabilidades" required>
             <mat-icon matPrefix>description</mat-icon>
             <mat-error *ngIf="assignmentForm.get('responsibility')?.hasError('required')">
               Responsabilidad es requerida
@@ -71,25 +73,6 @@
         </div>
 
         <div class="form-row">
-          <mat-form-field appearance="outline">
-            <mat-label>Fecha Inicio</mat-label>
-            <input matInput [matDatepicker]="startPicker" formControlName="startDate" required>
-            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
-            <mat-datepicker #startPicker></mat-datepicker>
-            <mat-icon matPrefix>event</mat-icon>
-            <mat-error *ngIf="assignmentForm.get('startDate')?.hasError('required')">
-              Fecha inicio es requerida
-            </mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Fecha Fin</mat-label>
-            <input matInput [matDatepicker]="endPicker" formControlName="endDate">
-            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
-            <mat-datepicker #endPicker></mat-datepicker>
-            <mat-icon matPrefix>event_available</mat-icon>
-          </mat-form-field>
-
           <mat-form-field appearance="outline">
             <mat-label>Tipo de Liderazgo</mat-label>
             <mat-select formControlName="leadershipType" required>
@@ -129,24 +112,22 @@
     </div>
 
     <!-- Lista de asignaciones actuales -->
-    <div *ngIf="!loading && assignedProjects.length > 0" class="assignments-section">
+    <div *ngIf="!loading && getActiveAssignments().length > 0" class="assignments-section">
       <h3 class="section-title">
         <mat-icon>assignment</mat-icon>
-        Proyectos Asignados ({{assignedProjects.length}})
+        Proyectos Asignados Activos ({{getActiveAssignments().length}})
       </h3>
 
       <div class="assignments-grid">
-        <div class="assignment-card" *ngFor="let assignment of assignedProjects; let i = index">
+        <div class="assignment-card" *ngFor="let assignment of getActiveAssignments(); let i = index">
           <div class="assignment-header">
             <div class="project-info">
               <mat-icon class="project-icon">folder</mat-icon>
               <div>
                 <div class="project-name">{{assignment.projectName}}</div>
-                <div class="project-details">
-                  <span class="detail-item">
-                    <mat-icon>date_range</mat-icon>
-                    {{formatDateDisplay(assignment.startDate)}} - {{formatDateDisplay(assignment.endDate) || 'N/A'}}
-                  </span>
+                <div class="project-dates">
+                  <mat-icon>date_range</mat-icon>
+                  {{assignment.startDate}} - {{assignment.endDate}}
                 </div>
               </div>
             </div>
@@ -203,11 +184,9 @@
 
 <mat-dialog-actions align="end" class="dialog-actions">
   <button mat-button (click)="onClose()" class="cancel-btn">
-    <mat-icon>cancel</mat-icon>
     Cancelar
   </button>
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="saving || assignedProjects.length === 0" class="save-btn">
-    <mat-icon>{{saving ? 'hourglass_empty' : 'save'}}</mat-icon>
+  <button mat-raised-button style="background-color: var(--itg-primary); color: var(--itg-bg);" (click)="onSubmit()" [disabled]="saving || assignedProjects.length === 0" class="save-btn">
     {{saving ? 'Guardando...' : 'Guardar Cambios'}}
   </button>
 </mat-dialog-actions>

@@ -436,15 +436,22 @@ export class ClientModalComponent implements OnInit {
 
     let errorMessage = 'Ocurrió un error al procesar la solicitud';
 
-    if (err.error?.Message?.includes('Ya existe un cliente con ese numero de Identificacion')) {
+    // Extraer solo el mensaje principal del response
+    if (err.error?.Message) {
+      errorMessage = err.error.Message;
+
+      // Limpiar el mensaje si contiene caracteres escapados
+      errorMessage = errorMessage.replace(/\\u0027/g, "'"); // Reemplazar \u0027 por '
+    }
+    // Manejar el caso específico de duplicado de identificación (por si acaso)
+    else if (err.error?.message?.includes('Ya existe un cliente con ese numero de Identificacion')) {
       const identificationNumber = this.clientForm.get('person.identificationNumber')?.value;
       errorMessage = `¡Error! Ya existe un cliente con el número: ${identificationNumber}`;
       this.clientForm.get('person.identificationNumber')?.setErrors({ duplicate: true });
-    } else if (err.error?.Message) {
-      errorMessage = err.error.Message;
     }
 
-    //this.showErrorSnackbar(errorMessage);
+    // Mostrar el mensaje limpio en el snackbar
+    this.showErrorSnackbar(errorMessage);
   }
 
   private showErrorSnackbar(message: string): void {
@@ -452,7 +459,7 @@ export class ClientModalComponent implements OnInit {
       duration: 5000, // 5 segundos
       panelClass: ['error-snackbar'],
       horizontalPosition: 'center',
-      verticalPosition: 'top'
+      verticalPosition: 'bottom'
     });
   }
 

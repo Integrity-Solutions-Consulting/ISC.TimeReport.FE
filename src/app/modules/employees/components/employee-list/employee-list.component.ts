@@ -222,6 +222,28 @@ export class EmployeeListComponent implements AfterViewInit {
     return this.positionsMap[position] || 'Desconocido';
   }
 
+  // Función auxiliar para extraer el mensaje de error del response
+  private extractErrorMessage(error: any): string {
+    // Si el error tiene la estructura específica con Message en el primer nivel
+    if (error.error && error.error.Message) {
+      return error.error.Message;
+    }
+    // Si el error tiene la estructura con error en array
+    else if (error.error && Array.isArray(error.error.Error) && error.error.Error.length > 0) {
+      return error.error.Error[0].Message || 'Error desconocido';
+    }
+    // Si es un error estándar
+    else if (error.message) {
+      return error.message;
+    }
+    // Si el error es directamente un string
+    else if (typeof error === 'string') {
+      return error;
+    }
+    // Por defecto
+    return 'Ha ocurrido un error inesperado';
+  }
+
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(EmployeeDialogComponent, {
       width: '800px',
@@ -238,7 +260,8 @@ export class EmployeeListComponent implements AfterViewInit {
               this.loadEmployees();
             },
             error: (err) => {
-              this.snackBar.open("Error al crear empleado: " + err.message, "Cerrar", {duration: 5000});
+              const errorMessage = this.extractErrorMessage(err);
+              this.snackBar.open(errorMessage, "Cerrar", {duration: 5000});
             }
           });
         } else if (result.type === 'withPersonID') {
@@ -248,7 +271,8 @@ export class EmployeeListComponent implements AfterViewInit {
               this.loadEmployees();
             },
             error: (err) => {
-              this.snackBar.open("Error al crear cliente: " + err.message, "Cerrar", {duration: 5000});
+              const errorMessage = this.extractErrorMessage(err);
+              this.snackBar.open(errorMessage, "Cerrar", {duration: 5000});
             }
           });
         }
@@ -294,7 +318,8 @@ export class EmployeeListComponent implements AfterViewInit {
               this.loadEmployees(); // Reload the list
             },
             error: (err) => {
-              this.snackBar.open('Error al desactivar empleado', 'Cerrar', { duration: 3000 });
+              const errorMessage = this.extractErrorMessage(err);
+              this.snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });
               console.error('Error inactivating employee:', err); // Log the actual error
             }
           });
@@ -306,7 +331,8 @@ export class EmployeeListComponent implements AfterViewInit {
               this.loadEmployees(); // Reload the list
             },
             error: (err) => {
-              this.snackBar.open('Error al activar empleado', 'Cerrar', { duration: 3000 });
+              const errorMessage = this.extractErrorMessage(err);
+              this.snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });
               console.error('Error activating employee:', err); // Log the actual error
             }
           });

@@ -373,24 +373,29 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
       const response: ApiResponse | undefined = await this.activityService.getActivities().toPromise();
 
       if (response?.data) {
-
         // Filtrar actividades solo para el empleado logueado
         const filteredActivities = response.data.filter((activity: Activity) => {
           if (this.currentEmployeeId === null) {
             console.warn('EmployeeID es null - mostrando todas las actividades');
-            return activity.status; // Mostrar todas si no hay employeeID
+            return activity.status;
           }
           return activity.employeeID === this.currentEmployeeId && activity.status;
         });
 
         if (this.calendarComponent && this.calendarComponent.getApi()) {
           this.mapActivitiesToEvents(filteredActivities);
+          // Asegurar que el botón se actualice después de cargar actividades
+          this.updateMonthlyHoursButton();
         } else if (retryCount < 5) {
           setTimeout(() => this.loadActivities(retryCount + 1), 500);
         } else {
           console.error('CalendarComponent no disponible después de múltiples intentos');
           this.snackBar.open('No se pudo cargar el calendario. Intente recargar la página.', 'Cerrar');
         }
+      } else {
+        // Si no hay datos, también actualizar el botón
+        this.monthlyHours.set(0);
+        this.updateMonthlyHoursButton();
       }
     } catch (error) {
       console.error('Error loading activities', error);
@@ -400,6 +405,9 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
       } else {
         this.snackBar.open('Error al cargar actividades.', 'Cerrar', { duration: 3000 });
       }
+      // Asegurar que el botón se actualice incluso en caso de error
+      this.monthlyHours.set(0);
+      this.updateMonthlyHoursButton();
     }
   }
 
@@ -460,7 +468,8 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
             notes: activity.notes,
             hoursQuantity: activity.hoursQuantity,
             requirementCode: activity.requirementCode,
-            employeeID: activity.employeeID // Añadir esto para debug
+            employeeID: activity.employeeID, // Añadir esto para debug
+            fullDay: allDayEvent
           }
         };
 
@@ -1000,7 +1009,10 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
       if (result && result.deleted) {
         // Si se eliminó la actividad, recargar el calendario
         this.snackBar.open('Actividad eliminada correctamente', 'Cerrar', { duration: 3000 });
-        this.loadActivities();
+        this.loadActivities().then(() => {
+          // Forzar la actualización del botón después de eliminar
+          this.updateMonthlyHoursButton();
+        });
       } else if (result) {
         const updateData = {
           projectID: result.projectID,
@@ -1015,7 +1027,10 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         this.activityService.updateActivity(Number(result.id), updateData).subscribe({
           next: () => {
             this.snackBar.open('Actividad actualizada correctamente', 'Cerrar', { duration: 3000 });
-            this.loadActivities(); // Recargar actividades después de actualizar
+            this.loadActivities().then(() => {
+              // Actualizar el botón después de modificar
+              this.updateMonthlyHoursButton();
+            }); // Recargar actividades después de actualizar
           },
           error: (error) => {
             console.error('Error al actualizar actividad', error);
