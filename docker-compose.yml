@@ -1,12 +1,15 @@
 version: '3.8'
 
 services:
-  angular_frontend:
-    image: time_report_front:latest
+  angular_frontend_prod:
+    image: time_report_front_prod:latest
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        URL_BASE: https://api.timereport.integritysolutions.com.ec
+        URL_INV: https://isc-inventory-back-api.onrender.com/api/v1
     ports:
       - "4200:80"
     restart: always
-    container_name: time_report_front
+    container_name: time_report_front_prod
