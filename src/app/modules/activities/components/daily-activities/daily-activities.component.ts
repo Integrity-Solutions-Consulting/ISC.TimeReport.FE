@@ -83,7 +83,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
       listPlugin,
     ],
     headerToolbar: {
-      left: 'prev,next today',
+      left: 'prev,next generateReport today',
       center: 'title',
       right: 'monthlyHours addActivity'
     },
@@ -107,6 +107,10 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
       monthlyHours: { // Nuevo botón para horas mensuales (solo visual)
         text: '', // Texto inicial
         click: () => {} // Función vacía para deshabilitar el clic
+      },
+      generateReport: {
+        text: 'Generar Reporte',
+        click: this.handleGenerateReport.bind(this)
       }
     },
     eventDidMount: (info) => {

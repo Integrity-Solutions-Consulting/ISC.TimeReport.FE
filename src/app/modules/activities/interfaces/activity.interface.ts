@@ -41,13 +41,13 @@ export interface LeaderDetail {
     lastName: string;
   };
 }
-
 export interface Collaborator {
   employeeID: number;
   nombre: string;
   cedula: string;
   proyecto: string;
   cliente: string;
+  clienteIDs: string | number[]; // Agregar esta propiedad
   lider: string;
   horas: number;
   estado: string;
@@ -55,13 +55,13 @@ export interface Collaborator {
     id: number;
     clientID: number;
     name: string;
-  };
+  } | null;
   clientData?: {
     id: number;
     tradeName: string;
     legalName: string;
-  };
-  horasRegistradasPeriodo?: number;
+  } | null;
+  horasRegistradasPeriodo?: number; // También agregar esta si es necesaria
 }
 
 export interface ActivityType {
