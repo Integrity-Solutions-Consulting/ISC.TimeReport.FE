@@ -19,27 +19,7 @@ import { ClientDetail, LeaderDetail, ProjectDetail } from '../../interfaces/acti
 import { environment } from '../../../../../environments/environment';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-
-interface Collaborator {
-  employeeID: number;
-  nombre: string;
-  cedula: string;
-  proyecto: string;
-  cliente: string;
-  lider: string;
-  horas: number;
-  estado: string;
-  projectData?: {
-    id: number;
-    clientID: number;
-    name: string;
-  };
-  clientData?: {
-    id: number;
-    tradeName: string;
-    legalName: string;
-  };
-}
+import { Collaborator } from '../../interfaces/activity.interface';
 
 interface Holiday {
   id: number;
@@ -287,10 +267,10 @@ export class CollaboratorsListComponent implements OnInit {
     // Handle pagination changes
   }
 
-  downloadCollaboratorExcel(collaborator: any) {
+  downloadCollaboratorExcel(collaborator: Collaborator) {
     try {
-      if (!collaborator?.employeeID) {
-        console.error('Colaborador no válido:', collaborator);
+      if (!collaborator?.employeeID || !collaborator?.clienteIDs) {
+        console.error('Colaborador no válido o sin clientIDs:', collaborator);
         return;
       }
 
@@ -298,20 +278,25 @@ export class CollaboratorsListComponent implements OnInit {
       const fullMonth = this.periodToggleControl.value ?? false;
       const year = this.yearControl.value ?? new Date().getFullYear();
 
-      let clientId: number;
-      try {
-        clientId = this.getClientIdFromCollaborator(collaborator);
-      } catch (error) {
-        console.error('Error obteniendo clientId:', error);
+      // Parsear los clientIDs
+      let clientIds: number[];
+
+      if (Array.isArray(collaborator.clienteIDs)) {
+        clientIds = collaborator.clienteIDs;
+      } else if (typeof collaborator.clienteIDs === 'string') {
+        clientIds = collaborator.clienteIDs
+          .split(',')
+          .map((id: string) => parseInt(id.trim(), 10))
+          .filter((id: number) => !isNaN(id));
+      } else {
+        console.error('Formato de clienteIDs no válido:', collaborator.clienteIDs);
         return;
       }
 
-      const params = new HttpParams()
-        .set('employeeId', collaborator.employeeID.toString())
-        .set('clientId', clientId.toString())
-        .set('year', year.toString())
-        .set('month', (month + 1).toString())
-        .set('fullMonth', fullMonth.toString());
+      if (clientIds.length === 0) {
+        console.warn('No hay clientIDs válidos para este colaborador:', collaborator);
+        return;
+      }
 
       const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
                         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -324,23 +309,75 @@ export class CollaboratorsListComponent implements OnInit {
         periodText = `Quincena ${monthName} ${year}`;
       }
 
-      const fileName = `Reporte_${collaborator.nombre || collaborator.employeeID}_${periodText}.xlsm`
-        .replace(/ /g, '_');
-
-      this.http.get(`${this.urlBase}/api/TimeReport/export-excel`, {
-        params,
-        responseType: 'blob'
-      }).subscribe({
-        next: (blob) => {
-          this.saveFile(blob, fileName);
-        },
-        error: (err) => {
-          console.error('Error descargando reporte:', err);
-        }
+      // Descargar reporte para cada clientID
+      clientIds.forEach((clientId, index) => {
+        setTimeout(() => {
+          this.downloadSingleReportForClient(
+            collaborator,
+            clientId,
+            month,
+            year,
+            fullMonth,
+            monthName,
+            periodText,
+            index
+          );
+        }, index * 300);
       });
+
     } catch (error) {
       console.error('Error inesperado:', error);
     }
+  }
+
+  private downloadSingleReportForClient(
+    collaborator: any,
+    clientId: number,
+    month: number,
+    year: number,
+    fullMonth: boolean,
+    monthName: string,
+    periodText: string,
+    index: number
+  ) {
+    const params = new HttpParams()
+      .set('employeeId', collaborator.employeeID.toString())
+      .set('clientId', clientId.toString())
+      .set('year', year.toString())
+      .set('month', (month + 1).toString())
+      .set('fullMonth', fullMonth.toString());
+
+    // Crear nombre de archivo único para cada cliente
+    const fileName = `Reporte_${collaborator.nombre || collaborator.employeeID}_Cliente_${clientId}_${periodText}.xlsm`
+      .replace(/ /g, '_');
+
+    this.http.get(`${this.urlBase}/api/TimeReport/export-excel`, {
+      params,
+      responseType: 'blob'
+    }).subscribe({
+      next: (blob) => {
+        this.saveFile(blob, fileName);
+        console.log(`Descargado reporte ${index + 1} de ${this.getClientIdsCount(collaborator)} para ${collaborator.nombre}`);
+      },
+      error: (err) => {
+        console.error(`Error descargando reporte para cliente ${clientId}:`, err);
+      }
+    });
+}
+
+  // Método auxiliar para contar clientIDs
+  private getClientIdsCount(collaborator: Collaborator): number {
+    if (!collaborator?.clienteIDs) return 0;
+
+    if (Array.isArray(collaborator.clienteIDs)) {
+      return collaborator.clienteIDs.length;
+    }
+
+    if (typeof collaborator.clienteIDs === 'string') {
+      return collaborator.clienteIDs.split(',').length;
+    }
+
+    return 0;
   }
 
   private getClientIdFromCollaborator(collaborator: Collaborator): number {
@@ -387,27 +424,65 @@ export class CollaboratorsListComponent implements OnInit {
       const fullMonth = this.periodToggleControl.value ?? false;
       const year = this.yearControl.value ?? new Date().getFullYear();
 
+      let downloadCount = 0;
+      const totalDownloads = this.calculateTotalDownloads();
+
       for (const collaborator of this.selection.selected) {
         try {
-          const clientId = this.getClientIdFromCollaborator(collaborator);
-          const params = new HttpParams()
-            .set('employeeId', collaborator.employeeID.toString())
-            .set('clientId', clientId.toString())
-            .set('year', year.toString())
-            .set('month', (month + 1).toString())
-            .set('fullMonth', fullMonth.toString());
+          if (!collaborator.clienteIDs) {
+            console.warn(`Colaborador ${collaborator.nombre} no tiene clientIDs`);
+            continue;
+          }
 
-          const fileName = this.generateReportFileName(collaborator, month, fullMonth);
-          await this.downloadSingleReport(params, fileName);
-          await new Promise(resolve => setTimeout(resolve, 300));
+          const clientIds = this.parseClientIds(collaborator.clienteIDs);
+
+          for (const clientId of clientIds) {
+            const params = new HttpParams()
+              .set('employeeId', collaborator.employeeID.toString())
+              .set('clientId', clientId.toString())
+              .set('year', year.toString())
+              .set('month', (month + 1).toString())
+              .set('fullMonth', fullMonth.toString());
+
+            const fileName = this.generateReportFileName(collaborator, clientId, month, fullMonth);
+            await this.downloadSingleReport(params, fileName);
+            downloadCount++;
+            console.log(`Descargado ${downloadCount} de ${totalDownloads}`);
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
         } catch (error) {
-          console.error(`Error descargando reporte para ${collaborator.nombre}:`, error);
+          console.error(`Error descargando reportes para ${collaborator.nombre}:`, error);
         }
       }
     } finally {
       this.isDownloading = false;
     }
   }
+
+  private calculateTotalDownloads(): number {
+    let total = 0;
+    for (const collaborator of this.selection.selected) {
+      if (collaborator.clienteIDs) {
+        total += this.parseClientIds(collaborator.clienteIDs).length;
+      }
+    }
+    return total;
+  }
+
+  private parseClientIds(clientIds: string | number[]): number[] {
+    if (Array.isArray(clientIds)) {
+      return clientIds;
+    }
+
+    if (typeof clientIds === 'string') {
+      return clientIds
+        .split(',')
+        .map((id: string) => parseInt(id.trim(), 10))
+        .filter((id: number) => !isNaN(id));
+    }
+
+    return [];
+}
 
   private async downloadSingleReport(params: HttpParams, fileName: string): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -426,7 +501,7 @@ export class CollaboratorsListComponent implements OnInit {
     });
   }
 
-  private generateReportFileName(collaborator: any, month: number, fullMonth: boolean): string {
+  private generateReportFileName(collaborator: any, clientId: number, month: number, fullMonth: boolean): string {
     const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     const monthName = monthNames[month];
@@ -435,7 +510,7 @@ export class CollaboratorsListComponent implements OnInit {
       ? `Mes_Completo_${monthName}_${this.currentYear}`
       : `Quincena_${monthName}_${this.currentYear}`;
 
-    return `Reporte_${(collaborator.nombre || collaborator.employeeID).toString().replace(/[^a-z0-9]/gi, '_')}_${periodText}.xlsm`;
+    return `Reporte_${(collaborator.nombre || collaborator.employeeID).toString().replace(/[^a-z0-9]/gi, '_')}_Cliente_${clientId}_${periodText}.xlsm`;
   }
 
   isAllSelected() {
@@ -549,162 +624,67 @@ export class CollaboratorsListComponent implements OnInit {
 
     this.calculateBusinessDays();
 
-    forkJoin({
-      employees: this.http.get<any[]>(
-        `${this.urlBase}/api/TimeReport/recursos-pendientes`,
-        {
-          params: {
-            month: selectedMonth + 1,
-            year: selectedYear,
-            mesCompleto: mesCompleto.toString()
-          }
-        }
-      ).pipe(
-        catchError(error => {
-          console.error('Error loading employees:', error);
-          return of([]);
-        })
-      ),
-      activities: this.http.get<any>(`${this.urlBase}/api/DailyActivity/GetAllActivities`).pipe(
-        catchError(() => of({ data: [] }))
-      ),
-      leaders: this.http.get<any>(`${this.urlBase}/api/Leader/GetAllLeaders`, {
+    this.http.get<any[]>(
+      `${this.urlBase}/api/TimeReport/recursos-pendientes`,
+      {
         params: {
-          pageNumber: 1,
-          pageSize: 10000,
-          search: ''
+          month: selectedMonth + 1,
+          year: selectedYear,
+          mesCompleto: mesCompleto.toString()
         }
-      }).pipe(
-        catchError(() => of({ items: [] }))
-      )
-    }).subscribe({
-      next: ({ employees, activities, leaders }) => {
+      }
+    ).pipe(
+      catchError(error => {
+        console.error('Error loading employees:', error);
+        this.dataSource.data = [];
+        this.noDataMessage = 'Error al cargar los datos. Por favor, inténtalo de nuevo.';
+        this.resetPagination();
+        return of([]);
+      })
+    ).subscribe({
+      next: (employees) => {
         if (!employees || employees.length === 0) {
           this.dataSource.data = [];
-          // Resetear paginación cuando no hay datos
+          this.noDataMessage = 'No hay empleados que hayan registrado actividades durante ese periodo.';
           this.resetPagination();
           return;
         }
 
-        const validActivities = activities.data.filter((activity: any) => activity.projectID);
-        const employeeActivitiesMap = new Map<number, any[]>();
-        validActivities.forEach((activity: any) => {
-          if (!employeeActivitiesMap.has(activity.employeeID)) {
-            employeeActivitiesMap.set(activity.employeeID, []);
-          }
-          employeeActivitiesMap.get(activity.employeeID)?.push(activity);
-        });
+        const collaborators = employees.map(emp => ({
+          employeeID: emp.employeeID,
+          nombre: emp.nombreCompletoEmpleado,
+          cedula: emp.codigoEmpleado,
+          proyecto: emp.proyectosAsignados,
+          cliente: emp.clientesAsociados,
+          clienteIDs: emp.clienteIDs, // Agregar esta línea
+          lider: emp.lideresTecnicos,
+          horas: emp.horasRegistradasPeriodo,
+          estado: this.getEstado(emp.horasRegistradasPeriodo),
+          horasRegistradasPeriodo: emp.horasRegistradasPeriodo,
+          projectData: undefined,
+          clientData: undefined
+        }));
 
-        const projectLeadersMap = new Map<number, any>();
-        leaders.items.forEach((leader: any) => {
-          if (leader.projectID) {
-            projectLeadersMap.set(leader.projectID, leader);
-          }
-        });
+        const filteredCollaborators = collaborators.filter(colaborador => colaborador.horas > 0);
 
-        const requests = employees.map(emp => {
-          const empActivities = employeeActivitiesMap.get(emp.employeeID) || [];
-          const firstActivity = empActivities[0];
+        if (filteredCollaborators.length === 0) {
+          this.noDataMessage = 'No hay empleados que hayan registrado actividades durante ese periodo.';
+        } else {
+          this.noDataMessage = '';
+        }
 
-          if (!firstActivity || !firstActivity.projectID) {
-            return of({
-              employee: emp,
-              project: null,
-              client: null,
-              leader: null
-            });
-          }
+        this.dataSource.data = filteredCollaborators;
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+        this.totalItems = filteredCollaborators.length;
 
-          return this.http.get<any>(`${this.urlBase}/api/Project/GetProjectByID/${firstActivity.projectID}`).pipe(
-            catchError(() => of(null)),
-            switchMap(project => {
-              if (!project || !project.clientID) {
-                return of({
-                  employee: emp,
-                  project: project,
-                  client: null,
-                  leader: null
-                });
-              }
-
-              return this.http.get<any>(`${this.urlBase}/api/Client/GetClientByID/${project.clientID}`).pipe(
-                catchError(() => of(null)),
-                map(client => {
-                  const leader = projectLeadersMap.get(firstActivity.projectID);
-                  return {
-                    employee: emp,
-                    project: project,
-                    client: client,
-                    leader: leader
-                  };
-                })
-              );
-            })
-          );
-        });
-
-        forkJoin(requests).subscribe({
-          next: (results) => {
-            const collaborators = results.map((result, index) => {
-              const emp = employees[index];
-              const leader = result.leader;
-
-              let leaderName = 'No asignado';
-              if (leader) {
-                if (leader.person) {
-                  leaderName = `${leader.person.firstName} ${leader.person.lastName}`;
-                } else if (leader.externalPerson) {
-                  leaderName = `${leader.externalPerson.firstName} ${leader.externalPerson.lastName}`;
-                } else if (leader.firstName && leader.lastName) {
-                  leaderName = `${leader.firstName} ${leader.lastName}`;
-                }
-              }
-
-              return {
-                employeeID: emp.employeeID,
-                nombre: emp.nombreCompletoEmpleado,
-                cedula: emp.employeeID.toString(),
-                proyecto: result.project?.name || 'No asignado',
-                cliente: result.client?.tradeName || result.client?.legalName || 'No asignado',
-                lider: leaderName,
-                horas: emp.horasRegistradasPeriodo,
-                estado: this.getEstado(emp.horasRegistradasPeriodo),
-                projectData: result.project,
-                clientData: result.client,
-                leaderData: result.leader,
-                horasRegistradasPeriodo: emp.horasRegistradasPeriodo
-              };
-            }).filter(colaborador => colaborador.proyecto !== 'No asignado');
-
-            const filteredCollaborators = collaborators.filter(colaborador => colaborador.horas > 0);
-
-            if (filteredCollaborators.length === 0) {
-              this.noDataMessage = 'No hay empleados que hayan registrado actividades durante ese periodo.';
-            } else {
-              this.noDataMessage = '';
-            }
-
-            this.dataSource.data = filteredCollaborators;
-            this.dataSource.paginator = this.paginator;
-            this.dataSource.sort = this.sort;
-            this.totalItems = filteredCollaborators.length;
-
-            // Resetear a la primera página después de cargar nuevos datos
-            this.resetPagination();
-          },
-          error: (err) => {
-            console.error('Error loading details:', err);
-            this.dataSource.data = [];
-            this.noDataMessage = 'Ocurrió un error al cargar los datos. Por favor, inténtalo de nuevo.';
-            // Resetear paginación incluso en caso de error
-            this.resetPagination();
-          }
-        });
+        // Resetear a la primera página después de cargar nuevos datos
+        this.resetPagination();
       },
       error: (err) => {
-        console.error('Error loading initial data:', err);
+        console.error('Error loading data:', err);
         this.dataSource.data = [];
-        // Resetear paginación incluso en caso de error
+        this.noDataMessage = 'Ocurrió un error al cargar los datos. Por favor, inténtalo de nuevo.';
         this.resetPagination();
       }
     });
