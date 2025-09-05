@@ -351,4 +351,28 @@ export class ListProjectComponent implements OnInit{
         }
       });
     }
+
+  downloadProjects(): void {
+    this.projectService.exportProjectsToExcel().subscribe({
+      next: (blob: Blob) => {
+        // Crear un enlace temporal para descargar el archivo
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `proyectos_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+
+        // Limpiar
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        this.snackBar.open('Archivo descargado con éxito', 'Cerrar', { duration: 3000 });
+      },
+      error: (err) => {
+        console.error('Error al descargar proyectos:', err);
+        this.snackBar.open('Error al descargar el archivo', 'Cerrar', { duration: 5000 });
+      }
+    });
+  }
 }
