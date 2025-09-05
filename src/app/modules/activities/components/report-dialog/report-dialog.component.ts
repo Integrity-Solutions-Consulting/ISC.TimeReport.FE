@@ -26,7 +26,6 @@ import { AuthService } from '../../../auth/services/auth.service';
     MatDialogModule,
     MatInputModule,
     MatSelectModule,
-    MatSlideToggleModule,
     ReactiveFormsModule,
     MatProgressSpinnerModule,
     MatAutocompleteModule
@@ -107,7 +106,7 @@ export class ReportDialogComponent implements OnInit {
       clientID: ['', Validators.required],
       year: [new Date().getFullYear(), Validators.required],
       month: [new Date().getMonth() + 1, Validators.required],
-      isFullMonth: [false]
+      isFullMonth: [true] // Valor por defecto establecido en true
     });
 
     if (this.data.start) {
@@ -353,7 +352,7 @@ export class ReportDialogComponent implements OnInit {
       clientId: formValue.clientID,
       year: formValue.year,
       month: formValue.month,
-      isFullMonth: formValue.isFullMonth
+      isFullMonth: true // Siempre se envía como true
     };
 
     this.generateReport(payload);
@@ -365,11 +364,11 @@ export class ReportDialogComponent implements OnInit {
       .set('clientId', payload.clientId?.toString() || '')
       .set('year', payload.year.toString())
       .set('month', payload.month.toString())
-      .set('fullMonth', payload.isFullMonth.toString());
+      .set('fullMonth', 'true'); // Siempre se envía como true
 
     const employeeName = this.currentEmployeeName.replace(/\s+/g, '_');
     const clientName = this.getClientName(payload.clientId).replace(/\s+/g, '_');
-    const period = payload.isFullMonth ? 'Mes_Completo' : 'Quincena';
+    const period = 'Mes_Completo'; // Siempre será mes completo
     const monthName = this.months.find(m => m.value === payload.month)?.name || '';
 
     this.dailyActivityService.exportExcel(params).subscribe({
@@ -404,7 +403,7 @@ export class ReportDialogComponent implements OnInit {
 
     const employeeName = formatName(payload.employeeName);
     const clientName = formatName(payload.clientName);
-    const period = payload.isFullMonth ? 'Mes_Completo' : 'Quincena';
+    const period = 'Mes_Completo'; // Siempre será mes completo
     const monthName = formatName(payload.monthName);
 
     // Construir el nombre del archivo

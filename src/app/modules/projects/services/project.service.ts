@@ -235,7 +235,10 @@ export class ProjectService {
         actualEndDate: projectData.actualEndDate,
         budget: projectData.budget,
         hours: projectData.hours,
-        status: projectData.status
+        status: projectData.status,
+        waitingStartDate: projectData.waitingStartDate,
+        waitingEndDate: projectData.waitingEndDate,
+        observation: projectData.observation
       };
 
       // 2. Verificación final del payload
@@ -277,6 +280,15 @@ export class ProjectService {
       return this.http.delete(`${this.urlBase}/api/Project/ActiveProjectByID/${id}`)
       .pipe(finalize(() => this.hideLoading())
     );
+    }
+
+    exportProjectsToExcel(): Observable<Blob> {
+      this.showLoading();
+      return this.http.get(`${this.urlBase}/api/Project/export-projects-excel`, {
+        responseType: 'blob'
+      }).pipe(
+        finalize(() => this.hideLoading())
+      );
     }
 
     downloadExcelReport(params: HttpParams): Observable<Blob> {

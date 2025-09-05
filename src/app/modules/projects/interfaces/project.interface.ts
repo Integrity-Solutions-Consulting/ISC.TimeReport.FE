@@ -1,40 +1,40 @@
 export interface Project {
   clientID: number;
   projectStatusID: number;
-  projectTypeID: number | null;
-  projectSubType?: boolean;
+  projectTypeID: number;
   code: string;
   name: string;
   description: string;
-  startDate: string;
-  endDate: string;
+  startDate: string; // ISO string
+  endDate: string;   // ISO string
   actualStartDate: string | null;
   actualEndDate: string | null;
-  hours: number;
   budget: number;
-  status?: boolean;
-  employeeProjects?: EmployeeProject[]; // Make it optional with '?'
-  employeesPersonInfo?: EmployeePersonInfo[]; // Make it optional with '?'
+  hours: number;
+  status: boolean;
+  waitingStartDate?: string | null; // New optional field
+  waitingEndDate?: string | null;   // New optional field
+  observation?: string | null;  // New optional field
 }
 
 export interface ProjectWithID {
   id: number,
   clientID: number;
   projectStatusID: number;
-  projectTypeID: number | null;
-  projectSubType?: boolean;
+  projectTypeID: number;
   code: string;
   name: string;
   description: string;
-  startDate: string;
-  endDate: string;
+  startDate: string; // ISO string
+  endDate: string;   // ISO string
   actualStartDate: string | null;
   actualEndDate: string | null;
-  hours: number;
   budget: number;
-  status?: boolean;
-  employeeProjects?: EmployeeProject[]; // Make it optional with '?'
-  employeesPersonInfo?: EmployeePersonInfo[]; // Make it optional with '?'
+  hours: number;
+  status: boolean;
+  waitingStartDate?: string | null; // New optional field
+  waitingEndDate?: string | null;   // New optional field
+  observation?: string | null;  // New optional field
 }
 
 export interface ApiResponse {
