@@ -202,3 +202,39 @@ mat-form-field textarea.mat-input-element {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.date-fields-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+/* Campos de fecha individuales */
+.date-field {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Cuando hay 3 campos visibles */
+.date-field:nth-child(3) {
+  flex: 1;
+  min-width: calc(33.333% - 10px);
+}
+
+/* Ajustes responsivos */
+@media (max-width: 768px) {
+  .date-fields-container {
+    flex-direction: column;
+  }
+
+  .date-field {
+    width: 100%;
+    min-width: 100%;
+  }
+}
+
+/* Ajuste fino para los campos de fecha dentro de form-row */
+.form-row .date-field .mat-form-field {
+  width: 100%;
+}

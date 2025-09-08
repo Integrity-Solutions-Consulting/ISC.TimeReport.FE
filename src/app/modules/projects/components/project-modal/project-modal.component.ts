@@ -160,29 +160,35 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
       hours: [0, [Validators.min(0)]],
       waitStartDate: [null], // New field for client waiting
       waitEndDate: [null],   // New field for client waiting
-      observations: ['', Validators.maxLength(500)] // New field for observations
+      observations: ['', Validators.maxLength(50)] // New field for observations
     }, { validator: this.dateRangeValidator() });
   }
 
   private updateClientWaitingFieldsVisibility(statusId: number): void {
-    const selectedStatus = this.projectStatuses.find(status => status.id === statusId);
-    this.showClientWaitingFields = selectedStatus && selectedStatus.statusName === 'En Espera de Cliente';
+    // Mostrar campos si el estado es "En Espera de Cliente" (ID: 8)
+    this.showClientWaitingFields = statusId === 8;
 
     // Conditionally set validators based on visibility
     if (this.showClientWaitingFields) {
       this.projectForm.get('estimatedEndDate')?.setValidators([Validators.required]);
       this.projectForm.get('waitStartDate')?.setValidators([Validators.required]);
       this.projectForm.get('waitEndDate')?.setValidators([Validators.required]);
+      this.projectForm.get('observations')?.setValidators([Validators.maxLength(50)]);
     } else {
       this.projectForm.get('estimatedEndDate')?.clearValidators();
       this.projectForm.get('waitStartDate')?.clearValidators();
       this.projectForm.get('waitEndDate')?.clearValidators();
-      // Also clear values if they are no longer relevant
-      this.projectForm.get('estimatedEndDate')?.setValue(null);
-      this.projectForm.get('waitStartDate')?.setValue(null);
-      this.projectForm.get('waitEndDate')?.setValue(null);
-      this.projectForm.get('observations')?.setValue('');
+      this.projectForm.get('observations')?.clearValidators();
+
+      // También limpiar valores si ya no son relevantes
+      if (!this.isEditMode) {
+        this.projectForm.get('estimatedEndDate')?.setValue(null);
+        this.projectForm.get('waitStartDate')?.setValue(null);
+        this.projectForm.get('waitEndDate')?.setValue(null);
+        this.projectForm.get('observations')?.setValue('');
+      }
     }
+
     this.projectForm.get('estimatedEndDate')?.updateValueAndValidity();
     this.projectForm.get('waitStartDate')?.updateValueAndValidity();
     this.projectForm.get('waitEndDate')?.updateValueAndValidity();
@@ -231,12 +237,28 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
       next: (statuses) => {
         this.projectStatuses = statuses;
         this.isLoadingStatuses = false;
-        // After loading statuses, if in edit mode, ensure visibility is correctly set
+
+        // Después de cargar los estados, verificar si estamos en modo edición
+        // y si el proyecto tiene el estado "En Espera de Cliente" (ID: 8)
         if (this.isEditMode && this.data?.project) {
-          this.updateClientWaitingFieldsVisibility(this.data.project.projectStatusID);
-        } else if (!this.isEditMode && this.projectForm.get('projectStatusId')?.value) {
-           // For new projects, if a default status is set, check its visibility
-           this.updateClientWaitingFieldsVisibility(this.projectForm.get('projectStatusId')?.value);
+          const projectData = this.data.project;
+
+          // Verificar si el estado del proyecto es "En Espera de Cliente" (ID: 8)
+          if (projectData.projectStatusID === 8) {
+            this.showClientWaitingFields = true;
+
+            // Establecer validadores para los campos
+            this.projectForm.get('estimatedEndDate')?.setValidators([Validators.required]);
+            this.projectForm.get('waitStartDate')?.setValidators([Validators.required]);
+            this.projectForm.get('waitEndDate')?.setValidators([Validators.required]);
+            this.projectForm.get('observations')?.setValidators([Validators.maxLength(50)]);
+
+            // Actualizar validación
+            this.projectForm.get('estimatedEndDate')?.updateValueAndValidity();
+            this.projectForm.get('waitStartDate')?.updateValueAndValidity();
+            this.projectForm.get('waitEndDate')?.updateValueAndValidity();
+            this.projectForm.get('observations')?.updateValueAndValidity();
+          }
         }
       },
       error: (err) => {
@@ -305,14 +327,15 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
       startDate: project.startDate,
       endDate: project.endDate,
       actualStartDate: project.actualStartDate ? new Date(project.actualStartDate) : null,
-      actualEndDate: project.actualEndDate ? new Date(project.actualEndDate) : null,
+      estimatedEndDate: project.actualEndDate ? new Date(project.actualEndDate) : null, // Campo para fecha terminación real
       budget: project.budget,
       hours: project.hours,
-      waitStartDate: project.waitingStartDate ? new Date(project.waitingStartDate) : null, // Patch new field
-      waitEndDate: project.waitingEndDate ? new Date(project.waitingEndDate) : null,     // Patch new field
-      observations: project.observation || ''                                   // Patch new field
+      waitStartDate: project.waitingStartDate ? new Date(project.waitingStartDate) : null, // Campo para fecha inicio espera
+      waitEndDate: project.waitingEndDate ? new Date(project.waitingEndDate) : null,     // Campo para fecha fin espera
+      observations: project.observation || ''                                   // Campo para observaciones
     });
-    // Ensure visibility is updated after patching in edit mode
+
+    // Asegurar que la visibilidad se actualice después de parchear los valores
     this.updateClientWaitingFieldsVisibility(project.projectStatusID);
   }
 
@@ -349,7 +372,7 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
       startDate: new Date(formValue.startDate).toISOString(),
       endDate: new Date(formValue.endDate).toISOString(),
       actualStartDate: formValue.actualStartDate ? new Date(formValue.actualStartDate).toISOString() : null,
-      actualEndDate: formValue.actualEndDate ? new Date(formValue.actualEndDate).toISOString() : null,
+      actualEndDate: formValue.estimatedEndDate ? new Date(formValue.estimatedEndDate).toISOString() : null,
       budget: Number(formValue.budget) || 0,
       hours: Number(formValue.hours) || 0,
       status: true,
