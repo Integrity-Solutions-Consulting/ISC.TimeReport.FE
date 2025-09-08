@@ -250,13 +250,14 @@ export class ListProjectComponent implements OnInit{
       }
 
       const dialogRef = this.dialog.open(ProjectModalComponent, {
-        width: '600px',
+        width: '800px', // Aumenté el ancho para acomodar mejor los campos
         data: { project: project } // Envía el proyecto completo
       });
 
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
-          this.loadProjects(); // Recarga la lista después de la actualización
+          this.loadProjects(this.currentPage + 1, this.pageSize, this.currentSearch);
+          this.snackBar.open("Proyecto actualizado con éxito", "Cerrar", {duration: 5000});
         }
       });
     }

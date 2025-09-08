@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ApiResponse, ApiResponseByID, ApiResponseData, Position, Project, ProjectDetails, ProjectWithID, ResourceAssignmentPayload } from '../interfaces/project.interface';
-import { BehaviorSubject, catchError, expand, finalize, forkJoin, map, mergeMap, Observable, of, reduce, switchMap, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, expand, finalize, forkJoin, map, mergeMap, Observable, of, reduce, retry, switchMap, tap, throwError } from 'rxjs';
 import { SuccessResponse } from '../../../shared/interfaces/response.interface';
 import { ProjectDetail, AllProjectsResponse, SimpleProjectItem, Role} from '../interfaces/project.interface';
 import { AuthService } from '../../auth/services/auth.service';
@@ -106,16 +106,23 @@ export class ProjectService {
     }
 
     getProjectsForTables(pageNumber: number, pageSize: number, search: string = ''): Observable<ApiResponse> {
-        let params = new HttpParams()
-            .set('pageNumber', pageNumber.toString())
-            .set('pageSize', pageSize.toString());
+      let params = new HttpParams()
+          .set('pageNumber', pageNumber.toString())
+          .set('pageSize', pageSize.toString());
 
-        if (search && search.trim() !== '') {
-            params = params.set('search', search.trim());  // Cambiado a 'search' que es lo que espera el endpoint
-        }
+      if (search && search.trim() !== '') {
+          params = params.set('search', search.trim());
+      }
 
-        return this.http.get<ApiResponse>(`${this.urlBase}/api/Project/GetAllProjects`, { params });
-    }
+      return this.http.get<ApiResponse>(`${this.urlBase}/api/Project/GetAllProjects`, { params })
+          .pipe(
+              retry(3), // Reintentar hasta 3 veces
+              catchError(error => {
+                  console.error('Error fetching projects:', error);
+                  return throwError(() => new Error('Error de conexión con el servidor'));
+              })
+          );
+  }
 
     getProjectsForDetails(): Observable<AllProjectsResponse> {
       return this.http.get<AllProjectsResponse>(`${this.urlBase}/api/Project/GetAllProjects`).pipe(

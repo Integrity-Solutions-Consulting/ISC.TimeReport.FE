@@ -9,15 +9,16 @@
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
 
-    <button mat-flat-button class="add-button" (click)="openCreateDialog()">
+    <button mat-flat-button class="add-button mb-20" style="margin-left: 220px;" (click)="downloadProjects()">
+      <mat-icon>download</mat-icon>
+      Descargar Proyectos
+    </button>
+
+    <button mat-flat-button class="add-button mb-20" (click)="openCreateDialog()">
         <mat-icon>add</mat-icon>
         Agregar Nuevo
     </button>
 
-    <button mat-flat-button class="add-button" (click)="downloadProjects()">
-      <mat-icon>download</mat-icon>
-      Descargar Proyectos
-    </button>
 
   </div>
 
