@@ -18,6 +18,11 @@ b { /* used for event dates/times */
   margin-right: 3px;
 }
 
+:root {
+  --fc-button-bg-color: var(--itg-primary) !important;
+  --fc-button-border-color: var(--itg-primary-dark) !important;
+}
+
 .demo-app {
   display: flex;
   min-height: 100%;
@@ -78,21 +83,6 @@ b { /* used for event dates/times */
 /* Asegura que los colores de fondo se apliquen */
 .fc-event .fc-event-main {
   background-color: inherit !important;
-}
-
-.fc .fc-button-primary {
-  background-color: #007bff; /* Un azul de ejemplo para los botones */
-  color: white; /* Color del texto del botón */
-  border-color: #007bff; /* Color del borde */
-
-  &:hover {
-    background-color: #0056b3; // Color más oscuro al pasar el ratón
-    border-color: #0056b3;
-  }
-  &:active {
-    background-color: #004085; // Color aún más oscuro al hacer clic
-    border-color: #004085;
-  }
 }
 
 .fc-addActivity-button .fc-button .fc-button-primary{

@@ -106,10 +106,10 @@
       </div>
     </div>
 
-    <div class="form-row">
+    <div class="form-row date-fields-container">
       <!-- Fecha de Inicio -->
-      <div class="field-with-help">
-        <mat-form-field class="form-field-half" appearance="outline">
+      <div class="field-with-help date-field">
+        <mat-form-field appearance="outline">
           <input matInput [matDatepicker]="picker1" formControlName="startDate" placeholder="Fecha de Inicio">
           <mat-hint>DD/MM/YYYY</mat-hint>
           <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
@@ -121,8 +121,8 @@
       </div>
 
       <!-- Fecha de Terminación -->
-      <div class="field-with-help">
-        <mat-form-field class="form-field-half" appearance="outline">
+      <div class="field-with-help date-field">
+        <mat-form-field appearance="outline">
           <input matInput [matDatepicker]="picker2" formControlName="endDate" [min]="projectForm.get('startDate')?.value" placeholder="Fecha de Terminación">
           <mat-hint>DD/MM/YYYY</mat-hint>
           <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
@@ -136,6 +136,49 @@
         </mat-form-field>
         <div class="help-icon" [matTooltip]="'Selecciona la fecha planificada de finalización del proyecto. Debe ser posterior a la fecha de inicio.'" matTooltipPosition="right">
           ?
+        </div>
+      </div>
+
+      <!-- Fecha Terminación Real (solo visible cuando es necesario) -->
+      <div class="field-with-help date-field" *ngIf="showClientWaitingFields">
+        <mat-form-field appearance="outline">
+          <input matInput [matDatepicker]="pickerEstimatedEnd" formControlName="estimatedEndDate" placeholder="Fecha Terminación Real">
+          <mat-hint>DD/MM/YYYY</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="pickerEstimatedEnd"></mat-datepicker-toggle>
+          <mat-datepicker #pickerEstimatedEnd></mat-datepicker>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div *ngIf="showClientWaitingFields" class="client-waiting-info-section">
+      <!-- Campos de fecha inicio y fin de espera -->
+      <div class="form-row">
+        <div class="field-with-help">
+          <mat-form-field class="form-field-half" appearance="outline">
+            <input matInput [matDatepicker]="pickerWaitStart" formControlName="waitStartDate" placeholder="Fecha Inicio Espera">
+            <mat-hint>DD/MM/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="pickerWaitStart"></mat-datepicker-toggle>
+            <mat-datepicker #pickerWaitStart></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <div class="field-with-help">
+          <mat-form-field class="form-field-half" appearance="outline">
+            <input matInput [matDatepicker]="pickerWaitEnd" formControlName="waitEndDate" [min]="projectForm.get('waitStartDate')?.value" placeholder="Fecha Fin Espera">
+            <mat-hint>DD/MM/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="pickerWaitEnd"></mat-datepicker-toggle>
+            <mat-datepicker #pickerWaitEnd></mat-datepicker>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Campo de observaciones -->
+      <div class="form-row">
+        <div class="field-with-help">
+          <mat-form-field appearance="outline" class="full-width">
+            <textarea matInput formControlName="observations" placeholder="Observaciones sobre la espera..." rows="3"></textarea>
+            <mat-hint>{{projectForm.get('observations')?.value?.length || 0}}/50 caracteres</mat-hint>
+          </mat-form-field>
         </div>
       </div>
     </div>

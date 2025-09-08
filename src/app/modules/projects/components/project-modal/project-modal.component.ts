@@ -1,6 +1,7 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core'; // Añadido OnDestroy
+// ... existing imports ...
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators, FormControl } from '@angular/forms'; // Añadido FormControl
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators, FormControl } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { ProjectService } from '../../services/project.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,10 +15,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { Client } from '../../../clients/interfaces/client.interface';
 import { ClientService } from '../../../clients/services/client.service';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { Observable, take, ReplaySubject, Subject, takeUntil } from 'rxjs'; // Añadido ReplaySubject, Subject, takeUntil
+import { Observable, take, ReplaySubject, Subject, takeUntil } from 'rxjs';
 import { SuccessResponse } from '../../../../shared/interfaces/response.interface';
 import { LoadingComponent } from '../../../auth/components/login-loading/login-loading.component';
-import { NgxMatSelectSearchModule } from 'ngx-mat-select-search'; // Añadido
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 export const MY_DATE_FORMATS = {
@@ -47,7 +48,7 @@ export const MY_DATE_FORMATS = {
     MatButtonModule,
     MatTooltipModule,
     LoadingComponent,
-    NgxMatSelectSearchModule // Añadido
+    NgxMatSelectSearchModule
   ],
   providers: [
     { provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
@@ -72,7 +73,7 @@ export const MY_DATE_FORMATS = {
   templateUrl: './project-modal.component.html',
   styleUrls: ['./project-modal.component.scss']
 })
-export class ProjectModalComponent implements OnInit, OnDestroy { // Implementado OnDestroy
+export class ProjectModalComponent implements OnInit, OnDestroy {
   projectForm!: FormGroup;
   isEditMode: boolean = false;
   projectId: number | null = null;
@@ -86,7 +87,8 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
   projectStatuses: any[] = [];
   isLoadingStatuses = false;
 
-  // Para ngx-mat-select-search
+  showClientWaitingFields: boolean = false; // New property to control visibility
+
   public clientFilterCtrl: FormControl<string | null> = new FormControl<string>('');
   public filteredClients: ReplaySubject<Client[]> = new ReplaySubject<Client[]>(1);
   protected _onDestroy = new Subject<void>();
@@ -98,34 +100,30 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
     private dialogRef: MatDialogRef<ProjectModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { project?: ProjectWithID }
   ) {
-    this.projectForm = this.fb.group({
-      projectStatusId: ['', Validators.required],
-      clientId: ['', Validators.required],
-      code: ['', [Validators.required, Validators.maxLength(50)]],
-      name: ['', [Validators.required, Validators.maxLength(150)]],
-      description: [''],
-      startDate: ['', Validators.required],
-      endDate: ['', Validators.required],
-      budget: ['', [Validators.required, Validators.min(0)]],
-      hours: ['', Validators.min(0)]
-    });
+    this.initForm(); // Initialize form here to ensure all controls exist before ngOnInit
   }
 
   ngOnInit(): void {
-    this.initForm();
     this.loadClients();
     this.loadProjectTypes();
     this.loadProjectStatuses();
 
     if (this.data?.project) {
       this.isEditMode = true;
-      /*this.originalStatus = this.data.project.status;
-      /*this.projectId = this.data.project.projectId;*/
+      this.projectId = this.data.project.id; // Correctly assign projectId
       this.patchFormValues(this.data.project);
     }
+
     this.projectForm.get('startDate')?.valueChanges.subscribe(() => {
       this.projectForm.get('endDate')?.updateValueAndValidity();
     });
+
+    // Subscribe to projectStatusId changes to toggle client waiting fields
+    this.projectForm.get('projectStatusId')?.valueChanges
+      .pipe(takeUntil(this._onDestroy))
+      .subscribe((statusId) => {
+        this.updateClientWaitingFieldsVisibility(statusId);
+      });
   }
 
   ngOnDestroy(): void {
@@ -133,17 +131,17 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
     this._onDestroy.complete();
   }
 
-    private dateRangeValidator(): ValidatorFn {
-      return (control: AbstractControl): ValidationErrors | null => {
-        const startDate = control.get('startDate')?.value;
-        const endDate = control.get('endDate')?.value;
+  private dateRangeValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const startDate = control.get('startDate')?.value;
+      const endDate = control.get('endDate')?.value;
 
-        if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
-          return { dateRange: true };
-        }
-        return null;
-      };
-    }
+      if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+        return { dateRange: true };
+      }
+      return null;
+    };
+  }
 
   private initForm(): void {
     this.projectForm = this.fb.group({
@@ -155,21 +153,53 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
       description: [''],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
+      estimatedEndDate: [null], // New field
       actualStartDate: [null],
       actualEndDate: [null],
       budget: [0, [Validators.required, Validators.min(0)]],
-      hours: [0, [Validators.min(0)]]
+      hours: [0, [Validators.min(0)]],
+      waitStartDate: [null], // New field for client waiting
+      waitEndDate: [null],   // New field for client waiting
+      observations: ['', Validators.maxLength(50)] // New field for observations
     }, { validator: this.dateRangeValidator() });
+  }
+
+  private updateClientWaitingFieldsVisibility(statusId: number): void {
+    // Mostrar campos si el estado es "En Espera de Cliente" (ID: 8)
+    this.showClientWaitingFields = statusId === 8;
+
+    // Conditionally set validators based on visibility
+    if (this.showClientWaitingFields) {
+      this.projectForm.get('estimatedEndDate')?.setValidators([Validators.required]);
+      this.projectForm.get('waitStartDate')?.setValidators([Validators.required]);
+      this.projectForm.get('waitEndDate')?.setValidators([Validators.required]);
+      this.projectForm.get('observations')?.setValidators([Validators.maxLength(50)]);
+    } else {
+      this.projectForm.get('estimatedEndDate')?.clearValidators();
+      this.projectForm.get('waitStartDate')?.clearValidators();
+      this.projectForm.get('waitEndDate')?.clearValidators();
+      this.projectForm.get('observations')?.clearValidators();
+
+      // También limpiar valores si ya no son relevantes
+      if (!this.isEditMode) {
+        this.projectForm.get('estimatedEndDate')?.setValue(null);
+        this.projectForm.get('waitStartDate')?.setValue(null);
+        this.projectForm.get('waitEndDate')?.setValue(null);
+        this.projectForm.get('observations')?.setValue('');
+      }
+    }
+
+    this.projectForm.get('estimatedEndDate')?.updateValueAndValidity();
+    this.projectForm.get('waitStartDate')?.updateValueAndValidity();
+    this.projectForm.get('waitEndDate')?.updateValueAndValidity();
+    this.projectForm.get('observations')?.updateValueAndValidity();
   }
 
   /**
    * Configura el filtro para clientes usando ngx-mat-select-search
    */
   private setupClientFilter(): void {
-    // Cargar set inicial
     this.filteredClients.next(this.clients.slice());
-
-    // Escuchar cambios en el filtro
     this.clientFilterCtrl.valueChanges
       .pipe(takeUntil(this._onDestroy))
       .subscribe(() => {
@@ -185,7 +215,6 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
       return;
     }
 
-    // Obtener la palabra clave de búsqueda
     let searchTerm = this.clientFilterCtrl.value || '';
     if (typeof searchTerm === 'string') {
       searchTerm = searchTerm.toLowerCase();
@@ -193,7 +222,6 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
       searchTerm = '';
     }
 
-    // Filtrar clientes
     const filteredClients = this.clients.filter(client => {
       const tradeName = (client.tradeName || '').toLowerCase();
       const businessName = (client.legalName || '').toLowerCase();
@@ -209,11 +237,33 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
       next: (statuses) => {
         this.projectStatuses = statuses;
         this.isLoadingStatuses = false;
+
+        // Después de cargar los estados, verificar si estamos en modo edición
+        // y si el proyecto tiene el estado "En Espera de Cliente" (ID: 8)
+        if (this.isEditMode && this.data?.project) {
+          const projectData = this.data.project;
+
+          // Verificar si el estado del proyecto es "En Espera de Cliente" (ID: 8)
+          if (projectData.projectStatusID === 8) {
+            this.showClientWaitingFields = true;
+
+            // Establecer validadores para los campos
+            this.projectForm.get('estimatedEndDate')?.setValidators([Validators.required]);
+            this.projectForm.get('waitStartDate')?.setValidators([Validators.required]);
+            this.projectForm.get('waitEndDate')?.setValidators([Validators.required]);
+            this.projectForm.get('observations')?.setValidators([Validators.maxLength(50)]);
+
+            // Actualizar validación
+            this.projectForm.get('estimatedEndDate')?.updateValueAndValidity();
+            this.projectForm.get('waitStartDate')?.updateValueAndValidity();
+            this.projectForm.get('waitEndDate')?.updateValueAndValidity();
+            this.projectForm.get('observations')?.updateValueAndValidity();
+          }
+        }
       },
       error: (err) => {
         console.error('Error loading project statuses:', err);
         this.isLoadingStatuses = false;
-        // Opcional: puedes cargar estados por defecto en caso de error
         this.projectStatuses = [];
       }
     });
@@ -221,19 +271,11 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
 
   private loadClients(): void {
     this.isLoadingClients = true;
-    // Puedes ajustar los parámetros según necesites
     this.clientService.getClients(1, 1000, '').subscribe({
       next: (response) => {
-        // Asume que response es un array de clientes o tiene una propiedad items que lo contiene
         const clients = Array.isArray(response) ? response : response.items;
-
-        // Filtramos los clientes que tienen el status en true
         this.clients = clients.filter(client => client.status === true);
-
-        // Inicializar el filtro después de cargar los clientes
         this.setupClientFilter();
-
-        // Marcamos el estado de carga como falso después de la operación
         this.isLoadingClients = false;
       },
       error: (err) => {
@@ -249,7 +291,6 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
         this.projectTypes = types;
         this.formatTypeNames();
 
-        // Seleccionar automáticamente el primer tipo
         if (this.formattedProjectTypes.length > 0 && !this.isEditMode) {
           this.projectForm.get('projectTypeId')?.setValue(this.formattedProjectTypes[0].id);
         }
@@ -276,7 +317,6 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
   }
 
   private patchFormValues(project: ProjectWithID): void {
-    const {id, ...projectData } = project;
     this.projectForm.patchValue({
       clientId: project.clientID,
       projectStatusId: project.projectStatusID,
@@ -286,85 +326,78 @@ export class ProjectModalComponent implements OnInit, OnDestroy { // Implementad
       description: project.description,
       startDate: project.startDate,
       endDate: project.endDate,
-      actualStartDate: project.actualStartDate ? this.strictFormatDate(project.actualStartDate) : null,
-      actualEndDate: project.actualEndDate ? this.strictFormatDate(project.actualEndDate) : null,
+      actualStartDate: project.actualStartDate ? new Date(project.actualStartDate) : null,
+      estimatedEndDate: project.actualEndDate ? new Date(project.actualEndDate) : null, // Campo para fecha terminación real
       budget: project.budget,
-      hours: project.hours
+      hours: project.hours,
+      waitStartDate: project.waitingStartDate ? new Date(project.waitingStartDate) : null, // Campo para fecha inicio espera
+      waitEndDate: project.waitingEndDate ? new Date(project.waitingEndDate) : null,     // Campo para fecha fin espera
+      observations: project.observation || ''                                   // Campo para observaciones
     });
+
+    // Asegurar que la visibilidad se actualice después de parchear los valores
+    this.updateClientWaitingFieldsVisibility(project.projectStatusID);
   }
 
   private strictFormatDate(date: Date | string): string {
     const d = new Date(date);
     const pad = (num: number) => num.toString().padStart(2, '0');
-
-    // Formato: YYYY-MM-DDTHH:mm:ss.000Z (incluyendo milisegundos)
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.000Z`;
   }
 
   onSubmit() {
-    // Si ya se está enviando el formulario, salir para evitar múltiples envíos.
     if (this.isSubmitting) {
-        return;
+      return;
     }
 
-    // Si el formulario no es válido, marcar todos los controles como 'tocado' para mostrar los errores.
     if (this.projectForm.invalid) {
-        this.markFormGroupTouched(this.projectForm);
-        console.error('El formulario es inválido. Por favor, revisa los campos.');
-        return;
+      this.markFormGroupTouched(this.projectForm);
+      console.error('El formulario es inválido. Por favor, revisa los campos.');
+      return;
     }
 
-    // Prevenir más clics y mostrar el indicador de carga.
     this.isSubmitting = true;
     this.projectService.showLoading();
 
-    // Obtener todos los valores del formulario.
     const formValue = this.projectForm.getRawValue();
-
-    // Buscar el tipo de proyecto seleccionado para obtener su 'subType'.
     const selectedType = this.projectTypes.find(t => t.id === formValue.projectTypeId);
 
-    // Construir el objeto de datos del proyecto que se enviará a la API.
-    // Asegurarse de que projectTypeID y projectSubType se asignen correctamente aquí.
     const projectData: Project = {
-        clientID: formValue.clientId,
-        projectStatusID: Number(formValue.projectStatusId),
-        projectTypeID: formValue.projectTypeId, // Asignación directa del ID del formulario.
-        projectSubType: selectedType?.subType || null, // Asignación del subType basado en el tipo encontrado. Si no se encuentra, es null.
-        code: formValue.code,
-        name: formValue.name,
-        description: formValue.description || '',
-        startDate: new Date(formValue.startDate).toISOString(),
-        endDate: new Date(formValue.endDate).toISOString(),
-        actualStartDate: formValue.actualStartDate ? new Date(formValue.actualStartDate).toISOString() : null,
-        actualEndDate: formValue.actualEndDate ? new Date(formValue.actualEndDate).toISOString() : null,
-        budget: Number(formValue.budget) || 0,
-        hours: Number(formValue.hours) || 0,
-        status: true,
+      clientID: formValue.clientId,
+      projectStatusID: Number(formValue.projectStatusId),
+      projectTypeID: formValue.projectTypeId,
+      code: formValue.code,
+      name: formValue.name,
+      description: formValue.description || '',
+      startDate: new Date(formValue.startDate).toISOString(),
+      endDate: new Date(formValue.endDate).toISOString(),
+      actualStartDate: formValue.actualStartDate ? new Date(formValue.actualStartDate).toISOString() : null,
+      actualEndDate: formValue.estimatedEndDate ? new Date(formValue.estimatedEndDate).toISOString() : null,
+      budget: Number(formValue.budget) || 0,
+      hours: Number(formValue.hours) || 0,
+      status: true,
+      waitingStartDate: formValue.waitStartDate ? new Date(formValue.waitStartDate).toISOString() : null, // Include new field
+      waitingEndDate: formValue.waitEndDate ? new Date(formValue.waitEndDate).toISOString() : null,     // Include new field
+      observation: formValue.observations || ''                                                     // Include new field
     };
 
-    // Añadir un log para depuración para verificar que el objeto 'projectData' se está construyendo correctamente
-    // antes de enviarlo. Esto es clave para saber si el problema está en el frontend.
     console.log('Datos del proyecto a enviar:', projectData);
 
-    // Determinar si la operación es de creación o actualización.
     const request$: Observable<ProjectWithID | SuccessResponse<Project>> = this.isEditMode && this.data?.project?.id
-        ? this.projectService.updateProject(this.data.project.id, projectData)
-        : this.projectService.createProject(projectData);
+      ? this.projectService.updateProject(this.data.project.id, projectData)
+      : this.projectService.createProject(projectData);
 
     request$.subscribe({
-        next: (response: any) => {
-            this.projectService.hideLoading();
-            this.isSubmitting = false;
-            // Cerrar el modal con la respuesta exitosa.
-            this.dialogRef.close(response);
-        },
-        error: (err: any) => {
-            this.projectService.hideLoading();
-            this.isSubmitting = false;
-            console.error('Error al guardar el proyecto:', err);
-            // Mostrar un mensaje de error al usuario, si es necesario.
-        }
+      next: (response: any) => {
+        this.projectService.hideLoading();
+        this.isSubmitting = false;
+        this.dialogRef.close(response);
+      },
+      error: (err: any) => {
+        this.projectService.hideLoading();
+        this.isSubmitting = false;
+        console.error('Error al guardar el proyecto:', err);
+      }
     });
   }
 
