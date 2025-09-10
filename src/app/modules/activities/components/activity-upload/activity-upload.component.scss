@@ -6,9 +6,9 @@
 .top-container {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 16px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   padding: 8px 0;
 }
 
@@ -24,6 +24,8 @@
   background-color: var(--itg-primary-dark);
   color: white;
   margin-left: auto;
+  min-width: 150px;
+  margin-bottom: 18px;
 }
 
 .upload-button:hover {
@@ -33,6 +35,8 @@
 .download-button {
   background-color: var(--itg-primary);
   color: white;
+  min-width: 150px;
+  margin-bottom: 18px;
 }
 
 .download-button:hover {
@@ -42,4 +46,43 @@
 .download-button:disabled {
   background-color: #ccc;
   color: #666;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  &.completed {
+    .status-dot {
+      background-color: #4caf50;
+    }
+    .status-text {
+      color: #4caf50;
+    }
+  }
+
+  &.process {
+    .status-dot {
+      background-color: #dea412;
+    }
+    .status-text {
+      color: #dea412;
+    }
+  }
+
+  &.pending {
+    .status-dot {
+      background-color: #f44336;
+    }
+    .status-text {
+      color: #f44336;
+    }
+  }
 }

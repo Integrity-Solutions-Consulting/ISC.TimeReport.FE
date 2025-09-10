@@ -294,12 +294,13 @@ export class ActivityUploadComponent implements OnInit {
     const selectedYear = this.yearControl.value ?? new Date().getFullYear();
 
     this.http.get<any[]>(
-      `${this.urlBase}/api/TimeReport/recursos-pendientes`,
+      `${this.urlBase}/api/TimeReport/recursos-pendientes-filtrado`,
       {
         params: {
           month: selectedMonth + 1,
           year: selectedYear,
-          mesCompleto: 'true' // Siempre mes completo para esta vista
+          mesCompleto: 'true', // Siempre mes completo para esta vista
+          bancoGuayaquil: 1 // Valor por defecto para el nuevo parámetro
         }
       }
     ).pipe(

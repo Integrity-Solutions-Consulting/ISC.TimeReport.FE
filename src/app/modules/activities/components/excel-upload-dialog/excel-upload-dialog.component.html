@@ -6,6 +6,7 @@
         (dragleave)="onDragLeave($event)"
         (drop)="onDrop($event)"
         [class.drag-over]="isDragOver"
+        [class.invalid-file]="showInvalidFileError"
         (click)="fileInput.click()">
 
     <mat-icon class="upload-icon">cloud_upload</mat-icon>
@@ -28,6 +29,11 @@
       <mat-icon>description</mat-icon>
       <span class="file-name">{{ selectedFile.name }}</span>
       <span class="file-size">({{ getFileSize(selectedFile.size) }})</span>
+    </div>
+
+    <div *ngIf="showInvalidFileError" class="error-message">
+      <mat-icon>error_outline</mat-icon>
+      <span>Formato de archivo no válido. Solo se permiten .xlsx y .xls</span>
     </div>
   </div>
 </mat-dialog-content>
