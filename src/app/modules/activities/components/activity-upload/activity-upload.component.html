@@ -1,0 +1,128 @@
+<div class="main-class">
+  <div class="top-container">
+    <!-- Left-aligned search field -->
+    <mat-form-field appearance="outline" class="search-field">
+      <input matInput
+            (keyup)="applyFilter($event)"
+            placeholder="Buscar..."
+            [formControl]="searchControl"
+            #input>
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="year-selector">
+      <mat-select [formControl]="yearControl" placeholder="Año">
+        <mat-option *ngFor="let year of years" [value]="year">
+          {{year}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Month Selector -->
+    <mat-form-field appearance="outline" class="month-selector">
+      <mat-select [formControl]="monthControl" placeholder="Mes">
+        <mat-option *ngFor="let month of months" [value]="month.value">
+          {{month.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Botón de Cargar Excel -->
+    <button mat-flat-button
+            class="upload-button"
+            (click)="uploadExcel()">
+      <mat-icon>upload</mat-icon>
+      Cargar Excel
+    </button>
+
+    <button mat-flat-button
+          class="download-button"
+          (click)="downloadSelectedReports()"
+          [disabled]="selection.selected.length === 0">
+    <mat-icon>download</mat-icon>
+    Descargar
+  </button>
+  </div>
+
+  <table mat-table [dataSource]="dataSource" matSort class="collaborator-table">
+    <!-- Checkbox Column -->
+    <ng-container matColumnDef="select">
+      <th mat-header-cell *matHeaderCellDef>
+        <mat-checkbox (change)="$event ? masterToggle() : null"
+                      [checked]="selection.hasValue() && isAllSelected()"
+                      [indeterminate]="selection.hasValue() && !isAllSelected()">
+        </mat-checkbox>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <mat-checkbox (click)="$event.stopPropagation()"
+                      (change)="$event ? selection.toggle(row) : null"
+                      [checked]="selection.isSelected(row)">
+        </mat-checkbox>
+      </td>
+    </ng-container>
+
+    <!-- Name Column -->
+    <ng-container matColumnDef="colaborador">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Colaborador</th>
+      <td mat-cell *matCellDef="let element">
+        <strong>{{element.nombre}}</strong>
+      </td>
+    </ng-container>
+
+    <!-- Project Column -->
+    <ng-container matColumnDef="proyecto">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Proyecto</th>
+      <td mat-cell *matCellDef="let element">{{element.proyecto}}</td>
+    </ng-container>
+
+    <!-- Client Column -->
+    <ng-container matColumnDef="cliente">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
+      <td mat-cell *matCellDef="let element">{{element.cliente}}</td>
+    </ng-container>
+
+    <!-- Leader Column -->
+    <ng-container matColumnDef="lider">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Lider Técnico</th>
+      <td mat-cell *matCellDef="let element">{{element.lider}}</td>
+    </ng-container>
+
+    <!-- Hours Column -->
+    <ng-container matColumnDef="horas">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Nro de Horas</th>
+      <td mat-cell *matCellDef="let element">
+        {{element.horas | number:'1.2-2'}} hrs
+      </td>
+    </ng-container>
+
+    <!-- Status Column -->
+    <ng-container matColumnDef="estado">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
+      <td mat-cell *matCellDef="let element">
+        <div class="status-container" [ngClass]="{
+          'completed': element.estado === 'Completo',
+          'pending': element.estado === 'Pendiente',
+          'process': element.estado === 'En progreso'
+        }">
+          <div class="status-dot"></div>
+          <div class="status-text">{{element.estado}}</div>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <div *ngIf="dataSource.data.length === 0 && noDataMessage" class="no-data-message">
+    {{ noDataMessage }}
+  </div>
+
+  <mat-paginator
+    [length]="totalItems"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[5, 10, 25, 100]"
+    (page)="onPageChange($event)"
+    aria-label="Seleccionar página de colaboradores">
+  </mat-paginator>
+</div>
