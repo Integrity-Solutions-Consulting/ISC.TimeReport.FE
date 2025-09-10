@@ -1,0 +1,45 @@
+// activity-upload.component.scss
+.main-class {
+  padding: 16px;
+}
+
+.top-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+
+.search-field {
+  min-width: 250px;
+}
+
+.year-selector, .month-selector {
+  min-width: 120px;
+}
+
+.upload-button {
+  background-color: var(--itg-primary-dark);
+  color: white;
+  margin-left: auto;
+}
+
+.upload-button:hover {
+  background-color: var(--itg-accent);
+}
+
+.download-button {
+  background-color: var(--itg-primary);
+  color: white;
+}
+
+.download-button:hover {
+  background-color: var(--itg-accent);
+}
+
+.download-button:disabled {
+  background-color: #ccc;
+  color: #666;
+}
