@@ -124,8 +124,6 @@ export class DashboardComponent implements OnInit{
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  @ViewChild(BaseChartDirective) chart!: BaseChartDirective;
-
   public pieChartOptions: any = {
     responsive: true,
     maintainAspectRatio: false,
@@ -151,66 +149,6 @@ export class DashboardComponent implements OnInit{
     }
   };
 
-  public barChartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: {
-        title: {
-          display: true,
-          text: 'Tipo de Actividad'
-        }
-      },
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: 'Horas'
-        },
-        ticks: {
-          callback: function(value: any) {
-            return value + 'h';
-          }
-        }
-      }
-    },
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        callbacks: {
-          label: (context: any) => {
-            return `Horas: ${context.raw}h`;
-          }
-        }
-      }
-    }
-  };
-
-  public barChartType: ChartType = 'bar';
-  public barChartLabels: string[] = [];
-  public barChartData: ChartData<'bar'> = {
-    labels: [],
-    datasets: [{
-      data: [],
-      backgroundColor: [
-        '#1c4d8c', '#173f6b', '#2685bf', '#29a7d9', '#0d0d0d', '#666666',
-        '#56749b', '#597ca1', '#6ebdee', '#64d3ff', '#777777', '#a4a1a1'
-      ],
-      borderColor: [
-        '#0f2d52', '#0e2845', '#1a6a9e', '#1e8bb5', '#000000', '#4d4d4d'
-      ],
-      borderWidth: 1,
-      borderRadius: 4,
-      hoverBackgroundColor: [
-        '#56749bff', '#597ca1ff', '#6ebdeeff', '#64d3ffff', '#777777ff', '#a4a1a1ff'
-      ]
-    }]
-  };
-
-  public actividadesData: ActividadResponse[] = [];
-
   public pieChartType: ChartType = 'pie';
   public doughnutChartType: ChartType = 'doughnut';
   public pieChartLabels: string[] = [];
@@ -232,16 +170,6 @@ export class DashboardComponent implements OnInit{
   };
 
   public resourcesData: RecursoResponse[] = [];
-
-  categorias = [
-    'Desarrollo',
-    'Reuniones',
-    'Análisis',
-    'Testing',
-    'Documentación',
-    'Soporte',
-    'Capacitación'
-  ];
 
   colorScheme: Color = {
     name: 'customColors', // A unique name for your scheme
@@ -270,7 +198,6 @@ export class DashboardComponent implements OnInit{
     this.loadResourcesData();
     this.loadDataForTable();
     this.loadGeneralSummary();
-    this.loadActividadesData(new Date());
     this.dateControl.valueChanges.subscribe((date: Date | null) => {
       if (date) {
         this.loadDataForDate(date);
@@ -357,47 +284,6 @@ export class DashboardComponent implements OnInit{
             { name: 'Clientes', value: 0 },
             // ... otros valores por defecto
           ];
-        }
-      });
-  }
-
-  loadActividadesData(date: Date | string | null): void {
-    const formattedDate = this.formatDate(date);
-    this.http.get<ActividadResponse[]>(`${this.urlBase}/api/Dashboard/horas-por-actividad?fecha=${formattedDate}`)
-      .subscribe({
-        next: (data) => {
-          this.actividadesData = data;
-
-          // Crear NUEVOS arrays para forzar la detección de cambios
-          const newLabels = data.map(item => item.tipoActividad);
-          const newData = data.map(item => item.totalHoras);
-
-          // Crear un NUEVO objeto para barChartData
-          this.barChartData = {
-            labels: data.map(item => item.tipoActividad),
-            datasets: [{
-              data: data.map(item => item.totalHoras), // Spread operator para nuevo array
-              backgroundColor: [
-                '#1c4d8c', '#173f6b', '#2685bf', '#29a7d9', '#0d0d0d', '#666666',
-                '#56749b', '#597ca1', '#6ebdee', '#64d3ff', '#777777', '#a4a1a1'
-              ],
-              borderColor: [
-                '#0f2d52', '#0e2845', '#1a6a9e', '#1e8bb5', '#000000', '#4d4d4d'
-              ],
-              borderWidth: 1,
-              borderRadius: 4,
-              hoverBackgroundColor: [
-                '#56749bff', '#597ca1ff', '#6ebdeeff', '#64d3ffff', '#777777ff', '#a4a1a1ff'
-              ]
-            }]
-          };
-
-          if (this.chart && this.chart.chart) {
-            this.chart.chart.update();
-          }
-        },
-        error: (err) => {
-          console.error('Error al cargar horas por actividad:', err);
         }
       });
   }
@@ -502,25 +388,18 @@ export class DashboardComponent implements OnInit{
     this.loadDataForTable();
   }
 
-  private processData(response: any[]): any[] {
-    // Inicializamos todas las categorías con 0 horas
-    const processedData = this.categorias.map(cat => ({
-      name: cat,
-      value: 0
+  private processData(response: ActividadResponse[]): any[] {
+    // Crear un array para mapear nombres si es necesario (opcional)
+    const nameMapping: {[key: string]: string} = {
+      'Reunión': 'Reuniones',
+      // Puedes añadir más mapeos de nombres si quieres normalizarlos
+    };
+
+    // Procesar los datos directamente del response
+    return response.map(item => ({
+      name: nameMapping[item.tipoActividad] || item.tipoActividad,
+      value: item.totalHoras
     }));
-
-    // Actualizamos los valores con los datos del servidor
-    response.forEach(item => {
-      // Normalizamos el nombre de la actividad para hacer coincidir con nuestras categorías
-      const normalizedName = this.normalizeActivityName(item.tipoActividad);
-      const foundCategory = processedData.find(cat => cat.name === normalizedName);
-
-      if (foundCategory) {
-        foundCategory.value = item.totalHoras;
-      }
-    });
-
-    return processedData;
   }
 
   private normalizeActivityName(activityName: string): string {
@@ -551,19 +430,6 @@ export class DashboardComponent implements OnInit{
     const day = date.getDate().toString().padStart(2, '0');
 
     return `${year}-${month}-${day}`;
-  }
-
-  public barChartClicked(event: any): void {
-    if (event.active && event.active.length > 0) {
-      const activeElement = event.active[0];
-      const index = activeElement.index;
-      const actividadData = this.actividadesData[index];
-
-      if (actividadData) {
-        console.log(`Actividad: ${actividadData.tipoActividad}, Horas: ${actividadData.totalHoras}h`);
-        // Aquí puedes mostrar un modal o hacer alguna acción con los datos
-      }
-    }
   }
 
   public chartClicked({ event, active }: { event?: ChartEvent, active?: any[] }): void {
