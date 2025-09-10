@@ -7,6 +7,7 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors, withInterceptor
 import { Interceptor } from './shared/services/interceptor';
 import { CleanRequestInterceptor } from './modules/projects/components/project-modal/clean-request.interceptor';
 import { AuthInterceptor } from './modules/auth/auth.interceptor';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -30,6 +31,6 @@ export const appConfig: ApplicationConfig = {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
       multi: true
-    }
+    }, provideCharts(withDefaultRegisterables())
   ]
 };

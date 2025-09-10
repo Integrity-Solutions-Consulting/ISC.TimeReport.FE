@@ -2,7 +2,7 @@
   <h3>Dashboard</h3>
 </div>
 <ngx-charts-number-card
-  [view]="[1260,400]"
+  [view]="[1100,400]"
   [scheme]="colorScheme"
   [results]="data3"
   [cardColor]="cardColor">
@@ -38,19 +38,15 @@
             <span class="card-title">Recursos Por Cliente</span>
         </mat-card-header>
         <mat-card-content>
-            <ngx-charts-pie-chart
-              [view]="[800, 400]"
-              [scheme]="colorScheme"
-              [results]="circleData"
-              [gradient]="gradient"
-              [legend]="showLegend"
-              [legendPosition]="legendPosition"
-              [labels]="showLabels"
-              [doughnut]="isDoughnut"
-              [tooltipDisabled]=false
-              [tooltipText]="customTooltipText"
-              >
-            </ngx-charts-pie-chart>
+            <div class="chart-container">
+              <canvas baseChart
+                [data]="pieChartData"
+                [type]="doughnutChartType"
+                [options]="pieChartOptions"
+                (chartClick)="chartClicked($event)"
+                (chartHover)="chartHovered($event)">
+              </canvas>
+            </div>
         </mat-card-content>
     </mat-card>
 </div>
