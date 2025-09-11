@@ -1,6 +1,15 @@
 <h2 mat-dialog-title>Cargar Archivo Excel</h2>
 
 <mat-dialog-content>
+  <div class="download-model-container">
+    <button mat-stroked-button
+            color="primary"
+            (click)="downloadExcelModel()"
+            class="download-button">
+      <mat-icon>download</mat-icon>
+      Descargar modelo de Excel
+    </button>
+  </div>
   <div class="upload-container"
         (dragover)="onDragOver($event)"
         (dragleave)="onDragLeave($event)"
