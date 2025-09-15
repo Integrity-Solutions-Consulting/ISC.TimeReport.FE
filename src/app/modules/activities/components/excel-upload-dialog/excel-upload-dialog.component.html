@@ -5,9 +5,11 @@
     <button mat-stroked-button
             color="primary"
             (click)="downloadExcelModel()"
-            class="download-button">
+            class="download-button"
+            [disabled]="isLoading">
       <mat-icon>download</mat-icon>
       Descargar modelo de Excel
+      <mat-spinner diameter="20" *ngIf="isLoading" class="spinner"></mat-spinner>
     </button>
   </div>
   <div class="upload-container"
@@ -52,7 +54,7 @@
   <button mat-raised-button
           color="primary"
           (click)="onUpload()"
-          [disabled]="!selectedFile">
+          [disabled]="!selectedFile || isLoading">
     Cargar Archivo
   </button>
 </mat-dialog-actions>

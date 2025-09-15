@@ -3,6 +3,7 @@ import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef, MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { saveAs } from 'file-saver';
@@ -15,7 +16,8 @@ import { environment } from '../../../../../environments/environment';
     CommonModule,
     MatButtonModule,
     MatDialogModule,
-    MatIconModule
+    MatIconModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './excel-upload-dialog.component.html',
   styleUrl: './excel-upload-dialog.component.scss'
@@ -73,7 +75,6 @@ export class ExcelUploadDialogComponent {
       this.selectedFile = file;
       this.showInvalidFileError = false;
     } else {
-      // Aquí podrías mostrar un mensaje de error
       this.showInvalidFileError = true;
       this.showInvalidFormatDialog(file.name, fileExtension);
       this.selectedFile = null;
@@ -85,43 +86,7 @@ export class ExcelUploadDialogComponent {
 
     this.http.get(`${this.urlBase}/api/TimeReport/export-excel-model`, {
       responseType: 'blob',
-      headers: new HttpHeaders({
-        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      })
-    }).subscribe({
-      next: (blob: Blob) => {
-        this.isLoading = false;
-
-        // Crear un blob con el tipo MIME correcto explícitamente
-        const excelBlob = new Blob([blob], {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        });
-
-        // Usar el nombre de archivo del header si está disponible
-        const url = window.URL.createObjectURL(excelBlob);
-        const a = document.createElement('a');
-        a.href = url;
-
-        // Intentar extraer el nombre del archivo del header content-disposition
-        const contentDisposition = blob.type; // Esto no funcionará, necesitamos los headers completos
-
-        // Para obtener los headers necesitamos usar observe: 'response'
-        this.downloadWithHeaders();
-      },
-      error: (error: HttpErrorResponse) => {
-        this.isLoading = false;
-        console.error('Error al descargar el modelo:', error);
-        this.showErrorDialog('Error al descargar el modelo: ' + error.message);
-      }
-    });
-  }
-
-  downloadWithHeaders(): void {
-    this.isLoading = true;
-
-    this.http.get(`${this.urlBase}/api/TimeReport/export-excel-model`, {
-      responseType: 'blob',
-      observe: 'response' // Esto nos da acceso a los headers completos
+      observe: 'response'
     }).subscribe({
       next: (response) => {
         this.isLoading = false;
@@ -143,20 +108,18 @@ export class ExcelUploadDialogComponent {
           }
         }
 
-        // Crear el blob con el tipo correcto
-        const excelBlob = new Blob([blob], {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        });
-
         // Descargar usando file-saver
-        saveAs(excelBlob, filename);
+        saveAs(blob, filename);
       },
       error: (error: HttpErrorResponse) => {
         this.isLoading = false;
         console.error('Error al descargar el modelo:', error);
 
-        // Intentar leer el error como texto si viene como blob
+        // Manejar diferentes tipos de errores
+        let errorMessage = 'Error al descargar el modelo';
+
         if (error.error instanceof Blob) {
+          // Si el error es un Blob, intentar leerlo como texto
           const reader = new FileReader();
           reader.onload = () => {
             try {
@@ -168,56 +131,13 @@ export class ExcelUploadDialogComponent {
             }
           };
           reader.readAsText(error.error);
+        } else if (error.error instanceof ProgressEvent) {
+          this.showErrorDialog('Error de conexión. Verifique su conexión a internet.');
         } else {
-          this.showErrorDialog('Error al descargar el modelo: ' + error.message);
+          this.showErrorDialog(`${errorMessage}: ${error.statusText || error.message}`);
         }
       }
     });
-  }
-
-  async downloadWithFetch(): Promise<void> {
-    this.isLoading = true;
-
-    try {
-      const response = await fetch(`${this.urlBase}/api/TimeReport/export-excel-model`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      const blob = await response.blob();
-      const contentDisposition = response.headers.get('content-disposition');
-      let filename = 'modelo_excel.xlsx';
-
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (filenameMatch && filenameMatch[1]) {
-          filename = filenameMatch[1].replace(/['"]/g, '');
-        }
-      }
-
-      // Crear URL y descargar
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-
-      this.isLoading = false;
-
-    } catch (error) {
-      this.isLoading = false;
-      console.error('Error al descargar el modelo:', error);
-      this.showErrorDialog('Error al descargar el modelo: ' + (error as Error).message);
-    }
   }
 
   private showErrorDialog(message: string): void {
@@ -230,8 +150,6 @@ export class ExcelUploadDialogComponent {
         cancelText: null
       }
     });
-
-    dialogRef.afterClosed().subscribe();
   }
 
   private showInvalidFormatDialog(fileName: string, fileExtension: string): void {
@@ -241,12 +159,8 @@ export class ExcelUploadDialogComponent {
         title: 'Formato de archivo no válido',
         message: `El archivo "${fileName}" tiene el formato "${fileExtension}" que no es compatible. Solo se permiten archivos .xlsx y .xls.`,
         confirmText: 'Aceptar',
-        cancelText: null // Esto ocultará el botón de cancelar
+        cancelText: null
       }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      // No es necesario hacer nada después de cerrar el diálogo
     });
   }
 
