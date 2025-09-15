@@ -131,9 +131,10 @@ export class ActivityUploadComponent implements OnInit {
       disableClose: false
     });
 
-    dialogRef.afterClosed().subscribe((result: File | null) => {
-      if (result) {
-        this.handleExcelUpload(result);
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (result && result.success) {
+        // Recargar datos después de subir el archivo exitosamente
+        this.loadData();
       }
     });
   }
@@ -297,10 +298,10 @@ export class ActivityUploadComponent implements OnInit {
       `${this.urlBase}/api/TimeReport/recursos-pendientes-filtrado`,
       {
         params: {
-          month: selectedMonth + 1,
-          year: selectedYear,
-          mesCompleto: 'true', // Siempre mes completo para esta vista
-          bancoGuayaquil: 1 // Valor por defecto para el nuevo parámetro
+          month: (selectedMonth + 1).toString(),
+          year: selectedYear.toString(),
+          mesCompleto: 'true',
+          bancoGuayaquil: '1'
         }
       }
     ).pipe(
@@ -344,10 +345,14 @@ export class ActivityUploadComponent implements OnInit {
         }
 
         this.dataSource.data = filteredCollaborators;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        this.totalItems = filteredCollaborators.length;
 
+        // Asegurar que el paginador y ordenamiento estén configurados
+        setTimeout(() => {
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+        });
+
+        this.totalItems = filteredCollaborators.length;
         this.resetPagination();
       },
       error: (err) => {
