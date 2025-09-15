@@ -1,4 +1,3 @@
-// ... existing imports ...
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators, FormControl } from '@angular/forms';
@@ -87,7 +86,7 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
   projectStatuses: any[] = [];
   isLoadingStatuses = false;
 
-  showClientWaitingFields: boolean = false; // New property to control visibility
+  showClientWaitingFields: boolean = false;
 
   public clientFilterCtrl: FormControl<string | null> = new FormControl<string>('');
   public filteredClients: ReplaySubject<Client[]> = new ReplaySubject<Client[]>(1);
@@ -100,7 +99,7 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
     private dialogRef: MatDialogRef<ProjectModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { project?: ProjectWithID }
   ) {
-    this.initForm(); // Initialize form here to ensure all controls exist before ngOnInit
+    this.initForm();
   }
 
   ngOnInit(): void {
@@ -110,15 +109,15 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
 
     if (this.data?.project) {
       this.isEditMode = true;
-      this.projectId = this.data.project.id; // Correctly assign projectId
+      this.projectId = this.data.project.id;
       this.patchFormValues(this.data.project);
     }
 
     this.projectForm.get('startDate')?.valueChanges.subscribe(() => {
       this.projectForm.get('endDate')?.updateValueAndValidity();
+      this.projectForm.get('estimatedEndDate')?.updateValueAndValidity();
     });
 
-    // Subscribe to projectStatusId changes to toggle client waiting fields
     this.projectForm.get('projectStatusId')?.valueChanges
       .pipe(takeUntil(this._onDestroy))
       .subscribe((statusId) => {
@@ -133,12 +132,19 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
 
   private dateRangeValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const startDate = control.get('startDate')?.value;
-      const endDate = control.get('endDate')?.value;
+      const formGroup = control as FormGroup;
+      const startDate = formGroup.get('startDate')?.value;
+      const endDate = formGroup.get('endDate')?.value;
+      const estimatedEndDate = formGroup.get('estimatedEndDate')?.value;
 
       if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
         return { dateRange: true };
       }
+
+      if (startDate && estimatedEndDate && new Date(estimatedEndDate) < new Date(startDate)) {
+        return { estimatedDateRange: true };
+      }
+
       return null;
     };
   }
@@ -153,22 +159,19 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
       description: [''],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
-      estimatedEndDate: [null], // New field
+      estimatedEndDate: [null],
       actualStartDate: [null],
-      actualEndDate: [null],
       budget: [0, [Validators.required, Validators.min(0)]],
       hours: [0, [Validators.min(0)]],
-      waitStartDate: [null], // New field for client waiting
-      waitEndDate: [null],   // New field for client waiting
-      observations: ['', Validators.maxLength(50)] // New field for observations
+      waitStartDate: [null],
+      waitEndDate: [null],
+      observations: ['', Validators.maxLength(50)]
     }, { validator: this.dateRangeValidator() });
   }
 
   private updateClientWaitingFieldsVisibility(statusId: number): void {
-    // Mostrar campos si el estado es "En Espera de Cliente" (ID: 8)
     this.showClientWaitingFields = statusId === 8;
 
-    // Conditionally set validators based on visibility
     if (this.showClientWaitingFields) {
       this.projectForm.get('estimatedEndDate')?.setValidators([Validators.required]);
       this.projectForm.get('waitStartDate')?.setValidators([Validators.required]);
@@ -180,7 +183,6 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
       this.projectForm.get('waitEndDate')?.clearValidators();
       this.projectForm.get('observations')?.clearValidators();
 
-      // También limpiar valores si ya no son relevantes
       if (!this.isEditMode) {
         this.projectForm.get('estimatedEndDate')?.setValue(null);
         this.projectForm.get('waitStartDate')?.setValue(null);
@@ -195,9 +197,6 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
     this.projectForm.get('observations')?.updateValueAndValidity();
   }
 
-  /**
-   * Configura el filtro para clientes usando ngx-mat-select-search
-   */
   private setupClientFilter(): void {
     this.filteredClients.next(this.clients.slice());
     this.clientFilterCtrl.valueChanges
@@ -207,9 +206,6 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
       });
   }
 
-  /**
-   * Filtra los clientes basado en la consulta
-   */
   private filterClients(): void {
     if (!this.clients) {
       return;
@@ -238,22 +234,17 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
         this.projectStatuses = statuses;
         this.isLoadingStatuses = false;
 
-        // Después de cargar los estados, verificar si estamos en modo edición
-        // y si el proyecto tiene el estado "En Espera de Cliente" (ID: 8)
         if (this.isEditMode && this.data?.project) {
           const projectData = this.data.project;
 
-          // Verificar si el estado del proyecto es "En Espera de Cliente" (ID: 8)
           if (projectData.projectStatusID === 8) {
             this.showClientWaitingFields = true;
 
-            // Establecer validadores para los campos
             this.projectForm.get('estimatedEndDate')?.setValidators([Validators.required]);
             this.projectForm.get('waitStartDate')?.setValidators([Validators.required]);
             this.projectForm.get('waitEndDate')?.setValidators([Validators.required]);
             this.projectForm.get('observations')?.setValidators([Validators.maxLength(50)]);
 
-            // Actualizar validación
             this.projectForm.get('estimatedEndDate')?.updateValueAndValidity();
             this.projectForm.get('waitStartDate')?.updateValueAndValidity();
             this.projectForm.get('waitEndDate')?.updateValueAndValidity();
@@ -327,15 +318,14 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
       startDate: project.startDate,
       endDate: project.endDate,
       actualStartDate: project.actualStartDate ? new Date(project.actualStartDate) : null,
-      estimatedEndDate: project.actualEndDate ? new Date(project.actualEndDate) : null, // Campo para fecha terminación real
+      estimatedEndDate: project.actualEndDate ? new Date(project.actualEndDate) : null, // CORRECCIÓN: Usar actualEndDate
       budget: project.budget,
       hours: project.hours,
-      waitStartDate: project.waitingStartDate ? new Date(project.waitingStartDate) : null, // Campo para fecha inicio espera
-      waitEndDate: project.waitingEndDate ? new Date(project.waitingEndDate) : null,     // Campo para fecha fin espera
-      observations: project.observation || ''                                   // Campo para observaciones
+      waitStartDate: project.waitingStartDate ? new Date(project.waitingStartDate) : null,
+      waitEndDate: project.waitingEndDate ? new Date(project.waitingEndDate) : null,
+      observations: project.observation || ''
     });
 
-    // Asegurar que la visibilidad se actualice después de parchear los valores
     this.updateClientWaitingFieldsVisibility(project.projectStatusID);
   }
 
@@ -372,13 +362,13 @@ export class ProjectModalComponent implements OnInit, OnDestroy {
       startDate: new Date(formValue.startDate).toISOString(),
       endDate: new Date(formValue.endDate).toISOString(),
       actualStartDate: formValue.actualStartDate ? new Date(formValue.actualStartDate).toISOString() : null,
-      actualEndDate: formValue.estimatedEndDate ? new Date(formValue.estimatedEndDate).toISOString() : null,
+      actualEndDate: formValue.estimatedEndDate ? new Date(formValue.estimatedEndDate).toISOString() : null, // CORRECCIÓN: Mapear estimatedEndDate a actualEndDate
       budget: Number(formValue.budget) || 0,
       hours: Number(formValue.hours) || 0,
       status: true,
-      waitingStartDate: formValue.waitStartDate ? new Date(formValue.waitStartDate).toISOString() : null, // Include new field
-      waitingEndDate: formValue.waitEndDate ? new Date(formValue.waitEndDate).toISOString() : null,     // Include new field
-      observation: formValue.observations || ''                                                     // Include new field
+      waitingStartDate: formValue.waitStartDate ? new Date(formValue.waitStartDate).toISOString() : null,
+      waitingEndDate: formValue.waitEndDate ? new Date(formValue.waitEndDate).toISOString() : null,
+      observation: formValue.observations || ''
     };
 
     console.log('Datos del proyecto a enviar:', projectData);

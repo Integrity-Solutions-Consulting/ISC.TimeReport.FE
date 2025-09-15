@@ -5,6 +5,13 @@
   max-height: none; /* Eliminar altura máxima */
 }
 
+.download-model-container {
+  margin-bottom: 20px;
+  text-align: center;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 15px;
+}
+
 .upload-container {
   border: 2px dashed #ccc;
   border-radius: 8px;
@@ -17,7 +24,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 0;
+  margin: 8px;
 }
 
 .upload-container:hover {
@@ -87,5 +94,5 @@ mat-dialog-actions {
 
 /* Asegurar que el diálogo no sea demasiado alto */
 ::ng-deep .mat-mdc-dialog-container {
-  max-height: 400px !important;
+  max-height: 600px !important;
 }

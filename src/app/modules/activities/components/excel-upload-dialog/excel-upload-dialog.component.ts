@@ -3,7 +3,11 @@ import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef, MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { saveAs } from 'file-saver';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-excel-upload-dialog',
@@ -12,7 +16,8 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
     CommonModule,
     MatButtonModule,
     MatDialogModule,
-    MatIconModule
+    MatIconModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './excel-upload-dialog.component.html',
   styleUrl: './excel-upload-dialog.component.scss'
@@ -22,11 +27,14 @@ export class ExcelUploadDialogComponent {
   selectedFile: File | null = null;
   isDragOver = false;
   showInvalidFileError = false;
+  isLoading = false;
+  urlBase: string = environment.URL_BASE;
 
   constructor(
     public dialogRef: MatDialogRef<ExcelUploadDialogComponent>,
     public dialog: MatDialog,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private http: HttpClient
   ) {}
 
   onDragOver(event: DragEvent): void {
@@ -67,11 +75,81 @@ export class ExcelUploadDialogComponent {
       this.selectedFile = file;
       this.showInvalidFileError = false;
     } else {
-      // Aquí podrías mostrar un mensaje de error
       this.showInvalidFileError = true;
       this.showInvalidFormatDialog(file.name, fileExtension);
       this.selectedFile = null;
     }
+  }
+
+  downloadExcelModel(): void {
+    this.isLoading = true;
+
+    this.http.get(`${this.urlBase}/api/TimeReport/export-excel-model`, {
+      responseType: 'blob',
+      observe: 'response'
+    }).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+
+        if (!response.body) {
+          this.showErrorDialog('El archivo recibido está vacío');
+          return;
+        }
+
+        const blob = response.body;
+        const contentDisposition = response.headers.get('content-disposition');
+        let filename = 'modelo_excel.xlsx';
+
+        // Extraer el nombre de archivo del header content-disposition
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (filenameMatch && filenameMatch[1]) {
+            filename = filenameMatch[1].replace(/['"]/g, '');
+          }
+        }
+
+        // Descargar usando file-saver
+        saveAs(blob, filename);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.isLoading = false;
+        console.error('Error al descargar el modelo:', error);
+
+        // Manejar diferentes tipos de errores
+        let errorMessage = 'Error al descargar el modelo';
+
+        if (error.error instanceof Blob) {
+          // Si el error es un Blob, intentar leerlo como texto
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorText = reader.result as string;
+              const errorObj = JSON.parse(errorText);
+              this.showErrorDialog(errorObj.message || 'Error del servidor');
+            } catch {
+              this.showErrorDialog('Error al procesar la respuesta del servidor');
+            }
+          };
+          reader.readAsText(error.error);
+        } else if (error.error instanceof ProgressEvent) {
+          this.showErrorDialog('Error de conexión. Verifique su conexión a internet.');
+        } else {
+          this.showErrorDialog(`${errorMessage}: ${error.statusText || error.message}`);
+        }
+      }
+    });
+  }
+
+  private showErrorDialog(message: string): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Error',
+        message: message,
+        confirmText: 'Aceptar',
+        cancelText: null
+      }
+    });
   }
 
   private showInvalidFormatDialog(fileName: string, fileExtension: string): void {
@@ -81,12 +159,8 @@ export class ExcelUploadDialogComponent {
         title: 'Formato de archivo no válido',
         message: `El archivo "${fileName}" tiene el formato "${fileExtension}" que no es compatible. Solo se permiten archivos .xlsx y .xls.`,
         confirmText: 'Aceptar',
-        cancelText: null // Esto ocultará el botón de cancelar
+        cancelText: null
       }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      // No es necesario hacer nada después de cerrar el diálogo
     });
   }
 
