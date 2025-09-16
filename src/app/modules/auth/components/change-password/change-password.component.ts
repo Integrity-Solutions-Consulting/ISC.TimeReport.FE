@@ -150,7 +150,7 @@ export class ChangePasswordComponent implements OnInit{
               errorMessage = 'Datos inválidos en la solicitud.';
             } else if (error.status === 200) {
               // Esto puede pasar si el servidor devuelve 200 pero con error en el cuerpo
-              errorMessage = 'Respuesta inesperada del servidor.';
+              errorMessage = 'La contraseña fue actualizada con éxito.';
             }
           }
 

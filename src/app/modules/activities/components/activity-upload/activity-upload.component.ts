@@ -49,6 +49,8 @@ export class ActivityUploadComponent implements OnInit {
   monthControl = new FormControl<number>(new Date().getMonth());
   yearControl = new FormControl<number>(new Date().getFullYear());
 
+  periodToggleControl = new FormControl<boolean>(this.shouldUseFullMonth());
+
   months = [
     { value: 0, name: 'Enero' },
     { value: 1, name: 'Febrero' },
@@ -67,7 +69,7 @@ export class ActivityUploadComponent implements OnInit {
   isDownloading = false;
   noDataMessage: string = '';
 
-  displayedColumns: string[] = ['select', 'colaborador', 'proyecto', 'cliente', 'lider', 'horas', 'estado'];
+  displayedColumns: string[] = ['select', 'colaborador', 'proyecto', 'cliente', 'lider', 'horas', 'estado', 'actions'];
   dataSource: MatTableDataSource<Collaborator> = new MatTableDataSource<Collaborator>([]);
   selection = new SelectionModel<Collaborator>(true, []);
   searchControl = new FormControl('');
@@ -122,6 +124,12 @@ export class ActivityUploadComponent implements OnInit {
 
   onPageChange(event: any) {
     // Handle pagination changes
+  }
+
+  private shouldUseFullMonth(): boolean {
+    const today = new Date();
+    const currentDay = today.getDate();
+    return currentDay > 15;
   }
 
   uploadExcel() {
@@ -260,6 +268,104 @@ export class ActivityUploadComponent implements OnInit {
     });
   }
 
+  downloadCollaboratorExcel(collaborator: Collaborator) {
+    try {
+      if (!collaborator?.employeeID || !collaborator?.clienteIDs) {
+        console.error('Colaborador no válido o sin clientIDs:', collaborator);
+        return;
+      }
+
+      const month = this.monthControl.value ?? new Date().getMonth();
+      const fullMonth = this.periodToggleControl.value ?? false;
+      const year = this.yearControl.value ?? new Date().getFullYear();
+
+      // Parsear los clientIDs
+      let clientIds: number[];
+
+      if (Array.isArray(collaborator.clienteIDs)) {
+        clientIds = collaborator.clienteIDs;
+      } else if (typeof collaborator.clienteIDs === 'string') {
+        clientIds = collaborator.clienteIDs
+          .split(',')
+          .map((id: string) => parseInt(id.trim(), 10))
+          .filter((id: number) => !isNaN(id));
+      } else {
+        console.error('Formato de clienteIDs no válido:', collaborator.clienteIDs);
+        return;
+      }
+
+      if (clientIds.length === 0) {
+        console.warn('No hay clientIDs válidos para este colaborador:', collaborator);
+        return;
+      }
+
+      const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      const monthName = monthNames[month];
+
+      let periodText = '';
+      if (fullMonth) {
+        periodText = `Mes Completo ${monthName} ${year}`;
+      } else {
+        periodText = `Quincena ${monthName} ${year}`;
+      }
+
+      // Descargar reporte para cada clientID
+      clientIds.forEach((clientId, index) => {
+        setTimeout(() => {
+          this.downloadSingleReportForClient(
+            collaborator,
+            clientId,
+            month,
+            year,
+            fullMonth,
+            monthName,
+            periodText,
+            index
+          );
+        }, index * 300);
+      });
+
+    } catch (error) {
+      console.error('Error inesperado:', error);
+    }
+  }
+
+  private downloadSingleReportForClient(
+    collaborator: any,
+    clientId: number,
+    month: number,
+    year: number,
+    fullMonth: boolean,
+    monthName: string,
+    periodText: string,
+    index: number
+  ) {
+    const params = new HttpParams()
+      .set('employeeId', collaborator.employeeID.toString())
+      .set('clientId', clientId.toString())
+      .set('year', year.toString())
+      .set('month', (month + 1).toString())
+      .set('fullMonth', fullMonth.toString());
+
+    // Crear nombre de archivo único para cada cliente
+    const fileName = `Reporte_${collaborator.nombre || collaborator.employeeID}_Cliente_${clientId}_${periodText}.xlsm`
+      .replace(/ /g, '_');
+
+    this.http.get(`${this.urlBase}/api/TimeReport/export-excel`, {
+      params,
+      responseType: 'blob'
+    }).subscribe({
+      next: (blob) => {
+        this.saveFile(blob, fileName);
+        console.log(`Descargado reporte ${index + 1} de ${this.getClientIdsCount(collaborator)} para ${collaborator.nombre}`);
+      },
+      error: (err) => {
+        console.error(`Error descargando reporte para cliente ${clientId}:`, err);
+      }
+    });
+  }
+
   private generateReportFileName(collaborator: any, clientId: number, month: number): string {
     const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -268,6 +374,20 @@ export class ActivityUploadComponent implements OnInit {
     const periodText = `Mes_Completo_${monthName}_${this.currentYear}`;
 
     return `Reporte_${(collaborator.nombre || collaborator.employeeID).toString().replace(/[^a-z0-9]/gi, '_')}_Cliente_${clientId}_${periodText}.xlsm`;
+  }
+
+  private getClientIdsCount(collaborator: Collaborator): number {
+    if (!collaborator?.clienteIDs) return 0;
+
+    if (Array.isArray(collaborator.clienteIDs)) {
+      return collaborator.clienteIDs.length;
+    }
+
+    if (typeof collaborator.clienteIDs === 'string') {
+      return collaborator.clienteIDs.split(',').length;
+    }
+
+    return 0;
   }
 
   private saveFile(blob: Blob, fileName: string) {
