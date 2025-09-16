@@ -52,7 +52,7 @@
 <mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()" [disabled]="isUploading">Cancelar</button>
   <button mat-raised-button
-          color="primary"
+          style="background-color: var(--itg-primary); color: var(--itg-bg)"
           (click)="onUpload()"
           [disabled]="!selectedFile || isLoading || isUploading">
     <mat-spinner diameter="20" *ngIf="isUploading" class="spinner"></mat-spinner>

@@ -363,7 +363,7 @@ export class CollaboratorsListComponent implements OnInit {
         console.error(`Error descargando reporte para cliente ${clientId}:`, err);
       }
     });
-}
+  }
 
   // Método auxiliar para contar clientIDs
   private getClientIdsCount(collaborator: Collaborator): number {

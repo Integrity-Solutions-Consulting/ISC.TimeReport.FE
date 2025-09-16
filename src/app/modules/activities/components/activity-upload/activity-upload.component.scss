@@ -21,7 +21,7 @@
 }
 
 .upload-button {
-  background-color: var(--itg-primary-dark);
+  background-color: var(--itg-primary);
   color: white;
   margin-left: auto;
   min-width: 150px;
@@ -46,6 +46,21 @@
 .download-button:disabled {
   background-color: #ccc;
   color: #666;
+}
+
+.collaborator-table {
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+
+  th {
+    background-color: #f5f5f5;
+    font-weight: 500;
+  }
+
+  .download-report {
+    color: #3f51b5;
+  }
 }
 
 .status-container {
