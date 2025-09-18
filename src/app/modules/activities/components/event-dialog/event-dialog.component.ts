@@ -402,6 +402,47 @@ export class EventDialogComponent implements OnInit {
     }
   }
 
+  async onSubmit(): Promise<void> {
+    if (!this.isFormValid()) {
+      return;
+    }
+
+    try {
+      const payload = this.preparePayload();
+
+      if (this.data.isEdit) {
+        // Para edición
+        await this.activityService.updateActivity(this.event.id, payload).toPromise();
+        this.snackBar.open('Actividad actualizada correctamente', 'Cerrar', { duration: 3000 });
+        this.dialogRef.close({ success: true });
+      } else {
+        // Para creación (tanto simple como recurrente)
+        if (Array.isArray(payload)) {
+          // Para actividades recurrentes
+          const requests = payload.map(activity =>
+            this.activityService.createActivity(activity).toPromise()
+          );
+          await Promise.all(requests);
+          this.snackBar.open(`${payload.length} actividades creadas correctamente`, 'Cerrar', { duration: 3000 });
+        } else {
+          // Para actividad única
+          await this.activityService.createActivity(payload).toPromise();
+          this.snackBar.open('Actividad creada correctamente', 'Cerrar', { duration: 3000 });
+        }
+        this.dialogRef.close({ success: true });
+      }
+    } catch (error: any) {
+      console.error('Error al guardar actividad', error);
+
+      // Mostrar diálogo de error específico para actividades aprobadas
+      if (error.error?.Code === 400 && error.error.Message.includes('aprobada')) {
+        this.showErrorDialog(error.error.Message);
+      } else {
+        this.snackBar.open('Error al guardar actividad', 'Cerrar', { duration: 3000 });
+      }
+    }
+  }
+
   preparePayload(): any {
     // Si es recurrente, devolver array de actividades
     if (this.isRecurring) {
