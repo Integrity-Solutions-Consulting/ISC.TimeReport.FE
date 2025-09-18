@@ -476,10 +476,28 @@ export class EventDialogComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error al eliminar actividad', error);
-          this.snackBar.open('Error al eliminar actividad', 'Cerrar', { duration: 3000 });
+
+          // Mostrar mensaje de error específico si la actividad está aprobada
+          if (error.error?.Code === 400 && error.error.Message.includes('aprobada')) {
+            this.showErrorDialog(error.error.Message);
+          } else {
+            this.snackBar.open('Error al eliminar actividad', 'Cerrar', { duration: 3000 });
+          }
         }
       });
     }
+  }
+
+  private showErrorDialog(errorMessage: string): void {
+    this.dialog.open(ConfirmDialogComponent, {
+      width: '600px',
+      data: {
+        title: 'No se puede modificar la actividad',
+        message: errorMessage,
+        confirmText: 'Aceptar',
+        cancelText: null // Esto ocultará el botón de cancelar
+      }
+    });
   }
 
   // Modificar isFormValid para incluir validación de recurrencia

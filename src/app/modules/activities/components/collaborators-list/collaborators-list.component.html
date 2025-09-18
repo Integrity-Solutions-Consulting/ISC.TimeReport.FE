@@ -36,6 +36,15 @@
       </mat-button-toggle-group>
     </div>
 
+  <button mat-flat-button
+          class="approve-button"
+          (click)="$event.stopPropagation(); approveSelectedActivities()"
+          [disabled]="selection.selected.length === 0 || isApproving">
+    <mat-icon>check_circle</mat-icon>
+    Aprobar
+    <mat-spinner diameter="20" *ngIf="isApproving" class="spinner"></mat-spinner>
+  </button>
+
     <button mat-flat-button
             class="download-button"
             (click)="$event.stopPropagation(); downloadSelectedReports()"
