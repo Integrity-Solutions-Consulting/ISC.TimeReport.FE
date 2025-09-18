@@ -33,6 +33,7 @@ export class ExcelUploadDialogComponent {
   showInvalidFileError = false;
   isLoading = false;
   isUploading = false;
+  isProcessing = false;
   urlBase: string = environment.URL_BASE;
   private downloadTimeout: any;
 
@@ -145,6 +146,7 @@ export class ExcelUploadDialogComponent {
     if (!this.selectedFile) return;
 
     this.isUploading = true;
+    this.isProcessing = true;
 
     const formData = new FormData();
     formData.append('file', this.selectedFile);
@@ -155,6 +157,7 @@ export class ExcelUploadDialogComponent {
     }).pipe(
       finalize(() => {
         this.isUploading = false;
+        this.isProcessing = false;
       })
     ).subscribe({
       next: (event: any) => {
