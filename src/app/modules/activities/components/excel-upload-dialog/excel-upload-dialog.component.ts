@@ -10,6 +10,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { saveAs } from 'file-saver';
 import { environment } from '../../../../../environments/environment';
 import { finalize } from 'rxjs/operators';
+import { ResultsDialogComponent } from '../results-dialog/results-dialog.component';
 
 @Component({
   selector: 'app-excel-upload-dialog',
@@ -168,21 +169,46 @@ export class ExcelUploadDialogComponent {
   }
 
   private handleUploadSuccess(response: any): void {
-    this.snackBar.open('Archivo cargado correctamente', 'Cerrar', {
+    this.snackBar.open('Archivo procesado correctamente', 'Cerrar', {
       duration: 3000
     });
 
-    // Cerrar el diálogo y retornar la respuesta del servidor
-    this.dialogRef.close({
-      success: true,
+    // Mostrar diálogo con resultados
+    const resultsDialog = this.dialog.open(ResultsDialogComponent, {
+      width: '800px',
+      maxHeight: '90vh',
       data: response
+    });
+
+    resultsDialog.afterClosed().subscribe(() => {
+      // Cerrar el diálogo de carga y retornar la respuesta del servidor
+      this.dialogRef.close({
+        success: true,
+        data: response
+      });
     });
   }
 
   private handleUploadError(error: HttpErrorResponse): void {
+
     console.error('Error al cargar el archivo:', error);
 
     let errorMessage = 'Error al cargar el archivo';
+
+    if (error.status === 400 && error.error) {
+      // Si el servidor devuelve un objeto con errores (como tu response 200 con errores)
+      if (error.error.activities && Array.isArray(error.error.activities)) {
+        // Mostrar diálogo con resultados de error
+        this.dialog.open(ResultsDialogComponent, {
+          width: '800px',
+          maxHeight: '90vh',
+          data: error.error
+        });
+        return;
+      }
+
+      errorMessage = 'El archivo tiene un formato incorrecto o datos inválidos';
+    }
 
     if (error.status === 400) {
       errorMessage = 'El archivo tiene un formato incorrecto o datos inválidos';
