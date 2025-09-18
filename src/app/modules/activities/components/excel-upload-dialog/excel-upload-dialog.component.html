@@ -1,24 +1,35 @@
+<!-- En tu archivo HTML del diálogo -->
 <h2 mat-dialog-title>Cargar Archivo Excel</h2>
 
 <mat-dialog-content>
+  <!-- Contenedor de descarga del modelo -->
   <div class="download-model-container">
     <button mat-stroked-button
             color="primary"
             (click)="downloadExcelModel()"
             class="download-button"
-            [disabled]="isLoading || isUploading">
+            [disabled]="isLoading || isUploading || isProcessing">
       <mat-icon>download</mat-icon>
       Descargar modelo de Excel
       <mat-spinner diameter="20" *ngIf="isLoading" class="spinner"></mat-spinner>
     </button>
   </div>
+
+  <!-- Contenedor de carga -->
   <div class="upload-container"
         (dragover)="onDragOver($event)"
         (dragleave)="onDragLeave($event)"
         (drop)="onDrop($event)"
         [class.drag-over]="isDragOver"
         [class.invalid-file]="showInvalidFileError"
-        (click)="fileInput.click()">
+        (click)="fileInput.click()"
+        [class.processing]="isProcessing">
+
+    <!-- Spinner de procesamiento -->
+    <div class="processing-overlay" *ngIf="isProcessing">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Procesando archivo...</p>
+    </div>
 
     <mat-icon class="upload-icon">cloud_upload</mat-icon>
 
@@ -34,7 +45,8 @@
             type="file"
             hidden
             (change)="onFileSelected($event)"
-            accept=".xlsx,.xls">
+            accept=".xlsx,.xls"
+            [disabled]="isProcessing">
 
     <div *ngIf="selectedFile" class="file-info">
       <mat-icon>description</mat-icon>
@@ -50,11 +62,11 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()" [disabled]="isUploading">Cancelar</button>
+  <button mat-button (click)="onCancel()" [disabled]="isUploading || isProcessing">Cancelar</button>
   <button mat-raised-button
           style="background-color: var(--itg-primary); color: var(--itg-bg)"
           (click)="onUpload()"
-          [disabled]="!selectedFile || isLoading || isUploading">
+          [disabled]="!selectedFile || isLoading || isUploading || isProcessing">
     <mat-spinner diameter="20" *ngIf="isUploading" class="spinner"></mat-spinner>
     {{ isUploading ? 'Cargando...' : 'Cargar Archivo' }}
   </button>
