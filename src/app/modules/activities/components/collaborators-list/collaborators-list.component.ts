@@ -20,6 +20,7 @@ import { environment } from '../../../../../environments/environment';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Collaborator } from '../../interfaces/activity.interface';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 interface Holiday {
   id: number;
@@ -45,6 +46,7 @@ interface Holiday {
     MatSelectModule,
     MatSlideToggleModule,
     MatTableModule,
+    MatProgressSpinnerModule,
     ReactiveFormsModule
   ],
   providers: [provideNativeDateAdapter()],
@@ -77,6 +79,7 @@ export class CollaboratorsListComponent implements OnInit {
   ];
 
   isDownloading = false;
+  isApproving = false;
   noDataMessage: string = '';
   holidays: Holiday[] = [];
   businessDays: number = 0;
@@ -153,6 +156,81 @@ export class CollaboratorsListComponent implements OnInit {
     const today = new Date();
     const currentDay = today.getDate();
     return currentDay > 15;
+  }
+
+  // Método para aprobar actividades seleccionadas
+  async approveSelectedActivities() {
+    if (this.isApproving || this.selection.selected.length === 0) return;
+    this.isApproving = true;
+
+    try {
+      const selectedMonth = this.monthControl.value ?? new Date().getMonth();
+      const selectedYear = this.yearControl.value ?? new Date().getFullYear();
+      const mesCompleto = this.periodToggleControl.value ?? false;
+
+      // Crear array de promesas para todas las aprobaciones
+      const approvalPromises = this.selection.selected.map(collaborator =>
+        this.approveCollaboratorActivities(collaborator, selectedMonth, selectedYear, mesCompleto)
+      );
+
+      // Ejecutar todas las aprobaciones en paralelo
+      const results = await Promise.allSettled(approvalPromises);
+
+      // Contar resultados
+      const successful = results.filter(result => result.status === 'fulfilled').length;
+      const failed = results.filter(result => result.status === 'rejected').length;
+
+      // Mostrar mensaje de resultado
+      this.showApprovalResult(successful, failed);
+
+      // Recargar datos para actualizar estados
+      this.loadData();
+
+    } catch (error) {
+      console.error('Error inesperado en la aprobación:', error);
+      // Mostrar mensaje de error
+    } finally {
+      this.isApproving = false;
+      this.selection.clear(); // Limpiar selección después de aprobar
+    }
+  }
+
+  private showApprovalResult(successful: number, failed: number): void {
+    let message = '';
+
+    if (successful > 0 && failed === 0) {
+      message = `✅ ${successful} colaborador(es) aprobado(s) exitosamente`;
+    } else if (successful > 0 && failed > 0) {
+      message = `⚠️ ${successful} aprobado(s), ${failed} fallido(s)`;
+    } else if (failed > 0) {
+      message = `❌ Error al aprobar ${failed} colaborador(es)`;
+    }
+
+    // Puedes implementar un snackbar o toast notification aquí
+    console.log(message);
+    // Ejemplo con alert (puedes reemplazar con tu sistema de notificaciones)
+    alert(message);
+  }
+
+  // Método para aprobar actividades de un colaborador específico
+  private async approveCollaboratorActivities(
+    collaborator: Collaborator,
+    month: number,
+    year: number,
+    fullMonth: boolean
+  ): Promise<any> {
+    const payload = {
+      employeeID: collaborator.employeeID,
+      projectID: 0, // Siempre 0 según requerimiento
+      activityId: null, // Siempre null según requerimiento
+      month: month + 1, // Ajustar a formato 1-12
+      year: year
+    };
+
+      return this.http.post(
+      `${this.urlBase}/api/DailyActivity/ApproveActivities`,
+      payload
+    ).toPromise();
   }
 
   // Método para cargar feriados y luego los datos

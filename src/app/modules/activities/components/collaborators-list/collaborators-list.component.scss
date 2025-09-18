@@ -10,19 +10,38 @@
   width: 100%;
   padding: 8px 0;
 
+  .approve-button {
+    background-color: #4caf50;
+    color: white;
+    margin-bottom: 18px;
+
+    &:hover:not(:disabled) {
+      background-color: #45a049;
+    }
+
+    &:disabled {
+      background-color: #a5d6a7;
+    }
+  }
+
+  .spinner {
+    margin-left: 8px;
+  }
+
   /* Normaliza altura y alineación */
   > * {
     display: flex;
     align-items: center;
-    height: 56px;
+    height: 40px;
   }
 
   mat-form-field {
     flex: 1;
     min-width: 50px; /* Para que no se hagan muy pequeños */
-    height: 56px;
+    height: 40px;
     display: flex;
     align-items: center;
+    margin-bottom: 18px;
 
     .mat-form-field-wrapper {
       padding-bottom: 0;
@@ -40,6 +59,7 @@
   width: 120px !important; /* o el ancho que prefieras */
   min-width: 120px !important;
   max-width: 120px !important;
+  margin-bottom: 18px;
 
   .mat-form-field-wrapper {
     width: 100% !important;
@@ -65,7 +85,7 @@
 
   .download-button {
     background-color: var(--itg-primary);
-    height: 56px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
