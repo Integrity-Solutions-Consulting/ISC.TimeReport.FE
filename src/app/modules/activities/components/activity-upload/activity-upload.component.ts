@@ -18,6 +18,7 @@ import { Collaborator } from '../../interfaces/activity.interface';
 import { environment } from '../../../../../environments/environment';
 import { MatDialog } from '@angular/material/dialog';
 import { ExcelUploadDialogComponent } from '../excel-upload-dialog/excel-upload-dialog.component';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'activity-upload',
@@ -141,8 +142,33 @@ export class ActivityUploadComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result: any) => {
       if (result && result.success) {
+        // Mostrar dialog de éxito
+        this.showSuccessDialog();
         // Recargar datos después de subir el archivo exitosamente
         this.loadData();
+      } else if (result && result.error) {
+        // Mostrar dialog de error si es necesario
+        this.showErrorDialog(result.error);
+      }
+    });
+  }
+
+  private showSuccessDialog(): void {
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Éxito',
+        message: 'Todas las actividades fueron registradas con éxito.',
+        confirmText: 'Aceptar'
+      }
+    });
+  }
+
+  private showErrorDialog(errorMessage: string): void {
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Error',
+        message: errorMessage || 'Ocurrió un error al procesar el archivo.',
+        confirmText: 'Aceptar'
       }
     });
   }
