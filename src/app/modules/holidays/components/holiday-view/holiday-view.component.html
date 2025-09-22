@@ -1,0 +1,110 @@
+<div class="holiday-view-container">
+  <div class="header">
+    <button mat-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+      Volver a la lista
+    </button>
+
+    <h1>Información del Feriado</h1>
+  </div>
+
+  <mat-card class="holiday-card" *ngIf="holiday && !isLoading">
+    <mat-card-content>
+
+      <!-- Badge de estado -->
+      <div class="status-badge" [class.active]="holiday.status">
+        {{ holiday.status ? 'Activo' : 'Inactivo' }}
+      </div>
+
+      <div class="card-content">
+        <!-- Nombre del Feriado -->
+        <div class="field-row">
+          <label>Nombre del Feriado:</label>
+          <span class="value">{{ holiday.holidayName }}</span>
+        </div>
+
+        <!-- Tipo de Feriado -->
+        <div class="field-row">
+          <label>Tipo de Feriado:</label>
+          <span class="value">
+            <span class="type-badge" [class]="holiday.holidayType.toLowerCase()">
+              {{ getHolidayTypeText(holiday.holidayType) }}
+            </span>
+          </span>
+        </div>
+
+        <!-- Fecha -->
+        <div class="field-row">
+          <label>Fecha:</label>
+          <span class="value">{{ formatDisplayDate(holiday.holidayDate) }}</span>
+        </div>
+
+        <!-- Recurrente -->
+        <div class="field-row">
+          <label>Es recurrente:</label>
+          <span class="value">
+            <mat-icon [class.recurring]="holiday.isRecurring" class="recurring-icon">
+              {{ holiday.isRecurring ? 'check_circle' : 'cancel' }}
+            </mat-icon>
+            {{ holiday.isRecurring ? 'Sí' : 'No' }}
+          </span>
+        </div>
+
+        <!-- Descripción -->
+        <div class="field-row" *ngIf="holiday.description">
+          <label>Descripción:</label>
+          <span class="value description-text">{{ holiday.description }}</span>
+        </div>
+
+        <div class="field-row" *ngIf="!holiday.description">
+          <label>Descripción:</label>
+          <span class="value no-description">Sin descripción</span>
+        </div>
+
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button mat-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Volver
+      </button>
+      <button mat-flat-button color="primary" (click)="editHoliday()">
+        <mat-icon>edit</mat-icon>
+        Editar
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Loading -->
+  <div class="loading-center" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando información del feriado...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-center" *ngIf="error && !isLoading">
+    <mat-icon color="warn" class="error-icon">error_outline</mat-icon>
+    <h3>Error al cargar el feriado</h3>
+    <p>{{ error }}</p>
+    <button mat-flat-button color="primary" (click)="loadHoliday()">
+      <mat-icon>refresh</mat-icon>
+      Reintentar
+    </button>
+    <button mat-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Volver a la lista
+    </button>
+  </div>
+
+  <!-- No encontrado -->
+  <div class="not-found" *ngIf="!holiday && !isLoading && !error">
+    <mat-icon class="not-found-icon">search_off</mat-icon>
+    <h3>Feriado no encontrado</h3>
+    <p>El feriado que buscas no existe o no está disponible.</p>
+    <button mat-flat-button color="primary" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Volver a la lista
+    </button>
+  </div>
+</div>
