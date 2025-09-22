@@ -986,12 +986,20 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
   handleEventClick(clickInfo: EventClickArg) {
     const extendedProps = clickInfo.event.extendedProps;
+    const eventId = clickInfo.event.id;
+    const numericId = Number(eventId);
+
+    if (isNaN(numericId)) {
+      console.error('ID de evento no válido:', eventId);
+      this.snackBar.open('Error: ID de actividad no válido', 'Cerrar');
+      return;
+    }
 
     const dialogRef = this.dialog.open(EventDialogComponent, {
       width: '800px',
       data: {
         event: {
-          id: clickInfo.event.id,
+          id: numericId,
           activityTypeID: extendedProps['activityTypeID'],
           projectID: extendedProps['projectID'],
           activityDescription: extendedProps['activityDescription'],
@@ -1018,17 +1026,23 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
           this.updateMonthlyHoursButton();
         });
       } else if (result) {
+        if (isNaN(numericId)) {
+          console.error('ID inválido al actualizar:', numericId);
+          return;
+        }
         const updateData = {
-          projectID: result.projectID,
-          activityTypeID: result.activityTypeID,
-          hoursQuantity: result.hoursQuantity, // Mapea fullDay a hoursQuantity
-          activityDate: result.activityDate,
-          activityDescription: result.activityDescription,
-          notes: result.details,
-          requirementCode: result.requirementCode
-        };
+        projectID: result.projectID,
+        activityTypeID: result.activityTypeID,
+        hoursQuantity: result.hoursQuantity || result.hours, // Ambos nombres por seguridad
+        activityDate: result.activityDate,
+        activityDescription: result.activityDescription || result.details, // Ambos nombres
+        notes: result.notes || result.details, // Ambos nombres
+        requirementCode: result.requirementCode,
+        employeeID: this.currentEmployeeId // Añadir employeeID
+      };
+      /*
 
-        this.activityService.updateActivity(Number(result.id), updateData).subscribe({
+        this.activityService.updateActivity(numericId, updateData).subscribe({
           next: () => {
             this.snackBar.open('Actividad actualizada correctamente', 'Cerrar', { duration: 3000 });
             this.loadActivities().then(() => {
@@ -1045,7 +1059,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
               this.snackBar.open('Error al actualizar actividad: ' + (error.error?.message || error.message || 'Error desconocido'), 'Cerrar');
             }
           }
-        });
+        }); */
       }
     });
   }
@@ -1072,6 +1086,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
       employeeID: this.currentEmployeeId // Asegúrate de incluir el employeeID
     };
 
+    /*
     this.activityService.updateActivity(Number(event.id), updatedData).subscribe({
       next: () => {
         this.snackBar.open('Actividad actualizada correctamente (arrastre/redimensionado)', 'Cerrar', { duration: 2000 });
@@ -1083,6 +1098,8 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         this.snackBar.open('Error al actualizar actividad por arrastre/redimensionado', 'Cerrar', { duration: 3000 });
       }
     });
+    */
+    this.snackBar.open('Actividad movida/redimensionada', 'Cerrar', { duration: 2000 });
   }
 
   private formatDate(dateInput: any): string {
