@@ -1,14 +1,20 @@
 <div class="container">
-  <!-- Barra de búsqueda -->
-   <!--
-  <div class="search-bar">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Buscar feriados</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Navidad, Nacional, etc.">
+  <div class="top-items">
+    <mat-form-field appearance="outline" class="search-field">
+      <input matInput
+            [formControl]="searchControl"
+            placeholder="Buscar por nombres, código de proyecto..."
+            #input>
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
+
+    <button mat-flat-button class="add-button mb-20" (click)="openAddHolidayDialog()">
+        <mat-icon>add</mat-icon>
+        Agregar Nuevo
+    </button>
+
+
   </div>
-  -->
 
   <!-- Tabla -->
   <div class="table-container">
@@ -46,24 +52,28 @@
       <!-- Columna Acciones -->
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef> Acciones </th>
-        <td mat-cell *matCellDef="let holiday" class="actions-cell">
-          <button mat-icon-button color="primary"
-
-                  matTooltip="Ver detalles">
-            <mat-icon>visibility</mat-icon>
+        <td mat-cell *matCellDef="let holiday">
+          <button mat-icon-button [matMenuTriggerFor]="menu">
+            <mat-icon>more_vert</mat-icon>
           </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="onViewHoliday(holiday.id)">
+              <mat-icon>visibility</mat-icon>
+              <span>Visualizar</span>
+            </button>
 
-          <button mat-icon-button color="accent"
+            <button mat-menu-item (click)="onEditHoliday(holiday)">
+              <mat-icon>edit</mat-icon>
+              <span>Editar</span>
+            </button>
 
-                  matTooltip="Editar">
-            <mat-icon>edit</mat-icon>
-          </button>
-
-          <button mat-icon-button color="warn"
-
-                  matTooltip="Eliminar">
-            <mat-icon>delete</mat-icon>
-          </button>
+            <button mat-menu-item (click)="onToggleStatus(holiday)"
+                    [class.warn]="holiday.status"
+                    [class.primary]="!holiday.status">
+              <mat-icon>{{ holiday.status ? 'toggle_off' : 'toggle_on' }}</mat-icon>
+              <span>{{ holiday.status ? 'Inactivar' : 'Activar' }}</span>
+            </button>
+          </mat-menu>
         </td>
       </ng-container>
 
