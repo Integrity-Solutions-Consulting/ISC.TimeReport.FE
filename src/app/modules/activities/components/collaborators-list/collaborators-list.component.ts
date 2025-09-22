@@ -21,6 +21,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Collaborator } from '../../interfaces/activity.interface';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 interface Holiday {
   id: number;
@@ -57,6 +59,7 @@ interface Holiday {
 export class CollaboratorsListComponent implements OnInit {
 
   private http = inject(HttpClient);
+  private dialog = inject(MatDialog);
   urlBase: string = environment.URL_BASE;
 
   monthControl = new FormControl<number>(new Date().getMonth());
@@ -196,20 +199,43 @@ export class CollaboratorsListComponent implements OnInit {
   }
 
   private showApprovalResult(successful: number, failed: number): void {
+    let title = '';
     let message = '';
 
     if (successful > 0 && failed === 0) {
-      message = `✅ ${successful} colaborador(es) aprobado(s) exitosamente`;
+      title = 'Aprobación Exitosa';
+      message = `${successful} colaborador(es) aprobado(s) exitosamente`;
     } else if (successful > 0 && failed > 0) {
-      message = `⚠️ ${successful} aprobado(s), ${failed} fallido(s)`;
+      title = 'Aprobación Parcial';
+      message = `${successful} colaborador(es) aprobado(s) correctamente, ${failed} fallido(s)`;
     } else if (failed > 0) {
-      message = `❌ Error al aprobar ${failed} colaborador(es)`;
+      title = 'Error en Aprobación';
+      message = `Error al aprobar ${failed} colaborador(es)`;
+    } else {
+      // No hay resultados (caso improbable)
+      return;
     }
 
-    // Puedes implementar un snackbar o toast notification aquí
-    console.log(message);
-    // Ejemplo con alert (puedes reemplazar con tu sistema de notificaciones)
-    alert(message);
+    this.openConfirmationDialog(title, message);
+  }
+
+  private openConfirmationDialog(title: string, message: string): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: title,
+        message: message,
+        confirmText: 'Aceptar',
+        cancelText: null // Esto ocultará el botón cancelar
+      }
+    });
+
+    // Opcional: si quieres hacer algo cuando se cierre el diálogo
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Diálogo cerrado con Aceptar');
+      }
+    });
   }
 
   // Método para aprobar actividades de un colaborador específico
