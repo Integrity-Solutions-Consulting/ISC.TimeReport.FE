@@ -1,0 +1,86 @@
+.container {
+  padding: 20px;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.table-container {
+  position: relative;
+  min-height: 200px;
+}
+
+.top-items {
+  display: flex;
+  justify-content: space-between;
+
+  @media (max-width: 767px) {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px;
+}
+
+.actions-cell {
+  white-space: nowrap;
+
+  button {
+    margin: 0 4px;
+  }
+}
+
+.type-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+
+  &.nacional {
+    background-color: #e3f2fd;
+    color: #1976d2;
+  }
+
+  &.religioso {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+  }
+
+  &.local {
+    background-color: #e8f5e8;
+    color: #388e3c;
+  }
+}
+
+.recurring-badge {
+  margin-left: 8px;
+  font-size: 14px;
+}
+
+// Estilos responsivos
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  .actions-cell {
+    display: flex;
+    flex-direction: column;
+
+    button {
+      margin: 2px 0;
+    }
+  }
+}

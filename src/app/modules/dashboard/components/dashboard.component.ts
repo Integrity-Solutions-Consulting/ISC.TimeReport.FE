@@ -124,15 +124,52 @@ export class DashboardComponent implements OnInit{
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  categorias = [
-    'Desarrollo',
-    'Reuniones',
-    'Análisis',
-    'Testing',
-    'Documentación',
-    'Soporte',
-    'Capacitación'
-  ];
+  public pieChartOptions: any = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          usePointStyle: true,
+          padding: 20
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            const label = context.label || '';
+            const value = context.raw || 0;
+            const dataIndex = context.dataIndex;
+            const percentage = this.resourcesData[dataIndex]?.porcentaje || 0;
+            return `${label}: ${value} recursos (${percentage}%)`;
+          }
+        }
+      }
+    }
+  };
+
+  public pieChartType: ChartType = 'pie';
+  public doughnutChartType: ChartType = 'doughnut';
+  public pieChartLabels: string[] = [];
+
+  public pieChartData: ChartData<'pie'> = {
+    labels: [],
+    datasets: [{
+      data: [],
+      backgroundColor: [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
+        '#8ac6d1', '#ff6b6b', '#a5dee5', '#5fcf80', '#fdd85d', '#b83b5e', '#6a2c70'
+      ],
+      hoverBackgroundColor: [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
+        '#8ac6d1', '#ff6b6b', '#a5dee5', '#5fcf80', '#fdd85d', '#b83b5e', '#6a2c70'
+      ],
+      borderWidth: 1
+    }]
+  };
+
+  public resourcesData: RecursoResponse[] = [];
 
   colorScheme: Color = {
     name: 'customColors', // A unique name for your scheme
@@ -255,11 +292,36 @@ export class DashboardComponent implements OnInit{
     this.http.get<RecursoResponse[]>(`${this.urlBase}/api/Dashboard/recursos-por-cliente`)
       .subscribe({
         next: (data) => {
-          // Transformar los datos al formato que necesita ngx-charts
+          this.resourcesData = data;
+
+          // Actualizar datos para ngx-charts
           this.circleData = data.map(item => ({
             name: item.clientName,
             value: item.porcentaje,
           }));
+
+          // Actualizar datos para ng2-charts
+          this.pieChartLabels = data.map(item => {
+            // Acortar nombres largos para mejor visualización
+            if (item.clientName.length > 20) {
+              return item.clientName.substring(0, 20) + '...';
+            }
+            return item.clientName;
+          });
+
+          this.pieChartData = {
+            labels: this.pieChartLabels,
+            datasets: [{
+              data: data.map(item => item.totalRecursos),
+              backgroundColor: [
+                '#1c4d8c', '#173f6b', '#2685bf', '#29a7d9', '#0d0d0d', '#666666'
+              ],
+              hoverBackgroundColor: [
+                '#56749bff', '#597ca1ff', '#6ebdeeff', '#64d3ffff', '#777777ff', '#a4a1a1ff'
+              ],
+              borderWidth: 1
+            }]
+          };
         },
         error: (err) => {
           console.error('Error al cargar recursos por cliente:', err);
@@ -269,7 +331,7 @@ export class DashboardComponent implements OnInit{
 
   customTooltipText({ data }: { data: any }): string {
     return `
-      abd
+      ${data.name}: ${data.value}%
     `;
   }
 
@@ -326,25 +388,18 @@ export class DashboardComponent implements OnInit{
     this.loadDataForTable();
   }
 
-  private processData(response: any[]): any[] {
-    // Inicializamos todas las categorías con 0 horas
-    const processedData = this.categorias.map(cat => ({
-      name: cat,
-      value: 0
+  private processData(response: ActividadResponse[]): any[] {
+    // Crear un array para mapear nombres si es necesario (opcional)
+    const nameMapping: {[key: string]: string} = {
+      'Reunión': 'Reuniones',
+      // Puedes añadir más mapeos de nombres si quieres normalizarlos
+    };
+
+    // Procesar los datos directamente del response
+    return response.map(item => ({
+      name: nameMapping[item.tipoActividad] || item.tipoActividad,
+      value: item.totalHoras
     }));
-
-    // Actualizamos los valores con los datos del servidor
-    response.forEach(item => {
-      // Normalizamos el nombre de la actividad para hacer coincidir con nuestras categorías
-      const normalizedName = this.normalizeActivityName(item.tipoActividad);
-      const foundCategory = processedData.find(cat => cat.name === normalizedName);
-
-      if (foundCategory) {
-        foundCategory.value = item.totalHoras;
-      }
-    });
-
-    return processedData;
   }
 
   private normalizeActivityName(activityName: string): string {
@@ -377,4 +432,28 @@ export class DashboardComponent implements OnInit{
     return `${year}-${month}-${day}`;
   }
 
+  public chartClicked({ event, active }: { event?: ChartEvent, active?: any[] }): void {
+    if (active && active.length > 0) {
+      const chartElement = active[0];
+      const datasetIndex = chartElement.datasetIndex;
+      const index = chartElement.index;
+
+      const clientData = this.resourcesData[index];
+
+      if (clientData) {
+        console.log(`Cliente: ${clientData.clientName}, Recursos: ${clientData.totalRecursos}, Porcentaje: ${clientData.porcentaje}%`);
+        // Aquí puedes mostrar un modal o hacer alguna acción con los datos
+      }
+    }
+  }
+
+  public chartHovered(event: any): void {
+    // Lógica de hover - puedes dejarlo vacío si no necesitas funcionalidad
+    // o implementar algo como:
+    if (event.active && event.active.length > 0) {
+      const activeElement = event.active[0];
+      const index = activeElement.index;
+      // console.log('Hover sobre:', this.resourcesData[index]?.clientName);
+    }
+  }
 }

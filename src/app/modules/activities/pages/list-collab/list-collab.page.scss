@@ -1,0 +1,73 @@
+// list-collab.page.scss - Versión más elaborada
+mat-card {
+  margin: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+mat-tab-group {
+  margin-top: 16px;
+
+  // Header de los tabs
+  .mat-mdc-tab-header {
+    background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  // Tabs individuales
+  .mat-mdc-tab {
+    min-width: 180px;
+    padding: 0 20px;
+    height: 48px;
+    transition: all 0.3s ease;
+
+    // Texto de los tabs
+    .mdc-tab__text-label {
+      color: #6c757d;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    // Indicador del tab activo
+    &.mdc-tab--active .mdc-tab-indicator__content--underline {
+      border-color: #0d6efd;
+      border-width: 3px;
+      border-radius: 2px;
+    }
+  }
+
+  // Tab activo
+  .mat-mdc-tab.mdc-tab--active {
+    background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+    border: 1px solid #dee2e6;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: -1px; // Para superponer el borde
+
+    .mdc-tab__text-label {
+      color: #0d6efd;
+      font-weight: 600;
+    }
+  }
+
+  // Tab inactivo al hacer hover
+  .mat-mdc-tab:not(.mdc-tab--active):hover {
+    background-color: rgba(13, 110, 253, 0.08);
+
+    .mdc-tab__text-label {
+      color: #0a58ca;
+    }
+  }
+
+  // Contenido de los tabs
+  .mat-mdc-tab-body-wrapper {
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 24px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+}

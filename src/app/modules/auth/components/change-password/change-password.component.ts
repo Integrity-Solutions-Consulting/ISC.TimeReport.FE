@@ -93,32 +93,65 @@ export class ChangePasswordComponent implements OnInit{
         return;
       }
 
-      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      // Codificar el token para incluirlo como parámetro en la URL
+      const encodedToken = encodeURIComponent(token);
 
-      const body = { oldPassword, newPassword, confirmPassword };
+      // Cambiar el body para usar los nombres de campo requeridos por el nuevo endpoint
+      const body = {
+        currentPassword: oldPassword,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword
+      };
 
-      this.http.put(`${this.urlBase}/api/users/ChangePassword`, body, { headers }).subscribe({
+      // Agregar headers para especificar que esperamos JSON
+      const headers = new HttpHeaders({
+        'Content-Type': 'application/json'
+      });
+
+      // Cambiar a POST y al nuevo endpoint con el token como parámetro
+      this.http.post(`${this.urlBase}/api/auth/change-password?token=${encodedToken}`, body, {
+        headers: headers,
+        observe: 'response' // Para obtener la respuesta completa
+      }).subscribe({
         next: (response: any) => {
-          this.showSnackBar('¡Contraseña cambiada exitosamente!', 'success');
-          this.passwordChangeForm.reset();
-          this.isLoading = false;
+          console.log('Respuesta completa:', response);
 
-          // Redirigir después de un breve tiempo
-          setTimeout(() => {
-            this.router.navigate(['/auth/login']);
-          }, 2000);
+          // Verificar si la respuesta tiene un cuerpo con datos
+          if (response.status === 200) {
+            this.showSnackBar('¡Contraseña cambiada exitosamente!', 'success');
+            this.passwordChangeForm.reset();
+            this.isLoading = false;
+
+            // Redirigir después de un breve tiempo
+            setTimeout(() => {
+              this.router.navigate(['/auth/login']);
+            }, 2000);
+          } else {
+            this.handleError('¡Contraseña cambiada exitosamente!');
+          }
         },
         error: (error) => {
-          console.error('Error al cambiar la contraseña:', error);
+          console.error('Error completo al cambiar la contraseña:', error);
           this.isLoading = false;
 
           let errorMessage = 'Hubo un error al cambiar la contraseña.';
-          if (error.error && error.error.message) {
-            errorMessage = error.error.message;
-          } else if (error.status === 401) {
-            errorMessage = 'La contraseña actual es incorrecta.';
-          } else if (error.status === 400) {
-            errorMessage = 'La contraseña actual es incorrecta.';
+
+          // Mejorar el manejo de errores
+          if (error.error instanceof ErrorEvent) {
+            // Error del lado del cliente
+            errorMessage = `Error: ${error.error.message}`;
+          } else {
+            // Error del lado del servidor
+            if (error.error && error.error.message) {
+              errorMessage = error.error.message;
+            } else if (error.status === 401) {
+              errorMessage = 'La contraseña actual es incorrecta o el token es inválido.';
+            } else if (error.status === 400) {
+              errorMessage = 'Datos inválidos en la solicitud.';
+            } else if (error.status === 200) {
+              // Esto puede pasar si el servidor devuelve 200 pero con error en el cuerpo
+              errorMessage = 'La contraseña fue actualizada con éxito.';
+            }
           }
 
           this.showSnackBar(errorMessage, 'error');
@@ -136,6 +169,13 @@ export class ChangePasswordComponent implements OnInit{
       this.passwordChangeForm.markAllAsTouched();
     }
   }
+
+// Método auxiliar para manejar errores
+private handleError(error: any): void {
+  this.isLoading = false;
+  console.error('Error:', error);
+  this.showSnackBar('Error inesperado al procesar la respuesta', 'error');
+}
 
   // Método para mostrar SnackBar con estilos personalizados
   private showSnackBar(message: string, type: 'success' | 'error' | 'warning'): void {

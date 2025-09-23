@@ -140,26 +140,33 @@
       </div>
 
       <!-- Fecha Terminación Real (solo visible cuando es necesario) -->
-      <div class="field-with-help date-field" *ngIf="showClientWaitingFields">
+      <div class="field-with-help date-field">
         <mat-form-field appearance="outline">
           <input matInput [matDatepicker]="pickerEstimatedEnd" formControlName="estimatedEndDate" placeholder="Fecha Terminación Real">
           <mat-hint>DD/MM/YYYY</mat-hint>
           <mat-datepicker-toggle matIconSuffix [for]="pickerEstimatedEnd"></mat-datepicker-toggle>
           <mat-datepicker #pickerEstimatedEnd></mat-datepicker>
         </mat-form-field>
+        <div class="help-icon" [matTooltip]="'Selecciona la fecha planificada de finalización real del proyecto. Debe ser posterior a la fecha de inicio.'" matTooltipPosition="right">
+          ?
+        </div>
       </div>
     </div>
 
     <div *ngIf="showClientWaitingFields" class="client-waiting-info-section">
       <!-- Campos de fecha inicio y fin de espera -->
+       <h6>Información de Espera del Cliente</h6>
       <div class="form-row">
         <div class="field-with-help">
-          <mat-form-field class="form-field-half" appearance="outline">
+          <mat-form-field class="form-field-half waiting-input" appearance="outline">
             <input matInput [matDatepicker]="pickerWaitStart" formControlName="waitStartDate" placeholder="Fecha Inicio Espera">
             <mat-hint>DD/MM/YYYY</mat-hint>
             <mat-datepicker-toggle matIconSuffix [for]="pickerWaitStart"></mat-datepicker-toggle>
             <mat-datepicker #pickerWaitStart></mat-datepicker>
           </mat-form-field>
+          <div class="help-icon" [matTooltip]="'Selecciona la fecha de inicio de espera del cliente.'" matTooltipPosition="right">
+            ?
+          </div>
         </div>
 
         <div class="field-with-help">
@@ -169,6 +176,9 @@
             <mat-datepicker-toggle matIconSuffix [for]="pickerWaitEnd"></mat-datepicker-toggle>
             <mat-datepicker #pickerWaitEnd></mat-datepicker>
           </mat-form-field>
+          <div class="help-icon" [matTooltip]="'Selecciona la fecha de fin de espera del cliente. Debe ser posterior a la fecha de inicio.'" matTooltipPosition="right">
+            ?
+          </div>
         </div>
       </div>
 

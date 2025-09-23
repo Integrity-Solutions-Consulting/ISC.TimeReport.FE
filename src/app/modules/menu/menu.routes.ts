@@ -67,6 +67,10 @@ export const menuRoutes: Routes = [
         //canActivate: [AdminGuard] // Solo para admin
       },
       {
+        path: 'holidays',
+        loadChildren: () => import('../holidays/holidays.routes').then((m) => m.HolidaysRoutes)
+      },
+      {
         path: 'users',
         loadChildren: () => import('../users/users.routes').then((m) => m.usersRoutes),
         //canActivate: [AdminGuard] // Solo para admin

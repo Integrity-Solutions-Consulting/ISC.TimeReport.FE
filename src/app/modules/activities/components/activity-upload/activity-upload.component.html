@@ -27,27 +27,17 @@
       </mat-select>
     </mat-form-field>
 
-    <!-- Quincena/Mes Toggle - Cambiado a Button Toggle -->
-    <div class="period-toggle-container" *ngIf="showPeriodToggle">
-      <span class="toggle-label">Periodo:</span>
-      <mat-button-toggle-group [formControl]="periodToggleControl" class="period-toggle-group">
-        <mat-button-toggle [value]="false" class="period-toggle-button">Quincena</mat-button-toggle>
-        <mat-button-toggle [value]="true" class="period-toggle-button">Mes Completo</mat-button-toggle>
-      </mat-button-toggle-group>
-    </div>
-
-  <button mat-flat-button
-          class="approve-button"
-          (click)="$event.stopPropagation(); approveSelectedActivities()"
-          [disabled]="selection.selected.length === 0 || isApproving">
-    <mat-icon>check_circle</mat-icon>
-    Aprobar
-    <mat-spinner diameter="20" *ngIf="isApproving" class="spinner"></mat-spinner>
-  </button>
+    <!-- Botón de Cargar Excel -->
+    <button mat-flat-button
+            class="upload-button"
+            (click)="uploadExcel()">
+      <mat-icon>upload</mat-icon>
+      Cargar Excel
+    </button>
 
     <button mat-flat-button
             class="download-button"
-            (click)="$event.stopPropagation(); downloadSelectedReports()"
+            (click)="downloadSelectedReports()"
             [disabled]="selection.selected.length === 0">
       <mat-icon>download</mat-icon>
       Descargar
@@ -120,12 +110,11 @@
       </td>
     </ng-container>
 
-    <!-- Actions Column -->
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>Acciones</th>
       <td mat-cell *matCellDef="let element">
         <button mat-icon-button
-                class="download-button"
+                class="download-report"
                 matTooltip="Descargar reporte"
                 (click)="downloadCollaboratorExcel(element)">
           <mat-icon aria-hidden="false" aria-label="Download icon">download</mat-icon>

@@ -1,0 +1,178 @@
+.holiday-view-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+
+  .back-button {
+    margin-right: 16px;
+  }
+
+  h1 {
+    margin: 0;
+    color: #333;
+  }
+}
+
+.holiday-card {
+  position: relative;
+  margin-bottom: 24px;
+
+  .status-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+
+    &.active {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    &:not(.active) {
+      background-color: #f44336;
+      color: white;
+    }
+  }
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 16px;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px solid #e0e0e0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  label {
+    font-weight: 500;
+    color: #666;
+  }
+
+  .value {
+    color: #333;
+  }
+}
+
+.type-badge {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+
+  &.local {
+    background-color: #e3f2fd;
+    color: #1976d2;
+  }
+
+  &.nacional {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+  }
+
+  &.religioso {
+    background-color: #e8f5e8;
+    color: #388e3c;
+  }
+}
+
+.recurring-icon {
+  font-size: 18px;
+  vertical-align: middle;
+  margin-right: 4px;
+
+  &.recurring {
+    color: #4caf50;
+  }
+
+  &:not(.recurring) {
+    color: #f44336;
+  }
+}
+
+.description-text {
+  line-height: 1.4;
+}
+
+.no-description {
+  color: #999;
+  font-style: italic;
+}
+
+.loading-center, .error-center, .not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.error-icon, .not-found-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+}
+
+.not-found-icon {
+  color: #ff9800;
+}
+
+.error-center, .not-found {
+  h3 {
+    margin: 16px 0 8px 0;
+    color: #333;
+  }
+
+  p {
+    color: #666;
+    margin-bottom: 24px;
+  }
+}
+
+mat-card-actions {
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .holiday-view-container {
+    padding: 16px;
+  }
+
+  .field-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .back-button {
+      margin-bottom: 8px;
+    }
+  }
+}

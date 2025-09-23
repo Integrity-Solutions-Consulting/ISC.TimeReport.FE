@@ -20,6 +20,9 @@ import { environment } from '../../../../../environments/environment';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Collaborator } from '../../interfaces/activity.interface';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 interface Holiday {
   id: number;
@@ -45,6 +48,7 @@ interface Holiday {
     MatSelectModule,
     MatSlideToggleModule,
     MatTableModule,
+    MatProgressSpinnerModule,
     ReactiveFormsModule
   ],
   providers: [provideNativeDateAdapter()],
@@ -55,6 +59,7 @@ interface Holiday {
 export class CollaboratorsListComponent implements OnInit {
 
   private http = inject(HttpClient);
+  private dialog = inject(MatDialog);
   urlBase: string = environment.URL_BASE;
 
   monthControl = new FormControl<number>(new Date().getMonth());
@@ -77,6 +82,7 @@ export class CollaboratorsListComponent implements OnInit {
   ];
 
   isDownloading = false;
+  isApproving = false;
   noDataMessage: string = '';
   holidays: Holiday[] = [];
   businessDays: number = 0;
@@ -153,6 +159,104 @@ export class CollaboratorsListComponent implements OnInit {
     const today = new Date();
     const currentDay = today.getDate();
     return currentDay > 15;
+  }
+
+  // Método para aprobar actividades seleccionadas
+  async approveSelectedActivities() {
+    if (this.isApproving || this.selection.selected.length === 0) return;
+    this.isApproving = true;
+
+    try {
+      const selectedMonth = this.monthControl.value ?? new Date().getMonth();
+      const selectedYear = this.yearControl.value ?? new Date().getFullYear();
+      const mesCompleto = this.periodToggleControl.value ?? false;
+
+      // Crear array de promesas para todas las aprobaciones
+      const approvalPromises = this.selection.selected.map(collaborator =>
+        this.approveCollaboratorActivities(collaborator, selectedMonth, selectedYear, mesCompleto)
+      );
+
+      // Ejecutar todas las aprobaciones en paralelo
+      const results = await Promise.allSettled(approvalPromises);
+
+      // Contar resultados
+      const successful = results.filter(result => result.status === 'fulfilled').length;
+      const failed = results.filter(result => result.status === 'rejected').length;
+
+      // Mostrar mensaje de resultado
+      this.showApprovalResult(successful, failed);
+
+      // Recargar datos para actualizar estados
+      this.loadData();
+
+    } catch (error) {
+      console.error('Error inesperado en la aprobación:', error);
+      // Mostrar mensaje de error
+    } finally {
+      this.isApproving = false;
+      this.selection.clear(); // Limpiar selección después de aprobar
+    }
+  }
+
+  private showApprovalResult(successful: number, failed: number): void {
+    let title = '';
+    let message = '';
+
+    if (successful > 0 && failed === 0) {
+      title = 'Aprobación Exitosa';
+      message = `${successful} colaborador(es) aprobado(s) exitosamente`;
+    } else if (successful > 0 && failed > 0) {
+      title = 'Aprobación Parcial';
+      message = `${successful} colaborador(es) aprobado(s) correctamente, ${failed} fallido(s)`;
+    } else if (failed > 0) {
+      title = 'Error en Aprobación';
+      message = `Error al aprobar ${failed} colaborador(es)`;
+    } else {
+      // No hay resultados (caso improbable)
+      return;
+    }
+
+    this.openConfirmationDialog(title, message);
+  }
+
+  private openConfirmationDialog(title: string, message: string): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: title,
+        message: message,
+        confirmText: 'Aceptar',
+        cancelText: null // Esto ocultará el botón cancelar
+      }
+    });
+
+    // Opcional: si quieres hacer algo cuando se cierre el diálogo
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Diálogo cerrado con Aceptar');
+      }
+    });
+  }
+
+  // Método para aprobar actividades de un colaborador específico
+  private async approveCollaboratorActivities(
+    collaborator: Collaborator,
+    month: number,
+    year: number,
+    fullMonth: boolean
+  ): Promise<any> {
+    const payload = {
+      employeeID: collaborator.employeeID,
+      projectID: 0, // Siempre 0 según requerimiento
+      activityId: null, // Siempre null según requerimiento
+      month: month + 1, // Ajustar a formato 1-12
+      year: year
+    };
+
+      return this.http.post(
+      `${this.urlBase}/api/DailyActivity/ApproveActivities`,
+      payload
+    ).toPromise();
   }
 
   // Método para cargar feriados y luego los datos
@@ -363,7 +467,7 @@ export class CollaboratorsListComponent implements OnInit {
         console.error(`Error descargando reporte para cliente ${clientId}:`, err);
       }
     });
-}
+  }
 
   // Método auxiliar para contar clientIDs
   private getClientIdsCount(collaborator: Collaborator): number {
