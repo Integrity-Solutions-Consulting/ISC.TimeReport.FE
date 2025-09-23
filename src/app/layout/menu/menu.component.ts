@@ -47,8 +47,9 @@ export class MenuComponent implements OnInit {
     const managementModules = processedModules.filter(m =>
       ['Colaboradores', 'Clientes', 'Líderes'].includes(m.moduleName)
     );
+
     const configModules = processedModules.filter(m =>
-      ['Roles', 'Usuarios'].includes(m.moduleName)
+      ['Roles', 'Usuarios', 'Días Festivos'].includes(m.moduleName)
     );
 
     // Agregar Dashboard si existe
@@ -101,6 +102,8 @@ export class MenuComponent implements OnInit {
         displayOrder: 8
       });
     }
+
+    console.log('Estructura final del menú:', menuItems);
 
     return menuItems.sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
   }
