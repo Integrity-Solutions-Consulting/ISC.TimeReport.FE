@@ -17,14 +17,25 @@ export class ActivityService {
   private projectService = inject(ProjectService);
   urlBase: string = environment.URL_BASE;
 
-  getActivities(): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.urlBase}/api/DailyActivity/GetAllActivities`).pipe(
+  getActivities(month?: number, year?: number): Observable<ApiResponse> {
+    let params = new HttpParams();
+
+    if (month !== undefined) {
+      params = params.set('month', month.toString());
+    }
+
+    if (year !== undefined) {
+      params = params.set('year', year.toString());
+    }
+
+    return this.http.get<ApiResponse>(`${this.urlBase}/api/DailyActivity/GetAllActivities`, { params }).pipe(
       tap(response => {
+        console.log('Actividades obtenidas con parámetros:', { month, year });
       }),
-    catchError(error => {
-      console.error('Error obteniendo actividades:', error);
-      return throwError(() => error);
-    })
+      catchError(error => {
+        console.error('Error obteniendo actividades:', error);
+        return throwError(() => error);
+      })
     );
   }
 
