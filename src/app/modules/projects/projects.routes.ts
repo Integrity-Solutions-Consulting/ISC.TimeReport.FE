@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { ListProjectPage } from './pages/list-project/list-project.page';
 import { InfoProjectPage } from './pages/info-project/info-project.page';
+import { ProjectionPage } from './pages/projection/projection.page';
 
 export const projectsRoutes: Routes = [
     {
@@ -10,5 +11,9 @@ export const projectsRoutes: Routes = [
     {
       path: ':id',
       component: InfoProjectPage
+    },
+    {
+      path: 'projection/:id',
+      component: ProjectionPage
     }
 ]
