@@ -191,7 +191,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         this.calendar = this.calendarComponent.getApi();
 
         // Actualizar el botón cuando cambia el mes
-        this.calendar.on('datesSet', () => {
+        this.calendar.on('datesSet', (dateInfo: any) => {
           this.loadActivities(); // Recargar actividades para el nuevo mes
         });
       }, 500);
@@ -374,7 +374,24 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
   private async loadActivities(retryCount = 0): Promise<void> {
     try {
-      const response: ApiResponse | undefined = await this.activityService.getActivities().toPromise();
+      // Obtener el mes y año actual del calendario
+      const calendarApi = this.calendarComponent?.getApi();
+      if (!calendarApi) {
+        if (retryCount < 5) {
+          setTimeout(() => this.loadActivities(retryCount + 1), 500);
+          return;
+        }
+        console.error('CalendarComponent no disponible después de múltiples intentos');
+        return;
+      }
+
+      const currentDate = calendarApi.getDate();
+      const currentMonth = currentDate.getMonth() + 1; // Los meses en JavaScript son 0-11
+      const currentYear = currentDate.getFullYear();
+
+      console.log('Cargando actividades para:', { month: currentMonth, year: currentYear });
+
+      const response: ApiResponse | undefined = await this.activityService.getActivities(currentMonth, currentYear).toPromise();
 
       if (response?.data) {
         // Filtrar actividades solo para el empleado logueado
@@ -386,16 +403,8 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
           return activity.employeeID === this.currentEmployeeId && activity.status;
         });
 
-        if (this.calendarComponent && this.calendarComponent.getApi()) {
-          this.mapActivitiesToEvents(filteredActivities);
-          // Asegurar que el botón se actualice después de cargar actividades
-          this.updateMonthlyHoursButton();
-        } else if (retryCount < 5) {
-          setTimeout(() => this.loadActivities(retryCount + 1), 500);
-        } else {
-          console.error('CalendarComponent no disponible después de múltiples intentos');
-          this.snackBar.open('No se pudo cargar el calendario. Intente recargar la página.', 'Cerrar');
-        }
+        this.mapActivitiesToEvents(filteredActivities);
+        this.updateMonthlyHoursButton();
       } else {
         // Si no hay datos, también actualizar el botón
         this.monthlyHours.set(0);
@@ -495,7 +504,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     const calendarApi = this.calendarComponent.getApi();
     const currentDate = calendarApi.getDate();
     return date.getMonth() === currentDate.getMonth() &&
-           date.getFullYear() === currentDate.getFullYear();
+          date.getFullYear() === currentDate.getFullYear();
   }
 
   private updateDayCells(): void {
