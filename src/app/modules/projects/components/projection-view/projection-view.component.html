@@ -1,0 +1,136 @@
+<!-- projection-view.component.html -->
+<div class="container">
+  <div class="configuration-section">
+    <h6>Configuración de Períodos</h6>
+    <div class="config-controls">
+      <mat-form-field appearance="outline">
+        <mat-select placeholder="Tipo de Período" name="period" [(ngModel)]="selectedPeriod">
+          @for (period of periods; track period) {
+            <mat-option [value]="period.value">{{period.viewValue}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <input matInput placeholder="Cantidad" type="number" [(ngModel)]="periodQuantity" min="1">
+      </mat-form-field>
+      <button mat-flat-button color="primary" (click)="applyConfiguration()">
+        <mat-icon>settings</mat-icon>
+        Aplicar Configuración
+      </button>
+    </div>
+    <mat-divider></mat-divider>
+  </div>
+
+  <div class="table-section" *ngIf="showTable">
+    <h6>Distribución de Horas por Proyecto</h6>
+
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z2">
+
+        <!-- Tipo de Recurso Column -->
+        <ng-container matColumnDef="tipoRecurso">
+          <th mat-header-cell *matHeaderCellDef>Tipo de Recurso</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-select [(ngModel)]="element.tipoRecurso" (selectionChange)="onResourceTypeChange(i)">
+                <mat-option value="Auditor Interno">Auditor Interno</mat-option>
+                <mat-option value="Consultor">Consultor</mat-option>
+                <mat-option value="Analista">Analista</mat-option>
+                <mat-option value="Desarrollador">Desarrollador</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </td>
+        </ng-container>
+
+        <!-- Nombre Recurso Column -->
+        <ng-container matColumnDef="nombreRecurso">
+          <th mat-header-cell *matHeaderCellDef>Nombre Recurso</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <mat-form-field appearance="outline" class="full-width">
+              <input matInput [(ngModel)]="element.nombreRecurso" (input)="calculateTotals()">
+            </mat-form-field>
+          </td>
+        </ng-container>
+
+        <!-- Costo por Hora Column -->
+        <ng-container matColumnDef="costoPorHora">
+          <th mat-header-cell *matHeaderCellDef>Costo por Hora / Tipo Recurso</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <mat-form-field appearance="outline" class="full-width">
+              <input matInput type="number" [(ngModel)]="element.costoPorHora" (input)="calculateTotals()" min="0">
+            </mat-form-field>
+          </td>
+        </ng-container>
+
+        <!-- Cantidad de Recursos Column -->
+        <ng-container matColumnDef="cantidadRecursos">
+          <th mat-header-cell *matHeaderCellDef>Cantidad de Recursos</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <mat-form-field appearance="outline" class="full-width">
+              <input matInput type="number" [(ngModel)]="element.cantidadRecursos" (input)="calculateTotals()" min="1" value="1">
+            </mat-form-field>
+          </td>
+        </ng-container>
+
+        <!-- Dynamic Period Columns -->
+        <ng-container *ngFor="let period of dynamicColumns; let i = index" [matColumnDef]="period">
+          <th mat-header-cell *matHeaderCellDef>{{ getColumnHeader(i) }}</th>
+          <td mat-cell *matCellDef="let element">
+            <mat-form-field appearance="outline" class="full-width">
+              <input matInput type="number"
+                     [(ngModel)]="element[period]"
+                     (input)="calculateTotals()"
+                     min="0"
+                     step="0.1">
+            </mat-form-field>
+          </td>
+        </ng-container>
+
+        <!-- Tiempo Total Column -->
+        <ng-container matColumnDef="tiempoTotal">
+          <th mat-header-cell *matHeaderCellDef>Tiempo Total</th>
+          <td mat-cell *matCellDef="let element">{{ element.tiempoTotal | number:'1.1-1' }}</td>
+        </ng-container>
+
+        <!-- Costo Recurso Column -->
+        <ng-container matColumnDef="costoRecurso">
+          <th mat-header-cell *matHeaderCellDef>Costo Recurso</th>
+          <td mat-cell *matCellDef="let element">{{ element.costoRecurso | currency }}</td>
+        </ng-container>
+
+        <!-- Porcentaje de Participación Column -->
+        <ng-container matColumnDef="porcentajeParticipacion">
+          <th mat-header-cell *matHeaderCellDef>Porcentaje de Participación</th>
+          <td mat-cell *matCellDef="let element">{{ element.porcentajeParticipacion | number:'1.1-1' }}%</td>
+        </ng-container>
+
+        <!-- Acciones Column -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <button mat-icon-button color="warn" (click)="removeRow(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <div class="total-row">
+        <strong>Total</strong>
+        <span>{{ totalTiempo | number:'1.1-1' }}</span>
+        <span>{{ totalCosto | currency }}</span>
+        <span>100.0%</span>
+      </div>
+
+      <button mat-flat-button color="primary" (click)="addRow()">
+        <mat-icon>add</mat-icon>
+        Agregar Fila
+      </button>
+    </div>
+  </div>
+</div>

@@ -411,30 +411,33 @@ export class EventDialogComponent implements OnInit {
       const payload = this.preparePayload();
 
       if (this.data.isEdit) {
-        // Para edición
+        // Para edición, el diálogo podría hacer la llamada o dejar que el componente padre lo haga
         await this.activityService.updateActivity(this.event.id, payload).toPromise();
         this.snackBar.open('Actividad actualizada correctamente', 'Cerrar', { duration: 3000 });
-        this.dialogRef.close({ success: true });
+        this.dialogRef.close({
+          ...payload,
+          id: this.event.id,
+          employeeID: this.currentEmployeeId,
+          success: true
+        });
       } else {
-        // Para creación (tanto simple como recurrente)
+        // Para creación: SOLO preparar los datos, NO llamar al API
         if (Array.isArray(payload)) {
-          // Para actividades recurrentes
-          const requests = payload.map(activity =>
-            this.activityService.createActivity(activity).toPromise()
-          );
-          await Promise.all(requests);
-          this.snackBar.open(`${payload.length} actividades creadas correctamente`, 'Cerrar', { duration: 3000 });
+          // Para actividades recurrentes, enviar el array
+          this.dialogRef.close(payload.map(p => ({
+            ...p,
+            employeeID: this.currentEmployeeId
+          })));
         } else {
-          // Para actividad única
-          await this.activityService.createActivity(payload).toPromise();
-          this.snackBar.open('Actividad creada correctamente', 'Cerrar', { duration: 3000 });
+          // Para actividad única, enviar los datos
+          this.dialogRef.close({
+            ...payload,
+            employeeID: this.currentEmployeeId
+          });
         }
-        this.dialogRef.close({ success: true });
       }
     } catch (error: any) {
       console.error('Error al guardar actividad', error);
-
-      // Mostrar diálogo de error específico para actividades aprobadas
       if (error.error?.Code === 400 && error.error.Message.includes('aprobada')) {
         this.showErrorDialog(error.error.Message);
       } else {

@@ -331,6 +331,10 @@ export class ListProjectComponent implements OnInit{
       this.router.navigate([projectId], { relativeTo: this.route });
     }
 
+    projectionView(projectId: number): void {
+      this.router.navigate(['projection', projectId], { relativeTo: this.route });
+    }
+
     openAssignDialog(project: ProjectWithID) {
       if (!project.id) {
         this.snackBar.open("No se puede asignar recursos: ID de proyecto no válido", "Cerrar", {duration: 5000});

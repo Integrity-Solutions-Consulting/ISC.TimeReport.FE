@@ -820,27 +820,57 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
 
   private createActivity(eventData: any): void {
-    if (!eventData.hoursQuantity && !eventData.activityDate) {
-      console.error('Datos incompletos:', eventData);
-      this.snackBar.open('Datos incompletos en la actividad', 'Cerrar');
+
+    // Si viene con success: true, probablemente es el objeto incorrecto
+    if (eventData && eventData.success === true) {
+      console.error('Se recibió objeto de éxito en lugar de datos de actividad');
+      this.snackBar.open('Error: Datos de actividad no válidos', 'Cerrar');
+      return;
+    }
+
+    // Validación más específica y descriptiva
+    const requiredFields = ['projectID', 'activityTypeID', 'hoursQuantity', 'activityDate'];
+    const missingFields = requiredFields.filter(field => {
+      const value = eventData[field];
+      return value === undefined || value === null || value === '';
+    });
+
+    if (missingFields.length > 0) {
+      console.error('Campos requeridos faltantes:', missingFields, 'Datos recibidos:', eventData);
+      this.snackBar.open(`Datos incompletos. Faltan: ${missingFields.join(', ')}`, 'Cerrar');
+      return;
+    }
+
+    // Validar tipos de datos
+    if (isNaN(Number(eventData.projectID))) {
+      console.error('projectID no es un número válido:', eventData.projectID);
+      this.snackBar.open('Error: ID de proyecto no válido', 'Cerrar');
+      return;
+    }
+
+    if (isNaN(Number(eventData.hoursQuantity)) || Number(eventData.hoursQuantity) <= 0) {
+      console.error('hoursQuantity no es válido:', eventData.hoursQuantity);
+      this.snackBar.open('Error: Cantidad de horas no válida', 'Cerrar');
       return;
     }
 
     const activityDate = this.ensureDateObject(eventData.activityDate);
+
+    // Solo advertencia para feriados, no impedir
     if (this.isHoliday(activityDate)) {
-      this.snackBar.open('No se pueden crear actividades en días feriados', 'Cerrar', { duration: 3000 });
-      return;
+      this.snackBar.open('Advertencia: La actividad se creará en un día feriado', 'Cerrar', { duration: 3000 });
     }
 
+    // Construir el payload de manera más robusta
     const activityPayload = {
-      projectID: eventData.projectID,
-      activityTypeID: eventData.activityTypeID,
-      hoursQuantity: eventData.hoursQuantity,
-      activityDate: eventData.activityDate,
-      activityDescription: eventData.activityDescription,
-      requirementCode: eventData.requirementCode,
-      notes: eventData.notes || '',
-      employeeID: this.currentEmployeeId // Asegúrate de incluir el employeeID
+      projectID: Number(eventData.projectID),
+      activityTypeID: Number(eventData.activityTypeID),
+      hoursQuantity: Number(eventData.hoursQuantity),
+      activityDate: activityDate.toISOString().split('T')[0],
+      activityDescription: eventData.activityDescription || '',
+      requirementCode: eventData.requirementCode || '',
+      notes: eventData.notes || eventData.details || '', // Soporta ambos nombres
+      employeeID: this.currentEmployeeId
     };
 
     this.activityService.createActivity(activityPayload).subscribe({
