@@ -29,7 +29,58 @@
 
 table {
   width: 100%;
-  min-width: 1200px;
+  min-width: 1000px; // Reducido de 1200px
+}
+
+// Estilos específicos para columnas dinámicas (meses)
+.mat-column-periodo-0,
+.mat-column-periodo-1,
+.mat-column-periodo-2,
+[class*="mat-column-periodo-"] {
+  width: 80px !important; // Ancho reducido para columnas de meses
+  min-width: 80px !important;
+  max-width: 100px !important;
+}
+
+// Columnas fijas con anchos específicos
+.mat-column-tipoRecurso {
+  width: 150px !important;
+  min-width: 150px !important;
+}
+
+.mat-column-nombreRecurso {
+  width: 120px !important;
+  min-width: 120px !important;
+}
+
+.mat-column-costoPorHora {
+  width: 120px !important;
+  min-width: 120px !important;
+}
+
+.mat-column-cantidadRecursos {
+  width: 100px !important;
+  min-width: 100px !important;
+}
+
+.mat-column-tiempoTotal {
+  width: 90px !important;
+  min-width: 90px !important;
+}
+
+.mat-column-costoRecurso {
+  width: 110px !important;
+  min-width: 110px !important;
+}
+
+.mat-column-porcentajeParticipacion {
+  width: 120px !important;
+  min-width: 120px !important;
+}
+
+.mat-column-acciones {
+  width: 80px !important;
+  min-width: 80px !important;
 }
 
 .full-width {
@@ -63,6 +114,18 @@ mat-form-field {
 
   .mat-form-field-underline {
     bottom: 0;
+  }
+
+  // Campos más compactos para columnas de meses
+  &.compact-field {
+    .mat-form-field-infix {
+      padding: 0.5em 0;
+      border-top: 0.5em solid transparent;
+    }
+
+    input {
+      font-size: 0.875em;
+    }
   }
 }
 
