@@ -494,8 +494,8 @@ export class EventDialogComponent implements OnInit {
   }
 
   trimDescription(): void {
-    if (this.event.activityDescription && this.event.activityDescription.length > 200) {
-      this.event.activityDescription = this.event.activityDescription.substring(0, 200);
+    if (this.event.activityDescription && this.event.activityDescription.length > 350) {
+      this.event.activityDescription = this.event.activityDescription.substring(0, 350);
     }
   }
 
@@ -559,7 +559,7 @@ export class EventDialogComponent implements OnInit {
       return false;
     }
 
-    if (this.event.activityDescription.length > 200) {
+    if (this.event.activityDescription.length > 350) {
       return false;
     }
 
