@@ -103,8 +103,6 @@ export class MenuComponent implements OnInit {
       });
     }
 
-    console.log('Estructura final del menú:', menuItems);
-
     return menuItems.sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
   }
 }

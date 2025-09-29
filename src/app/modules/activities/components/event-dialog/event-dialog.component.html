@@ -71,17 +71,17 @@
           placeholder="Descripción"
           required
           name="description"
-          maxlength="200"
+          maxlength="350"
           (input)="trimDescription()"
           #descInput="ngModel"
           class="fixed-textarea">
         </textarea>
-        <mat-hint align="end">{{event.activityDescription?.length || 0}}/200</mat-hint>
+        <mat-hint align="end">{{event.activityDescription?.length || 0}}/350</mat-hint>
         <mat-error *ngIf="descInput.errors?.['maxlength']">
-          La descripción no puede exceder los 200 caracteres
+          La descripción no puede exceder los 350 caracteres
         </mat-error>
       </mat-form-field>
-      <div class="help-icon" [matTooltip]="'Describe brevemente la actividad realizada. Máximo 200 caracteres.'" matTooltipPosition="right">
+      <div class="help-icon" [matTooltip]="'Describe brevemente la actividad realizada. Máximo 350 caracteres.'" matTooltipPosition="right">
         ?
       </div>
     </div>

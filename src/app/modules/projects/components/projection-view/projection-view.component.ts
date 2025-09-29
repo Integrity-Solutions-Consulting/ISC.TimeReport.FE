@@ -136,6 +136,67 @@ export class ProjectionViewComponent {
     }
   }
 
+  generateRequest(projectId: number): any {
+    const request = {
+      PeriodType: this.selectedPeriod === 'meses', // true para meses, false para semanas
+      PeriodQuantity: this.periodQuantity,
+      ProjectID: projectId,
+      Resources: this.dataSource.map(row => {
+        // Convertir los valores de los periodos dinámicos a números enteros
+        const timeDistribution: number[] = [];
+
+        for (let i = 1; i <= this.periodQuantity; i++) {
+          const periodKey = `periodo${i}`;
+          const value = row[periodKey] || 0;
+          // Convertir a entero (redondear hacia abajo)
+          timeDistribution.push(Math.floor(Number(value)));
+        }
+
+        return {
+          ResourceTypeId: this.getResourceTypeId(row.tipoRecurso),
+          ResourceName: row.nombreRecurso || '',
+          HourlyCost: Number(row.costoPorHora) || 0,
+          ResourceQuantity: Number(row.cantidadRecursos) || 1,
+          TimeDistribution: timeDistribution,
+          ResourceCost: Number(row.costoRecurso) || 0,
+          ParticipationPercentage: Number(row.porcentajeParticipacion) || 0
+        };
+      })
+    };
+
+    return request;
+  }
+
+  private getResourceTypeId(tipoRecurso: string): number {
+    const resourceTypeMap: { [key: string]: number } = {
+      'Auditor Interno': 1,
+      'Consultor': 2,
+      'Analista': 3,
+      'Desarrollador': 4
+    };
+
+    return resourceTypeMap[tipoRecurso] || 0;
+  }
+
+  submitData(projectId: number) {
+    const requestData = this.generateRequest(projectId);
+
+    // Aquí harías la llamada HTTP a tu API
+    console.log('Datos a enviar:', requestData);
+
+    // Ejemplo de llamada HTTP (descomenta y adapta según tu servicio)
+    /*
+    this.http.post('tu-api-endpoint', requestData).subscribe({
+      next: (response) => {
+        console.log('Datos enviados exitosamente', response);
+      },
+      error: (error) => {
+        console.error('Error al enviar datos', error);
+      }
+    });
+    */
+  }
+
   onResourceTypeChange(index: number) {
     // You can add specific logic when resource type changes
     this.calculateTotals();
