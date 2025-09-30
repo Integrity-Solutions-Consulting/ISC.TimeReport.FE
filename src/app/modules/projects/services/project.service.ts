@@ -307,14 +307,15 @@ export class ProjectService {
     );
     }
 
-    getProjectsByEmployee(employeeId: number, params: { PageNumber: number, PageSize: number, search?: string }): Observable<any> {
-        const httpParams = new HttpParams()
-            .set('PageNumber', params.PageNumber.toString())
-            .set('PageSize', params.PageSize.toString())
-            .set('search', params.search || '');
+  getProjectsByEmployee(employeeId: number, params: { PageNumber: number, PageSize: number, search?: string }): Observable<any> {
+      const httpParams = new HttpParams()
+          .set('PageNumber', params.PageNumber.toString())
+          .set('PageSize', params.PageSize.toString())
+          .set('search', params.search || '')
+          .set('active', 'true'); // Siempre enviar active como true
 
-        return this.http.get<any>(`${this.urlBase}/api/Project/GetAllProjectsWhereEmployee`, { params: httpParams });
-    }
+      return this.http.get<any>(`${this.urlBase}/api/Project/GetAllProjectsWhereEmployee`, { params: httpParams });
+  }
 
     assignResourcesToProject(payload: ResourceAssignmentPayload): Observable<any> {
       return this.http.post(`${this.urlBase}/api/Project/AssignEmployeesToProject`, payload);
@@ -372,58 +373,59 @@ export class ProjectService {
     }
 
     getProjectsByUserRole(employeeId: number): Observable<ApiResponse> {
-      if (this.isAdmin()) {
-        // Admin - Todos los proyectos
-        return this.getProjects(); // O usa getAllProjects() si necesitas paginación diferente
-      } else {
-        // No admin - Solo proyectos del empleado
-        return this.getProjectsByEmployee(employeeId, {
-          PageNumber: 1,
-          PageSize: 100,
-          search: ''
-        });
-      }
+        if (this.isAdmin()) {
+            // Admin - Todos los proyectos
+            return this.getProjects(); // O usa getAllProjects() si necesitas paginación diferente
+        } else {
+            // No admin - Solo proyectos del empleado
+            return this.getProjectsByEmployee(employeeId, {
+                PageNumber: 1,
+                PageSize: 100,
+                search: ''
+            });
+        }
     }
 
     getProjectsFilteredByRole(employeeId: number | null, isAdmin: boolean, pageSize = 100, pageNumber = 1, search = ''): Observable<ApiResponse> {
-      if (isAdmin) {
-        // Si es admin, obtener todos los proyectos
-        return this.getProjectsForTables(pageNumber, pageSize, search);
-      } else if (employeeId) {
-        // Si no es admin y tiene employeeId, obtener solo los proyectos del empleado
-        return this.getProjectsByEmployee(employeeId, { PageNumber: pageNumber, PageSize: pageSize, search });
-      } else {
-        // Si no es admin y no tiene employeeId, devolver vacío
-        return of({ items: [], totalItems: 0, pageNumber: 0, pageSize: 0, totalPages: 0 });
-      }
+        if (isAdmin) {
+            // Si es admin, obtener todos los proyectos
+            return this.getProjectsForTables(pageNumber, pageSize, search);
+        } else if (employeeId) {
+            // Si no es admin y tiene employeeId, obtener solo los proyectos del empleado
+            return this.getProjectsByEmployee(employeeId, {
+                PageNumber: pageNumber,
+                PageSize: pageSize,
+                search
+            });
+        } else {
+            // Si no es admin y no tiene employeeId, devolver vacío
+            return of({ items: [], totalItems: 0, pageNumber: 0, pageSize: 0, totalPages: 0 });
+        }
     }
 
-    getFilteredProjects(employeeId: number): Observable<ApiResponseData> {
-      console.log('Verificando permisos...'); // Debug
+  getFilteredProjects(employeeId: number): Observable<ApiResponseData> {
 
       if (this.authService.isAdmin()) {
-        console.log('Accediendo como ADMIN - Obteniendo todos los proyectos'); // Debug
-        return this.http.get<ApiResponseData>(`${this.urlBase}/api/Project/GetAllProjects`).pipe(
-          catchError(error => {
-            console.error('Error loading all projects:', error);
-            return of({
-              items: [],
-              totalItems: 0,
-              pageNumber: 1,
-              pageSize: 0,
-              totalPages: 0
-            });
-          })
-        );
+          return this.http.get<ApiResponseData>(`${this.urlBase}/api/Project/GetAllProjects`).pipe(
+              catchError(error => {
+                  console.error('Error loading all projects:', error);
+                  return of({
+                      items: [],
+                      totalItems: 0,
+                      pageNumber: 1,
+                      pageSize: 0,
+                      totalPages: 0
+                  });
+              })
+          );
       } else {
-        console.log('Accediendo como usuario normal - Obteniendo proyectos del empleado'); // Debug
-        return this.getProjectsByEmployee(employeeId, {
-          PageNumber: 1,
-          PageSize: 100,
-          search: ''
-        });
+          return this.getProjectsByEmployee(employeeId, {
+              PageNumber: 1,
+              PageSize: 100,
+              search: ''
+          });
       }
-    }
+  }
 
 
 }
