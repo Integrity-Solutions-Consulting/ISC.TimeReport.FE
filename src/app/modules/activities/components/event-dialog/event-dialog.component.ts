@@ -381,7 +381,8 @@ export class EventDialogComponent implements OnInit {
       this.projectService.getProjectsByEmployee(this.currentEmployeeId, {
         PageNumber: 1,
         PageSize: 100,
-        search: ''
+        search: '',
+        active: true
       }).subscribe((response: any) => {
         this.projects = response.items || [];
         this.setDefaultProject(); // ← Añade esta línea
