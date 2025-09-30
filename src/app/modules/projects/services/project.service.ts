@@ -307,7 +307,7 @@ export class ProjectService {
     );
     }
 
-  getProjectsByEmployee(employeeId: number, params: { PageNumber: number, PageSize: number, search?: string }): Observable<any> {
+  getProjectsByEmployee(employeeId: number, params: { PageNumber: number, PageSize: number, search?: string, active: boolean }): Observable<any> {
       const httpParams = new HttpParams()
           .set('PageNumber', params.PageNumber.toString())
           .set('PageSize', params.PageSize.toString())
@@ -381,7 +381,8 @@ export class ProjectService {
             return this.getProjectsByEmployee(employeeId, {
                 PageNumber: 1,
                 PageSize: 100,
-                search: ''
+                search: '',
+                active: true
             });
         }
     }
@@ -395,7 +396,8 @@ export class ProjectService {
             return this.getProjectsByEmployee(employeeId, {
                 PageNumber: pageNumber,
                 PageSize: pageSize,
-                search
+                search,
+                active: true
             });
         } else {
             // Si no es admin y no tiene employeeId, devolver vacío
@@ -422,7 +424,8 @@ export class ProjectService {
           return this.getProjectsByEmployee(employeeId, {
               PageNumber: 1,
               PageSize: 100,
-              search: ''
+              search: '',
+              active: true
           });
       }
   }
