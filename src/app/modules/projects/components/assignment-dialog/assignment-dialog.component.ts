@@ -179,6 +179,8 @@ export class AssignmentDialogComponent implements OnInit, OnDestroy {
    * Configura el filtro para perfiles usando ngx-mat-select-search
    */
   private setupProfileFilter(): void {
+
+    console.log('Servicio de Cargos')
     // Cargar set inicial
     this.filteredPositions.next(this.positions.slice());
 
@@ -261,11 +263,11 @@ export class AssignmentDialogComponent implements OnInit, OnDestroy {
       this.employees = empResponse?.items || [];
       this.totalEmployees = empResponse?.totalItems || 0;
 
-      const provResponse = await this.projectService.getInventoryProviders().toPromise();
-      this.providers = provResponse?.data || [];
-
       const posResponse = await this.projectService.getPositions().toPromise();
       this.positions = posResponse || [];
+
+      const provResponse = await this.projectService.getInventoryProviders().toPromise();
+      this.providers = provResponse?.data || [];
 
       this.mapEmployeesWithPositions();
 
