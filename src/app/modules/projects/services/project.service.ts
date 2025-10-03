@@ -430,5 +430,21 @@ export class ProjectService {
       }
   }
 
+  createProjection(projectionData: any): Observable<any> {
+    return this.http.post(`${this.urlBase}/api/Projection/create`, projectionData);
+  }
 
+  updateProjection(projectId: number, resourceTypeId: number, projectionData: any): Observable<any> {
+    return this.http.put(
+      `${this.urlBase}/api/Projection/${projectId}/update/${resourceTypeId}`,
+      projectionData
+    );
+  }
+
+  activateInactivateProjection(projectId: number, resourceTypeId: number, active: boolean): Observable<any> {
+    return this.http.put(
+      `${this.urlBase}/api/Projection/${projectId}/activate-inactivate/${resourceTypeId}`,
+      { active: active }
+    );
+  }
 }
