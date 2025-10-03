@@ -114,12 +114,26 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
       }
     },
     eventDidMount: (info) => {
-      // Aplicar colores personalizados aquí, no en mapActivitiesToEvents
+      // Aplicar colores personalizados aquí
       const eventColor = info.event.backgroundColor;
       if (eventColor) {
-        info.el.style.backgroundColor = this.lightenColor(eventColor, 0.3);
-        info.el.style.borderColor = eventColor;
-        info.el.style.color = this.getTextColor(eventColor);
+        // Verificar si es una actividad aprobada usando la propiedad extendedProps
+        const isApproved = info.event.extendedProps['isApproved'];
+
+        if (isApproved) {
+          // Para actividades aprobadas (magenta), aplicar un efecto diferente
+          info.el.style.backgroundColor = this.lightenColor(eventColor, 0.3);
+          info.el.style.borderColor = eventColor;
+          info.el.style.color = this.getTextColor(eventColor);
+          info.el.style.fontWeight = 'bold';
+          // Opcional: añadir un borde más grueso para actividades aprobadas
+          info.el.style.borderWidth = '2px';
+        } else {
+          // Comportamiento normal para actividades no aprobadas
+          info.el.style.backgroundColor = this.lightenColor(eventColor, 0.3);
+          info.el.style.borderColor = eventColor;
+          info.el.style.color = this.getTextColor(eventColor);
+        }
       }
     },
     eventChange: this.handleEventChange.bind(this),
@@ -386,7 +400,7 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
       }
 
       const currentDate = calendarApi.getDate();
-      const currentMonth = currentDate.getMonth() + 1; // Los meses en JavaScript son 0-11
+      const currentMonth = currentDate.getMonth() + 1;
       const currentYear = currentDate.getFullYear();
 
       console.log('Cargando actividades para:', { month: currentMonth, year: currentYear });
@@ -405,22 +419,43 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
         this.mapActivitiesToEvents(filteredActivities);
         this.updateMonthlyHoursButton();
+
+        // Solo mostrar snackbar si hay actividades cargadas
+        if (filteredActivities.length > 0) {
+          /*this.snackBar.open(`Se cargaron ${filteredActivities.length} actividades`, 'Cerrar', {
+            duration: 2000,
+            panelClass: ['success-snackbar']
+          });*/
+        }
       } else {
-        // Si no hay datos, también actualizar el botón
+        // Si no hay datos, actualizar sin mostrar mensaje
         this.monthlyHours.set(0);
         this.updateMonthlyHoursButton();
+
+        // Limpiar eventos del calendario silenciosamente
+        const calendarApi = this.calendarComponent.getApi();
+        calendarApi.removeAllEvents();
       }
     } catch (error) {
       console.error('Error loading activities', error);
+
+      // Solo mostrar snackbar para errores específicos
       if (error === 401) {
         this.snackBar.open('Sesión inválida. Por favor, inicie sesión nuevamente.', 'Cerrar');
         this.router.navigate(['/login']);
-      } else {
-        this.snackBar.open('Error al cargar actividades.', 'Cerrar', { duration: 3000 });
+      } else if (error !== 404) { // No mostrar error para "no encontrado"
+        //this.snackBar.open('Error al cargar actividades.', 'Cerrar', { duration: 3000 });
       }
+
       // Asegurar que el botón se actualice incluso en caso de error
       this.monthlyHours.set(0);
       this.updateMonthlyHoursButton();
+
+      // Limpiar eventos del calendario en caso de error
+      const calendarApi = this.calendarComponent.getApi();
+      if (calendarApi) {
+        calendarApi.removeAllEvents();
+      }
     }
   }
 
@@ -431,6 +466,13 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
     // Reiniciar contadores
     this.monthlyHours.set(0);
     this.dailyHoursMap.clear();
+
+    // Si no hay actividades, salir silenciosamente
+    if (!activities || activities.length === 0) {
+      calendarApi.render();
+      this.updateMonthlyHoursButton();
+      return;
+    }
 
     activities.forEach(activity => {
       try {
@@ -455,12 +497,28 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
 
         const project = this.projectList.find(p => p.id === activity.projectID);
         const activityType = this.activityTypes.find(t => t.id === activity.activityTypeID);
-        const color = activityType?.colorCode || '#9E9E9E';
+
+        // VERIFICAR SI LA ACTIVIDAD ESTÁ APROBADA (usando approvedByID)
+        const isApproved = activity.approvedByID !== null && activity.approvedByID !== undefined;
+
+        // Si está aprobada, usar color magenta, sino el color normal del tipo de actividad
+        let color: string;
+        if (isApproved) {
+          color = '#FF00FF'; // Magenta para actividades aprobadas
+        } else {
+          color = activityType?.colorCode || '#9E9E9E'; // Color normal si no está aprobada
+        }
+
         let rawTitle: string;
         if (hoursQuantity && hoursQuantity > 0 && hoursQuantity < 8) {
           rawTitle = `${hoursQuantity}h - ${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`;
         } else {
           rawTitle = `${activity.requirementCode} - ${project?.name || 'Sin proyecto'}`;
+        }
+
+        // Añadir indicador de aprobación en el título si está aprobada
+        if (isApproved) {
+          rawTitle = `✓ ${rawTitle}`; // Agregar un checkmark al inicio
         }
 
         const truncatedTitle = rawTitle.length > 20 ? rawTitle.substring(0, 17) + '...' : rawTitle;
@@ -481,8 +539,10 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
             notes: activity.notes,
             hoursQuantity: activity.hoursQuantity,
             requirementCode: activity.requirementCode,
-            employeeID: activity.employeeID, // Añadir esto para debug
-            fullDay: allDayEvent
+            employeeID: activity.employeeID,
+            fullDay: allDayEvent,
+            isApproved: isApproved, // Añadir esta propiedad para referencia
+            approvedByID: activity.approvedByID // Mantener la referencia
           }
         };
 
@@ -491,9 +551,23 @@ export class DailyActivitiesComponent implements AfterViewInit, OnDestroy {
         console.error(`Error procesando actividad ${activity.id}:`, activity, error);
       }
     });
+
     calendarApi.render();
     this.updateMonthlyHoursButton();
     this.updateDayCells();
+  }
+
+  private clearCalendarSilently(): void {
+    try {
+      const calendarApi = this.calendarComponent.getApi();
+      if (calendarApi) {
+        calendarApi.removeAllEvents();
+        calendarApi.render();
+      }
+    } catch (error) {
+      // Silenciar errores al limpiar el calendario
+      console.log('Calendario limpiado');
+    }
   }
 
   private isDateInCurrentMonth(date: Date): boolean {
