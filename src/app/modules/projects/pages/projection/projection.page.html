@@ -1,10 +1,19 @@
 <mat-card>
   <mat-card-header>
     <mat-card-title>
-      <h4 style="font-family: 'Poppins';">Proyección de Horas por Proyecto</h4>
+      <h4 style="font-family: 'Poppins';">
+        Proyección de Horas por Proyecto:
+        <h4 style="font-family: 'Poppins';" *ngIf="projectName" class="project-name">
+          "{{ projectName }}"
+        </h4>
+        <span *ngIf="!projectName && projectId > 0" class="project-loading">
+          (Cargando...)
+        </span>
+      </h4>
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <projection-view></projection-view>
+    <!-- Pasar el projectId al componente hijo -->
+    <projection-view [projectId]="projectId"></projection-view>
   </mat-card-content>
 </mat-card>
