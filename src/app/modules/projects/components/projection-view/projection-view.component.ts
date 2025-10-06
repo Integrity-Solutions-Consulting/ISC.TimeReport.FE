@@ -234,12 +234,42 @@ export class ProjectionViewComponent implements OnInit, OnChanges {
       });
   }
 
+  private adjustTimeDistributionToPeriods(
+    originalDistribution: number[],
+    targetPeriods: number
+  ): number[] {
+    console.log('🔄 Ajustando distribución de tiempos:', {
+      original: originalDistribution,
+      targetPeriods: targetPeriods,
+      originalLength: originalDistribution.length
+    });
+
+    if (originalDistribution.length === targetPeriods) {
+      return [...originalDistribution]; // Misma longitud, retornar copia
+    }
+
+    if (originalDistribution.length > targetPeriods) {
+      // Truncar: tomar solo los primeros 'targetPeriods' elementos
+      const truncated = originalDistribution.slice(0, targetPeriods);
+      console.log('✂️ Distribución truncada:', truncated);
+      return truncated;
+    } else {
+      // Extender: agregar ceros al final hasta alcanzar targetPeriods
+      const extended = [...originalDistribution];
+      while (extended.length < targetPeriods) {
+        extended.push(0);
+      }
+      console.log('📈 Distribución extendida:', extended);
+      return extended;
+    }
+  }
+
   processProjectionData(projectionData: ProjectionResponse[]) {
     console.log('🔄 Procesando datos de proyección...');
 
     const firstItem = projectionData[0];
     this.selectedPeriod = firstItem.period_type ? 'meses' : 'semanas';
-    this.periodQuantity = firstItem.period_quantity;
+    //this.periodQuantity = firstItem.period_quantity;
 
     console.log('⚙️ Configuración - Periodo:', this.selectedPeriod, 'Cantidad:', this.periodQuantity);
 
@@ -250,6 +280,7 @@ export class ProjectionViewComponent implements OnInit, OnChanges {
 
     this.dataSource = projectionData.map(item => {
       const timeDistribution = this.parseTimeDistribution(item.time_distribution);
+      const adjustedTimeDistribution = this.adjustTimeDistributionToPeriods(timeDistribution, this.periodQuantity);
       const positionName = this.getPositionNameById(item.resourceTypeId);
 
       // Marcar esta proyección como existente
@@ -357,18 +388,39 @@ export class ProjectionViewComponent implements OnInit, OnChanges {
       return;
     }
 
+    console.log('⚙️ Aplicando configuración:', {
+      periodos: this.periodQuantity,
+      tipo: this.selectedPeriod,
+      filasActuales: this.dataSource.length
+    });
+
     this.generateDynamicColumns();
 
+    // Ajustar todas las filas existentes al nuevo número de períodos
     this.dataSource.forEach(row => {
+      // Recoger los valores actuales de los períodos
+      const currentPeriodValues: number[] = [];
+      for (let i = 1; i <= this.dynamicColumns.length; i++) {
+        const periodKey = `periodo${i}`;
+        currentPeriodValues.push(Number(row[periodKey]) || 0);
+      }
+
+      // Limpiar todos los períodos
       this.dynamicColumns.forEach(col => {
-        if (!row[col]) {
-          row[col] = 0;
-        }
+        delete row[col];
+      });
+
+      // Reasignar los valores ajustados al nuevo número de períodos
+      const adjustedValues = this.adjustTimeDistributionToPeriods(currentPeriodValues, this.periodQuantity);
+      this.dynamicColumns.forEach((col, index) => {
+        row[col] = adjustedValues[index] || 0;
       });
     });
 
     this.showTable = true;
     this.calculateTotals();
+
+    console.log('✅ Configuración aplicada exitosamente');
   }
 
   getColumnHeader(index: number): string {
@@ -499,6 +551,8 @@ export class ProjectionViewComponent implements OnInit, OnChanges {
     return this.dataSource.map(row => {
       const timeDistribution: number[] = [];
 
+      // Usar this.periodQuantity en lugar de this.dynamicColumns.length
+      // para asegurar consistencia
       for (let i = 1; i <= this.periodQuantity; i++) {
         const periodKey = `periodo${i}`;
         const value = row[periodKey] || 0;
@@ -517,8 +571,8 @@ export class ProjectionViewComponent implements OnInit, OnChanges {
         totalTime: totalTime,
         resourceCost: Number(row.costoRecurso) || 0,
         participationPercentage: Number(row.porcentajeParticipacion) || 0,
-        periodType: this.selectedPeriod === 'meses', // true para meses, false para semanas
-        periodQuantity: this.periodQuantity,
+        periodType: this.selectedPeriod === 'meses',
+        periodQuantity: this.periodQuantity, // 🔥 Usar la cantidad actual
         projectID: this.projectId
       };
     });
