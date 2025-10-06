@@ -447,4 +447,13 @@ export class ProjectService {
       { active: active }
     );
   }
+
+  exportProjectionToExcel(projectId: number): Observable<Blob> {
+    this.showLoading();
+    return this.http.get(`${this.urlBase}/api/Projection/${projectId}/export-excel`, {
+      responseType: 'blob'
+    }).pipe(
+      finalize(() => this.hideLoading())
+    );
+  }
 }

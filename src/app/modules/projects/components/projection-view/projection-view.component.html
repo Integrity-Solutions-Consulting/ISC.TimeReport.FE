@@ -146,14 +146,20 @@
           <span>100.0%</span>
         </div>
 
-        <button mat-flat-button color="primary" (click)="addRow()">
-          <mat-icon>add</mat-icon>
-          Agregar Fila
-        </button>
-        <button mat-flat-button color="primary" (click)="saveAllProjections()">
-          <mat-icon>save</mat-icon>
-          Guardar Proyección Completa
-        </button>
+        <div class="footer-buttons">
+          <button mat-flat-button color="primary" (click)="addRow()">
+            <mat-icon>add</mat-icon>
+            Agregar Fila
+          </button>
+          <button mat-flat-button color="primary" (click)="saveAllProjections()">
+            <mat-icon>save</mat-icon>
+            Guardar Proyección Completa
+          </button>
+          <button mat-flat-button color="primary" (click)="exportToExcel()" [disabled]="!showTable || dataSource.length === 0">
+            <mat-icon>download</mat-icon>
+            Exportar Excel
+          </button>
+        </div>
       </div>
     </div>
   </div>

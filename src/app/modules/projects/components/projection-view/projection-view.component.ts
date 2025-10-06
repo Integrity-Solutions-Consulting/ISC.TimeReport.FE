@@ -697,6 +697,47 @@ export class ProjectionViewComponent implements OnInit, OnChanges {
     }
   }
 
+  exportToExcel(): void {
+    if (!this.projectId || this.projectId <= 0) {
+      this.snackBar.open('Error: ID de proyecto no válido', 'Cerrar', { duration: 5000 });
+      return;
+    }
+
+    console.log('📤 Exportando Excel para projectId:', this.projectId);
+
+    const loadingSnackbar = this.snackBar.open('Generando archivo Excel...', '', { duration: undefined });
+
+    this.projectService.exportProjectionToExcel(this.projectId).subscribe({
+      next: (blob: Blob) => {
+        loadingSnackbar.dismiss();
+
+        // Crear URL para el blob y descargar
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+
+        // Nombre del archivo con fecha
+        const date = new Date().toISOString().split('T')[0];
+        a.download = `proyeccion_proyecto_${this.projectId}_${date}.xlsx`;
+
+        // Trigger download
+        document.body.appendChild(a);
+        a.click();
+
+        // Cleanup
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        this.snackBar.open('✅ Archivo Excel exportado correctamente', 'Cerrar', { duration: 3000 });
+      },
+      error: (error) => {
+        loadingSnackbar.dismiss();
+        console.error('❌ Error al exportar Excel:', error);
+        this.snackBar.open('Error al exportar el archivo Excel', 'Cerrar', { duration: 5000 });
+      }
+    });
+  }
+
   /*
   deleteProjection(resourceTypeId: number): void {
     if (!this.projectId || !resourceTypeId) {

@@ -88,12 +88,20 @@ table {
 }
 
 .table-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
+  margin-top: 20px;
+
+  .footer-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
 }
 
 .total-row {
@@ -131,6 +139,14 @@ mat-form-field {
 
 // Responsive adjustments
 @media (max-width: 768px) {
+
+  .footer-buttons {
+    flex-direction: column;
+
+    button {
+      justify-content: center;
+    }
+  }
   .config-controls {
     flex-direction: column;
 
