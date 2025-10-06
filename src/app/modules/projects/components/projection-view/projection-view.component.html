@@ -1,9 +1,5 @@
 <!-- projection-view.component.html -->
 <div class="container">
-  <div class="project-header" *ngIf="!isLoadingPositions">
-    <h4>{{ projectName }}</h4>
-    <mat-divider></mat-divider>
-  </div>
   <!-- Estado de carga del catálogo -->
   <div *ngIf="isLoadingPositions" class="loading-state">
     <mat-spinner></mat-spinner>
