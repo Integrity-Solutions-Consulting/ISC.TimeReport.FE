@@ -40,6 +40,7 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class ProjectionViewComponent implements OnInit, OnChanges {
   @Input() projectId: number = 0;
+  projectName: string = 'Cargando nombre del proyecto...';
 
   private urlBase: string = environment.URL_BASE; // Usando environment
 
@@ -87,8 +88,39 @@ export class ProjectionViewComponent implements OnInit, OnChanges {
     console.log('🔄 ngOnChanges llamado, cambios:', changes);
     if (changes['projectId'] && changes['projectId'].currentValue) {
       console.log('🎯 projectId cambió a:', changes['projectId'].currentValue);
+      this.loadProjectName();
       this.loadProjectionData();
     }
+  }
+
+  loadProjectName(): void {
+    if (!this.projectId || this.projectId <= 0) {
+      this.projectName = 'Proyecto no especificado';
+      return;
+    }
+
+    console.log('📡 Cargando nombre del proyecto, ID:', this.projectId);
+
+    this.projectService.getProjectById(this.projectId).subscribe({
+      next: (project) => {
+        console.log('✅ Datos del proyecto recibidos:', project);
+
+        // Dependiendo de la estructura de tu API, ajusta estas líneas:
+        if (project && project.name) {
+          this.projectName = project.name;
+        } else if (project && project.data && project.data.name) {
+          this.projectName = project.data.name;
+        } else {
+          this.projectName = `Proyecto ${this.projectId}`;
+        }
+
+        console.log('🏷️ Nombre del proyecto establecido:', this.projectName);
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar nombre del proyecto:', error);
+        this.projectName = `Proyecto ${this.projectId}`;
+      }
+    });
   }
 
   loadPositionsCatalog() {
@@ -181,8 +213,11 @@ export class ProjectionViewComponent implements OnInit, OnChanges {
 
       console.log('🎯 projectId desde ruta:', this.projectId);
 
-      if (this.projectId > 0 && this.positionsCatalog.length > 0 && !this.isLoadingPositions) {
-        this.loadProjectionData();
+      if (this.projectId > 0) {
+        this.loadProjectName(); // 🔥 Cargar nombre cuando se obtenga de la ruta
+        if (this.positionsCatalog.length > 0 && !this.isLoadingPositions) {
+          this.loadProjectionData();
+        }
       }
     });
   }
