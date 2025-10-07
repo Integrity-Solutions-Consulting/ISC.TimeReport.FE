@@ -19,6 +19,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'projection-view',
@@ -33,7 +34,8 @@ import { MatDialog } from '@angular/material/dialog';
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    MatTableModule
+    MatTableModule,
+    MatTooltipModule
   ],
   templateUrl: './projection-view.component.html',
   styleUrl: './projection-view.component.scss'
@@ -55,7 +57,7 @@ export class ProjectionViewComponent implements OnInit, OnChanges {
   isRemoving: boolean = false;
 
   selectedPeriod: string = 'meses';
-  periodQuantity: number = 6;
+  periodQuantity: number = 4;
   showTable: boolean = false;
   dynamicColumns: string[] = [];
   displayedColumns: string[] = [];
@@ -121,6 +123,18 @@ export class ProjectionViewComponent implements OnInit, OnChanges {
         this.projectName = `Proyecto ${this.projectId}`;
       }
     });
+  }
+
+  canSaveProjection(): boolean {
+    // No se puede guardar si no hay recursos
+    if (!this.dataSource || this.dataSource.length === 0) {
+      return false;
+    }
+
+    // Verificar que al menos un recurso tenga tipo seleccionado
+    return this.dataSource.some(resource =>
+      resource.tipoRecurso && resource.tipoRecurso.trim() !== ''
+    );
   }
 
   loadPositionsCatalog() {

@@ -2,10 +2,10 @@
   <mat-card-header>
     <mat-card-title>
       <h4 style="font-family: 'Poppins';">
-        Proyección de Horas por Proyecto:
-        <h4 style="font-family: 'Poppins';" *ngIf="projectName" class="project-name">
-          "{{ projectName }}"
-        </h4>
+        <strong>"{{ projectName }}"</strong>
+        <h6 style="font-family: 'Poppins'; color:gray" *ngIf="projectName" class="project-name">
+          Proyección de Horas
+        </h6>
         <span *ngIf="!projectName && projectId > 0" class="project-loading">
           (Cargando...)
         </span>
