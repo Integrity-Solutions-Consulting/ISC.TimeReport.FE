@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -10,6 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
 import { Holiday } from '../../interfaces/holiday.interface';
 import { MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
+import { HolidaysService } from '../../services/holidays.service';
 
 export interface HolidayDialogData {
   holiday?: Holiday;
@@ -41,6 +42,8 @@ export class CreateDialogComponent implements OnInit {
   isSaving = false;
   isEditMode: boolean;
 
+  private holidaysService = inject(HolidaysService);
+
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<CreateDialogComponent>,
@@ -69,52 +72,106 @@ export class CreateDialogComponent implements OnInit {
   }
 
   setDefaultValues(): void {
-    // Establecer "Local" como valor por defecto en el select
     this.holidayForm.patchValue({
       holidayType: 'LOCAL',
-      holidayDate: new Date() // Fecha de hoy por defecto
+      holidayDate: new Date()
     });
   }
 
   populateForm(holiday: Holiday) {
+    // Convertir la fecha string a objeto Date
+    const holidayDate = holiday.holidayDate ? new Date(holiday.holidayDate) : new Date();
+
     this.holidayForm.patchValue({
       holidayType: holiday.holidayType,
       holidayName: holiday.holidayName,
-      holidayDate: holiday.holidayDate,
+      holidayDate: holidayDate,
       description: holiday.description || '',
       isRecurring: holiday.isRecurring || false
     });
   }
 
   onSave(): void {
-    if (this.holidayForm.valid) {
+    if (this.holidayForm.valid && !this.isSaving) {
       this.isSaving = true;
+      this.holidaysService.showLoading();
 
-      const formValue = this.holidayForm.value;
-      const holidayData = {
-        ...formValue,
-        holidayDate: this.formatDate(formValue.holidayDate),
-        status: true
-      };
+      try {
+        const formValue = this.holidayForm.value;
 
-      this.dialogRef.close({
-        holidayData: holidayData,
-        isEdit: this.isEditMode,
-        holidayId: this.data.holiday?.id
-      });
+        // Crear el payload exactamente como lo espera el endpoint
+        const holidayData = {
+          holidayName: formValue.holidayName,
+          holidayDate: this.formatDate(formValue.holidayDate),
+          isRecurring: formValue.isRecurring,
+          holidayType: formValue.holidayType,
+          description: formValue.description || '',
+          status: true
+        };
+
+        if (this.isEditMode && this.data.holiday?.id) {
+          // Actualizar feriado existente
+          this.holidaysService.updateHoliday(
+            this.data.holiday.id.toString(),
+            holidayData
+          ).subscribe({
+            next: (response) => {
+              this.dialogRef.close({
+                success: true,
+                isEdit: this.isEditMode,
+                data: response
+              });
+            },
+            error: (error) => {
+              console.error('Error al actualizar el feriado:', error);
+              this.isSaving = false;
+              this.holidaysService.hideLoading();
+              // Aquí podrías mostrar un mensaje de error al usuario
+            }
+          });
+        } else {
+          // Crear nuevo feriado
+          this.holidaysService.createHoliday(holidayData).subscribe({
+            next: (response) => {
+              this.dialogRef.close({
+                success: true,
+                isEdit: this.isEditMode,
+                data: response
+              });
+            },
+            error: (error) => {
+              console.error('Error al crear el feriado:', error);
+              this.isSaving = false;
+              this.holidaysService.hideLoading();
+              // Aquí podrías mostrar un mensaje de error al usuario
+            }
+          });
+        }
+
+      } catch (error) {
+        console.error('Error al procesar el formulario:', error);
+        this.isSaving = false;
+        this.holidaysService.hideLoading();
+      }
     }
   }
 
   onCancel(): void {
-    this.dialogRef.close();
+    this.dialogRef.close({ success: false });
   }
 
   private formatDate(date: Date): string {
     if (!date) return '';
 
-    const year = date.getFullYear();
-    const month = ('0' + (date.getMonth() + 1)).slice(-2);
-    const day = ('0' + date.getDate()).slice(-2);
+    // Asegurarnos de que sea un objeto Date válido
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) {
+      return '';
+    }
+
+    const year = dateObj.getFullYear();
+    const month = ('0' + (dateObj.getMonth() + 1)).slice(-2);
+    const day = ('0' + dateObj.getDate()).slice(-2);
 
     return `${year}-${month}-${day}`;
   }
