@@ -76,12 +76,16 @@
                 </ngx-mat-select-search>
               </mat-option>
 
-              @if (selectedResourceType === 1) {
+              <!-- Mostrar perfiles tanto para Empleado como para Proveedor -->
+              @if (selectedResourceType === 1 || selectedResourceType === 2) {
                 @for (position of filteredPositions | async; track position.id) {
                   <mat-option [value]="position.positionName">{{position.positionName}}</mat-option>
                 }
-              } @else {
-                <mat-option [value]="'Proveedor'">Proveedor</mat-option>
+              }
+
+              <!-- Opción adicional para Proveedor si se desea -->
+              @if (selectedResourceType === 2) {
+                <mat-option [value]="'Proveedor Externo'">Proveedor Externo</mat-option>
               }
             </mat-select>
           </mat-form-field>

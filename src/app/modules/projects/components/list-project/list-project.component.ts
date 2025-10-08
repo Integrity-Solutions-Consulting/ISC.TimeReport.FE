@@ -114,7 +114,7 @@ export class ListProjectComponent implements OnInit{
 
     constructor(
       private router: Router,
-      private route: ActivatedRoute
+      private route: ActivatedRoute,
     ) {
       this.dataSource = new MatTableDataSource();
       this.dataSource.sortingDataAccessor = (item: ProjectWithIndex, property: string) => {
@@ -377,6 +377,38 @@ export class ListProjectComponent implements OnInit{
       error: (err) => {
         console.error('Error al descargar proyectos:', err);
         this.snackBar.open('Error al descargar el archivo', 'Cerrar', { duration: 5000 });
+      }
+    });
+  }
+
+  downloadProjection(project: any): void {
+    if (!project || !project.id) {
+      console.error('Proyecto no válido');
+      return;
+    }
+
+    console.log('Iniciando descarga de proyección para el proyecto:', project.id);
+
+    this.projectService.exportProjectionToExcel(project.id).subscribe({
+      next: (blob: Blob) => {
+        // Crear un enlace temporal para descargar el archivo
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `proyeccion_${project.code}_${new Date().getTime()}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+
+        // Limpiar
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        console.log('Descarga completada exitosamente');
+      },
+      error: (error) => {
+        console.error('Error al descargar la proyección:', error);
+        // Aquí puedes mostrar un mensaje de error al usuario
+        alert('Error al descargar la proyección. Por favor, intente nuevamente.');
       }
     });
   }

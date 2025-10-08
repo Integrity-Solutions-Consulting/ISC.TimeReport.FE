@@ -177,3 +177,49 @@ export interface ApiResponseData {
   pageSize: number;
   totalPages: number;
 }
+
+export interface Period {
+  value: string;
+  viewValue: string;
+}
+
+export interface ResourceRowBase {
+  tipoRecurso: string;
+  nombreRecurso: string;
+  costoPorHora: number;
+  cantidadRecursos: number;
+  tiempoTotal: number;
+  costoRecurso: number;
+  porcentajeParticipacion: number;
+  resourceTypeId: number;
+}
+
+export interface ResourceRow extends ResourceRowBase {
+  [key: string]: any; // Para las columnas dinámicas periodo1, periodo2, etc.
+  isExisting?: boolean; // Para identificar si ya existe en el backend
+  isActive?: boolean;   // Para trackear el estado activo/inactivo
+}
+
+export interface ProjectionResponse {
+  projectionHoursProjectId: number;
+  resourceTypeId: number;
+  resourceTypeName: string;
+  resource_name: string;
+  hourly_cost: number;
+  resource_quantity: number;
+  time_distribution: string;
+  total_time: number;
+  resource_cost: number;
+  participation_percentage: number;
+  period_type: boolean;
+  period_quantity: number;
+  projectID: number;
+  status?: boolean;
+}
+
+export interface PositionCatalog {
+  positionId: number;
+  positionName: string;
+  description?: string;
+  // Agrega otros campos si el endpoint los devuelve
+}

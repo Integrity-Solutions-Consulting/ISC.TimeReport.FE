@@ -13,7 +13,7 @@ export const projectsRoutes: Routes = [
       component: InfoProjectPage
     },
     {
-      path: 'projection/:id',
+      path: 'projection/:projectId',
       component: ProjectionPage
     }
 ]

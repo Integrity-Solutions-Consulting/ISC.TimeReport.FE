@@ -12,6 +12,7 @@
   gap: 16px;
   align-items: flex-start;
   flex-wrap: wrap;
+  justify-content: flex-end;
 
   mat-form-field {
     width: 200px;
@@ -22,6 +23,35 @@
   margin-top: 24px;
 }
 
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h6 {
+    margin: 0;
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+
+  .info-button {
+    // Estilos específicos para el botón de información
+    width: 40px;
+    height: 40px;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
 .table-container {
   overflow-x: auto;
   margin-bottom: 16px;
@@ -29,7 +59,7 @@
 
 table {
   width: 100%;
-  min-width: 1000px; // Reducido de 1200px
+  min-width: 900px;
 }
 
 // Estilos específicos para columnas dinámicas (meses)
@@ -37,50 +67,50 @@ table {
 .mat-column-periodo-1,
 .mat-column-periodo-2,
 [class*="mat-column-periodo-"] {
-  width: 80px !important; // Ancho reducido para columnas de meses
-  min-width: 80px !important;
-  max-width: 100px !important;
+  width: 70px !important;
+  min-width: 70px !important;
+  max-width: 80px !important;
 }
 
-// Columnas fijas con anchos específicos
+// Columnas fijas con anchos específicos reducidos
 .mat-column-tipoRecurso {
-  width: 150px !important;
-  min-width: 150px !important;
+  width: 130px !important;
+  min-width: 130px !important;
 }
 
 .mat-column-nombreRecurso {
-  width: 120px !important;
-  min-width: 120px !important;
-}
-
-.mat-column-costoPorHora {
-  width: 120px !important;
-  min-width: 120px !important;
-}
-
-.mat-column-cantidadRecursos {
-  width: 100px !important;
-  min-width: 100px !important;
-}
-
-.mat-column-tiempoTotal {
-  width: 90px !important;
-  min-width: 90px !important;
-}
-
-.mat-column-costoRecurso {
   width: 110px !important;
   min-width: 110px !important;
 }
 
+.mat-column-costoPorHora {
+  width: 100px !important;
+  min-width: 100px !important;
+}
+
+.mat-column-cantidadRecursos {
+  width: 90px !important;
+  min-width: 90px !important;
+}
+
+.mat-column-tiempoTotal {
+  width: 80px !important;
+  min-width: 80px !important;
+}
+
+.mat-column-costoRecurso {
+  width: 100px !important;
+  min-width: 100px !important;
+}
+
 .mat-column-porcentajeParticipacion {
-  width: 120px !important;
-  min-width: 120px !important;
+  width: 100px !important;
+  min-width: 100px !important;
 }
 
 .mat-column-acciones {
-  width: 80px !important;
-  min-width: 80px !important;
+  width: 70px !important;
+  min-width: 70px !important;
 }
 
 .full-width {
@@ -88,21 +118,56 @@ table {
 }
 
 .table-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
+  margin-top: 16px;
+
+  .total-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 12px 16px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    font-size: 14px;
+
+    strong {
+      width: 130px;
+      text-align: left;
+      color: #333;
+    }
+
+    span {
+      width: 80px;
+      text-align: right;
+      font-weight: 500;
+      color: #1976d2;
+    }
+
+    span:last-child {
+      width: 100px;
+    }
+  }
+
+  .footer-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+  }
 }
 
 .total-row {
   display: flex;
-  gap: 24px;
+  gap: 20px;
   align-items: center;
 
   span {
-    min-width: 100px;
+    min-width: 80px;
     text-align: right;
   }
 }
@@ -116,7 +181,6 @@ mat-form-field {
     bottom: 0;
   }
 
-  // Campos más compactos para columnas de meses
   &.compact-field {
     .mat-form-field-infix {
       padding: 0.5em 0;
@@ -131,6 +195,14 @@ mat-form-field {
 
 // Responsive adjustments
 @media (max-width: 768px) {
+  .footer-buttons {
+    flex-direction: column;
+
+    button {
+      justify-content: center;
+    }
+  }
+
   .config-controls {
     flex-direction: column;
 
@@ -143,5 +215,15 @@ mat-form-field {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
+  }
+
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header-actions {
+    align-self: flex-end;
   }
 }

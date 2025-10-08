@@ -114,8 +114,8 @@ export class HolidaysListComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.createHoliday(result);
+      if (result?.success) {
+        this.loadHolidays();
       }
     });
   }
@@ -125,17 +125,12 @@ export class HolidaysListComponent implements OnInit {
       width: '500px',
       data: {
         holiday: holiday,
-        isEdit: true
       }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        if (result.isEdit) {
-          this.updateHoliday(result.holidayId, result.holidayData);
-        } else {
-          this.createHoliday(result.holidayData);
-        }
+        this.loadHolidays();
       }
     });
   }
@@ -175,6 +170,7 @@ export class HolidaysListComponent implements OnInit {
     this.showSnackBar('Use la opción "Inactivar" para deshabilitar el feriado', 'info');
   }
 
+  /*
   createHoliday(holidayData: any): void {
     this.holidayService.createHoliday(holidayData).subscribe({
       next: (response) => {
@@ -186,8 +182,9 @@ export class HolidaysListComponent implements OnInit {
         // Aquí puedes agregar notificaciones o manejo de errores
       }
     });
-  }
+  }*/
 
+    /*
   updateHoliday(holidayId: string, holidayData: any): void {
     this.holidayService.updateHoliday(holidayId, holidayData).subscribe({
       next: (response) => {
@@ -201,6 +198,7 @@ export class HolidaysListComponent implements OnInit {
       }
     });
   }
+    */
 
   onEditHoliday(holiday: Holiday): void {
     this.openEditHolidayDialog(holiday);
