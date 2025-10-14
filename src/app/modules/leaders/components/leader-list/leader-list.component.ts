@@ -24,6 +24,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatMenuModule } from '@angular/material/menu';
 import { AssignmentLeaderDialogComponent } from '../leader-assignment/leader-assignment.component';
+import Fuse, { IFuseOptions } from 'fuse.js';
 
 @Injectable()
 export class LeaderPaginatorIntl implements MatPaginatorIntl {
@@ -79,11 +80,47 @@ export class LeaderListComponent implements OnInit{
   constructor(
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) {
+    // Configurar el sortingDataAccessor para ordenamiento personalizado
+    this.dataSource.sortingDataAccessor = (item: any, property: string) => {
+      switch (property) {
+        case 'idnumber':
+          return item.person.identificationNumber?.toLowerCase() || '';
+        case 'names':
+          return `${item.person.firstName} ${item.person.lastName}`.toLowerCase();
+        case 'leadertype':
+          return this.getLeaderTypeName(item.leadershipType).toLowerCase();
+        case 'contact':
+          return item.person.email?.toLowerCase() || '';
+        case 'status':
+          return item.status ? 'activo' : 'inactivo';
+        default:
+          return item[property];
+      }
+    };
+  }
 
   allLeaders: Leader[] = []; // Almacenar todos los líderes
   displayedLeaders: Leader[] = []; // Líderes para mostrar en la página actual
   projects: any[] = [];
+
+  private fuse!: Fuse<Leader>;
+
+  private isFuseInitialized: boolean = false;
+
+  private fuseOptions: IFuseOptions<Leader> = {
+      keys: [
+          'person.firstName',
+          'person.lastName',
+          'person.identificationNumber',
+          'person.email',
+          'leadershipType', // true/false/number se puede buscar como string
+          'status' // true/false se puede buscar como string
+      ],
+      threshold: 0.3, // Permite "fuzzy matching"
+      ignoreLocation: true,
+      minMatchCharLength: 2,
+  };
 
   selection = new SelectionModel<any>(true, []);
 
@@ -103,22 +140,21 @@ export class LeaderListComponent implements OnInit{
   currentSearch: string = '';
 
   ngOnInit(): void {
-    // Cargar todos los líderes (9999) pero mantener paginación visual
-    this.loadAllLeaders();
+      this.loadAllLeaders();
 
-    this.searchControl.valueChanges.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(value => {
-      this.currentSearch = value || '';
-      this.currentPage = 0;
-      if (this.paginator) {
-        this.paginator.firstPage();
-      }
-      this.applyFilter(); // Aplicar filtro localmente
-    });
+      this.searchControl.valueChanges.pipe(
+          debounceTime(300),
+          distinctUntilChanged()
+      ).subscribe(value => {
+          this.currentSearch = value || '';
+          this.currentPage = 0;
+          if (this.paginator) {
+              this.paginator.firstPage();
+          }
+          this.applyFilter(); // ⬅️ Llama al método de filtro Fuse.js
+      });
 
-    this.loadProjects();
+      this.loadProjects();
   }
 
   readonly identificationTypesMap: {[key: number]: string} = {
@@ -134,63 +170,99 @@ export class LeaderListComponent implements OnInit{
 
   // Cargar todos los líderes
   loadAllLeaders(): void {
-    this.leaderService.getAllLeaders().subscribe({
-      next: (response) => {
-        if (response?.items) {
-          // Eliminar duplicados antes de almacenar
-          this.allLeaders = this.removeDuplicateLeaders(response.items);
-          this.totalItems = this.allLeaders.length;
-          this.applyFilter(); // Aplicar filtro inicial
-        }
-      },
-      error: (err) => {
-        console.error('Error:', err);
-        this.snackBar.open("Error al cargar líderes", "Cerrar", {duration: 5000});
-      }
-    });
+      // En lugar de obtener todos los líderes de golpe (que puede ser ineficiente),
+      // mantenemos la estructura de carga y luego inicializamos Fuse.js
+      this.leaderService.getAllLeaders().subscribe({
+          next: (response) => {
+              if (response?.items) {
+                  this.allLeaders = this.removeDuplicateLeaders(response.items);
+                  this.totalItems = this.allLeaders.length;
+
+                  if (!this.isFuseInitialized) {
+                      this.fuse = new Fuse(this.allLeaders, this.fuseOptions);
+                      this.isFuseInitialized = true;
+                  } else {
+                      // Si los datos cambian (e.g., después de un CRUD), actualiza la colección de Fuse
+                      this.fuse.setCollection(this.allLeaders);
+                  }
+
+                  this.applyFilter(); // Aplicar filtro inicial (mostrar la primera página)
+
+                  // Configurar el sort después de cargar los datos
+                  setTimeout(() => {
+                      if (this.sort) {
+                          this.dataSource.sort = this.sort;
+                      }
+                  });
+              }
+          },
+          error: (err) => {
+              console.error('Error:', err);
+              this.snackBar.open("Error al cargar líderes", "Cerrar", {duration: 5000});
+          }
+      });
   }
+
+
 
   // Eliminar duplicados por ID de persona
-  private removeDuplicateLeaders(leaders: Leader[]): Leader[] {
-    const uniqueLeadersMap = new Map<number, Leader>();
+    private removeDuplicateLeaders(leaders: Leader[]): Leader[] {
+        // ... (La implementación existente es correcta y no se toca)
+        const uniqueLeadersMap = new Map<number, Leader>();
 
-    leaders.forEach(leader => {
-      // Usar el ID de la persona como clave para evitar duplicados
-      if (!uniqueLeadersMap.has(leader.person.id)) {
-        uniqueLeadersMap.set(leader.person.id, leader);
-      }
-    });
+        leaders.forEach(leader => {
+            if (!uniqueLeadersMap.has(leader.person.id)) {
+                uniqueLeadersMap.set(leader.person.id, leader);
+            }
+        });
 
-    return Array.from(uniqueLeadersMap.values());
-  }
-
-  // Aplicar filtro localmente
-  applyFilter(): void {
-    let filteredData = this.allLeaders;
-
-    // Aplicar filtro de búsqueda
-    if (this.currentSearch) {
-      const searchLower = this.currentSearch.toLowerCase();
-      filteredData = this.allLeaders.filter(leader =>
-        leader.person.firstName.toLowerCase().includes(searchLower) ||
-        leader.person.lastName.toLowerCase().includes(searchLower) ||
-        leader.person.identificationNumber.includes(this.currentSearch)
-      );
+        return Array.from(uniqueLeadersMap.values());
     }
 
-    this.totalItems = filteredData.length;
+  // Aplicar filtro localmente con soporte para caracteres especiales/*
+    applyFilter(): void {
+        let filteredData: Leader[] = [];
+        const searchTerm = this.currentSearch.trim();
 
-    // Actualizar paginación
-    this.updateDisplayedLeaders(filteredData);
-  }
+        if (!this.isFuseInitialized || !this.allLeaders.length) {
+             // Si aún no se cargan o inicializan, solo mostramos lo que haya.
+            filteredData = this.allLeaders;
+        } else if (!searchTerm) {
+            // Si no hay término de búsqueda, usamos todos los líderes cargados.
+            filteredData = this.allLeaders;
+        } else {
+            // Usar Fuse.js para la búsqueda "fuzzy"
+            // El resultado de search() es un array de objetos { item: Leader, score: number, ... }
+            const searchResults = this.fuse.search(searchTerm);
+
+            // Mapear los resultados para obtener solo el objeto Leader
+            filteredData = searchResults.map(result => result.item);
+        }
+
+        this.totalItems = filteredData.length;
+
+        // Actualizar paginación con los resultados de Fuse.js o con todos los líderes
+        this.updateDisplayedLeaders(filteredData);
+    }
 
   // Actualizar líderes mostrados según paginación
-  updateDisplayedLeaders(data: Leader[]): void {
-    const startIndex = this.currentPage * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.displayedLeaders = data.slice(startIndex, endIndex);
-    this.dataSource.data = this.displayedLeaders;
-  }
+    updateDisplayedLeaders(data: Leader[]): void {
+        // Asegurar que la página actual no esté fuera de límites después de filtrar
+        const maxPageIndex = Math.max(0, Math.ceil(this.totalItems / this.pageSize) - 1);
+        this.currentPage = Math.min(this.currentPage, maxPageIndex);
+
+        const startIndex = this.currentPage * this.pageSize;
+        const endIndex = startIndex + this.pageSize;
+
+        this.displayedLeaders = data.slice(startIndex, endIndex);
+        this.dataSource.data = this.displayedLeaders;
+
+        // Sincronizar el paginador manualmente con los nuevos datos
+        if (this.paginator) {
+            this.paginator.length = this.totalItems;
+            this.paginator.pageIndex = this.currentPage;
+        }
+    }
 
   onPageChange(event: PageEvent): void {
     this.pageSize = event.pageSize;
@@ -267,7 +339,10 @@ export class LeaderListComponent implements OnInit{
     });
   }
 
-  getIdentificationTypeName(idtype: number): string {
+  getIdentificationTypeName(idtype: number | null | undefined): string {
+    if (idtype === null || idtype === undefined) {
+      return 'Desconocido';
+    }
     return this.identificationTypesMap[idtype] || 'Desconocido';
   }
 
@@ -360,7 +435,7 @@ export class LeaderListComponent implements OnInit{
       maxHeight: '80vh',
       data: {
         leader: leader, // Opcional: pasar el líder si se hace clic en una fila específica
-        leaderId: leader.id // Pre-seleccionar la persona si existe
+        leaderId: leader?.id // Pre-seleccionar la persona si existe
       }
     });
 
@@ -370,5 +445,24 @@ export class LeaderListComponent implements OnInit{
         this.loadAllLeaders(); // Recargar todos los líderes
       }
     });
+  }
+
+  ngAfterViewInit() {
+    // Configurar el sort si existe
+    if (this.sort) {
+            this.dataSource.sort = this.sort;
+        }
+
+    // Sincronizar el paginador si existe
+    if (this.paginator) {
+      this.paginator.page.subscribe((event) => {
+        this.onPageChange(event);
+      });
+
+      // Configuración inicial del paginador
+      this.paginator.length = this.totalItems;
+      this.paginator.pageSize = this.pageSize;
+      this.paginator.pageIndex = this.currentPage;
+    }
   }
 }
