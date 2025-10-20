@@ -50,6 +50,12 @@ export const menuRoutes: Routes = [
         //data: { roles: ['Administrador', 'Gerente', 'Lider'] }
       },
       {
+        path: 'projection',
+        loadChildren: () => import('../projection/projection.routes').then((m) => m.projectionRoutes),
+        //canActivate: [RoleGuard],
+        //data: { roles: ['Administrador', 'Gerente', 'Lider'] }
+      },
+      {
         path: 'activities',
         loadChildren: () => import('../activities/activities.routes').then((m) => m.activitiesRoutes),
         //canActivate: [RoleGuard],

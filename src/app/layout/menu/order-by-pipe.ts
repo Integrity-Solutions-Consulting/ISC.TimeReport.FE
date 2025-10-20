@@ -6,7 +6,14 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class OrderByPipe implements PipeTransform {
   transform(array: any[], field: string): any[] {
-    if (!Array.isArray(array)) return array;
-    return array.slice().sort((a, b) => (a[field] > b[field]) ? 1 : -1);
+    if (!Array.isArray(array)) {
+      return array;
+    }
+
+    return array.sort((a, b) => {
+      const aValue = a[field] || 999;
+      const bValue = b[field] || 999;
+      return aValue - bValue;
+    });
   }
 }
