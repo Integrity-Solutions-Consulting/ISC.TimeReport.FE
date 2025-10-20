@@ -8,34 +8,39 @@
 
   <mat-nav-list>
     <ng-container *ngIf="menuItems.length > 0">
-      <!-- Ordenamos los items por displayOrder -->
       <ng-container *ngFor="let item of menuItems | orderBy: 'displayOrder'">
+
         <!-- Ítems simples -->
         <a *ngIf="item.type === 'item'"
           mat-list-item
           [routerLink]="item.modulePath"
-          routerLinkActive="active-link">
-          <mat-icon>{{item.icon}}</mat-icon>
-          {{item.moduleName}}
+          routerLinkActive="active-link"
+          class="menu-item">
+          <mat-icon class="menu-icon">{{item.icon}}</mat-icon>
+          <span class="menu-text">{{item.moduleName}}</span>
         </a>
 
         <!-- Expansion Panels -->
-        <mat-expansion-panel *ngIf="item.type === 'expansion'">
-          <mat-expansion-panel-header>
-            <mat-icon>{{item.icon}}</mat-icon>
-            {{item.moduleName}}
+        <mat-expansion-panel *ngIf="item.type === 'expansion'"
+                            [expanded]="item.expanded"
+                            class="menu-expansion-panel">
+          <mat-expansion-panel-header class="menu-expansion-header">
+            <mat-icon class="menu-icon">{{item.icon}}</mat-icon>
+            <span class="menu-text">{{item.moduleName}}</span>
           </mat-expansion-panel-header>
 
           <mat-nav-list>
             <a mat-list-item
               *ngFor="let option of item.options | orderBy: 'displayOrder'"
               [routerLink]="option.modulePath"
-              routerLinkActive="active-link">
-              <mat-icon>{{option.icon}}</mat-icon>
-              {{option.moduleName}}
+              routerLinkActive="active-link"
+              class="submenu-item">
+              <mat-icon class="menu-icon">{{option.icon}}</mat-icon>
+              <span class="menu-text">{{option.moduleName}}</span>
             </a>
           </mat-nav-list>
         </mat-expansion-panel>
+
       </ng-container>
     </ng-container>
   </mat-nav-list>
