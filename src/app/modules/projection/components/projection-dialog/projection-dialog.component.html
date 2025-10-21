@@ -1,0 +1,29 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>Nombre de la Proyección</h2>
+
+  <mat-dialog-content>
+    <p>Ingrese un nombre para identificar esta proyección:</p>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre del Proyecto</mat-label>
+      <input
+        matInput
+        [(ngModel)]="data.projectName"
+        placeholder="Ej: Proyecto Desarrollo Web 2024"
+        maxlength="100"
+        autocomplete="off"
+        #projectNameInput>
+      <mat-hint align="end">{{ data.projectName?.length || 0 }}/100</mat-hint>
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancelar</button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onConfirm()"
+      [disabled]="!data.projectName || data.projectName.trim() === ''">
+      Confirmar
+    </button>
+  </mat-dialog-actions>
+</div>

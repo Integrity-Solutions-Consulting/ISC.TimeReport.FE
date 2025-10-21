@@ -1,3 +1,4 @@
+// view-projection.page.ts (corregido)
 import { Component, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { ProjectionViewComponent } from '../../../projection/components/projection-view/projection-view.component';
@@ -19,6 +20,7 @@ import { CommonModule } from '@angular/common';
 export class ViewProjectionPage implements OnInit {
   projectId: number = 0;
   projectName: string = '';
+  groupProjection: string | number = ''; // ✅ Agregar esta propiedad
 
   constructor(
     private route: ActivatedRoute,
@@ -31,6 +33,11 @@ export class ViewProjectionPage implements OnInit {
 
   loadProjectFromRoute() {
     this.route.params.subscribe(params => {
+      // Obtener el groupProjection de los parámetros de la ruta
+      const groupProjectionFromParams = params['groupProjection'];
+      this.groupProjection = groupProjectionFromParams;
+
+      // También mantener la lógica existente para projectId si es necesaria
       const projectIdFromParams = params['projectId'];
       this.projectId = this.safeConvertToNumber(projectIdFromParams);
 

@@ -1,5 +1,27 @@
 <!-- projection-view.component.html -->
 <div class="container">
+  <!--
+  <div class="projection-header">
+    <h4 style="font-family: 'Poppins'; margin-bottom: 20px;">
+      Proyección: {{ projectionName }}
+    </h4>
+  </div>
+  -->
+  <div *ngIf="!isNewProjection() && projectionName" class="existing-projection-header">
+    <h4 class="projection-title">
+      <mat-icon>edit</mat-icon>
+      Editando: {{ projectionName }}
+    </h4>
+  </div>
+
+  <div *ngIf="isNewProjection()" class="new-projection-header">
+    <h4 class="new-projection-title">
+      <mat-icon>add_circle</mat-icon>
+      Nueva Proyección
+    </h4>
+    <p>Complete la información para crear una nueva proyección de horas.</p>
+  </div>
+
   <!-- Estado de carga del catálogo -->
   <div *ngIf="isLoadingPositions" class="loading-state">
     <mat-spinner></mat-spinner>
@@ -9,6 +31,7 @@
   <div *ngIf="!isLoadingPositions">
     <div class="configuration-section">
       <h6 style="font-family: 'Poppins';">Configuración de Períodos</h6>
+
       <div class="config-controls">
         <mat-form-field appearance="outline">
           <mat-select placeholder="Tipo de Período" name="period" [(ngModel)]="selectedPeriod">
@@ -17,14 +40,26 @@
             }
           </mat-select>
         </mat-form-field>
+
         <mat-form-field appearance="outline">
-          <input matInput placeholder="Cantidad" type="number" [(ngModel)]="periodQuantity" min="1">
+          <input matInput
+                placeholder="Cantidad de Períodos"
+                type="number"
+                [(ngModel)]="periodQuantity"
+                min="1"
+                max="24"
+                required>
         </mat-form-field>
-        <button mat-flat-button color="primary" (click)="applyConfiguration()">
+
+        <button mat-flat-button
+                color="primary"
+                (click)="applyConfiguration()"
+                [disabled]="!periodQuantity || periodQuantity < 1">
           <mat-icon>settings</mat-icon>
           Aplicar Configuración
         </button>
       </div>
+
       <mat-divider></mat-divider>
     </div>
 
@@ -57,9 +92,9 @@
               <mat-form-field appearance="outline" class="full-width">
                 <mat-select [(ngModel)]="element.tipoRecurso" (selectionChange)="onResourceTypeChange(i)">
                   <mat-option value="">Seleccionar posición</mat-option>
-                  @for (position of positionsCatalog; track $index) {
+                  @for (position of positionsCatalog; track position.id) {
                     <mat-option [value]="position.positionName">
-                      {{position.positionName}}
+                      {{ position.positionName }}
                     </mat-option>
                   }
                 </mat-select>
@@ -125,23 +160,73 @@
             <td mat-cell *matCellDef="let element">{{ element.porcentajeParticipacion | number:'1.1-1' }}%</td>
           </ng-container>
 
+              <ng-container matColumnDef="estado">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let element; let i = index" class="status-cell">
+                  <div class="status-container">
+                    <!-- Para proyecciones existentes -->
+                    <div *ngIf="!isNewProjection() && element.isExisting"
+                        class="status-indicator"
+                        [class.active]="element.isActive"
+                        [class.inactive]="!element.isActive">
+                      <mat-icon class="status-icon">
+                        {{ element.isActive ? 'check_circle' : 'cancel' }}
+                      </mat-icon>
+                      {{ element.isActive ? 'Activo' : 'Inactivo' }}
+                    </div>
+
+                    <!-- Para nuevas proyecciones o filas nuevas -->
+                    <div *ngIf="isNewProjection() || !element.isExisting"
+                        class="status-indicator new">
+                      <mat-icon class="status-icon">add_circle</mat-icon>
+                      Nuevo
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef>Acciones</th>
             <td mat-cell *matCellDef="let element; let i = index">
               <div class="action-buttons">
-                <button mat-icon-button
+
+                <!-- Botón para activar (solo visible si está inactivo) -->
+                <button *ngIf="!isNewProjection() && element.isExisting && !element.isActive"
+                        mat-icon-button
+                        color="primary"
+                        (click)="activateResource(element, i)"
+                        matTooltip="Activar recurso">
+                  <mat-icon>toggle_on</mat-icon>
+                </button>
+
+                <!-- Botón para inactivar (solo visible si está activo) -->
+                <button *ngIf="!isNewProjection() && element.isExisting && element.isActive"
+                        mat-icon-button
+                        color="warn"
+                        (click)="inactivateResource(element, i)"
+                        matTooltip="Inactivar recurso">
+                  <mat-icon>toggle_off</mat-icon>
+                </button>
+
+                <!-- Botón para eliminar en nuevas proyecciones o filas nuevas -->
+                <button *ngIf="isNewProjection() || !element.isExisting"
+                        mat-icon-button
                         color="warn"
                         (click)="removeRow(i)"
                         [disabled]="isRemoving"
-                        matTooltip="Quitar fila">
-                  <mat-icon>remove_circle</mat-icon>
+                        matTooltip="Eliminar fila">
+                  <mat-icon>delete</mat-icon>
                 </button>
+
               </div>
             </td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          <tr mat-row
+              *matRowDef="let row; columns: displayedColumns;"
+              [class.row-inactive]="!row.isActive && !isNewProjection() && row.isExisting">
+          </tr>
         </table>
       </div>
 
@@ -158,18 +243,27 @@
                   color="primary"
                   (click)="saveAllProjections()"
                   [disabled]="!canSaveProjection()">
-            <mat-icon>save</mat-icon>
-            Guardar Proyección Completa
+            <mat-icon>{{ isNewProjection() ? 'add_circle' : 'save' }}</mat-icon>
+            {{ isNewProjection() ? 'Crear Proyección' : 'Actualizar Proyección' }}
           </button>
-          <!--
-          <button mat-flat-button
-                  color="primary"
+
+          <button *ngIf="!isNewProjection()"
+                  mat-flat-button
+                  color="accent"
                   (click)="exportToExcel()"
-                  [disabled]="!showTable || dataSource.length === 0">
+                  [disabled]="!canExportToExcel()"
+                  matTooltip="Exportar a Excel">
             <mat-icon>download</mat-icon>
             Exportar Excel
           </button>
-          -->
+
+          <button *ngIf="!isNewProjection()"
+                mat-stroked-button
+                color="warn"
+                (click)="cancelEdit()">
+          <mat-icon>cancel</mat-icon>
+          Cancelar
+        </button>
         </div>
       </div>
     </div>
