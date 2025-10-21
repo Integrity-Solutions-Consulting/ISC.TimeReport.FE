@@ -1,0 +1,21 @@
+.dialog-container {
+  min-width: 400px;
+  max-width: 500px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-dialog-content {
+  margin-bottom: 16px;
+}
+
+mat-dialog-actions {
+  gap: 8px;
+}
+
+p {
+  margin-bottom: 16px;
+  color: rgba(0, 0, 0, 0.87);
+}
