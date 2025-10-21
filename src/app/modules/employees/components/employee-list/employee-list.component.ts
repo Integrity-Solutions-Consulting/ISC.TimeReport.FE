@@ -25,6 +25,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatNativeDateModule, provideNativeDateAdapter, DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter, MomentDateModule } from '@angular/material-moment-adapter';
 import { MatMenuModule } from '@angular/material/menu';
+import Fuse, { IFuseOptions } from 'fuse.js';
 
 export const MY_DATE_FORMATS = {
   parse: {
@@ -125,70 +126,118 @@ export class EmployeeListComponent implements AfterViewInit {
   currentPage: number = 0;
   currentSearch: string = '';
 
+  private fuse!: Fuse<Employee>;
+  private allEmployees: Employee[] = [];
+  public useClientSideSearch: boolean = false;
+
+  private fuseOptions: IFuseOptions<Employee> = {
+    keys: [
+      // Nested paths for person properties
+      'person.firstName',
+      'person.lastName',
+      'person.identificationNumber',
+      'person.email',
+      // Direct property
+      'positionID'
+    ],
+    threshold: 0.3, // Lower threshold for more matches
+    includeScore: false, // Not strictly needed for display
+    minMatchCharLength: 2,
+    shouldSort: true, // Let Fuse sort the results by relevance
+    findAllMatches: true
+  };
+
   ngOnInit(): void {
     this.loadPositions();
-    this.loadEmployees(this.currentPage + 1, this.pageSize, this.currentSearch);
+    // Initial load. If client search is active, it will load all.
+    // Since it's false by default, it will load the first page.
+    if (this.useClientSideSearch) {
+      this.loadAllEmployeesForClientSearch(false);
+    } else {
+      this.loadEmployees(this.currentPage + 1, this.pageSize, this.currentSearch);
+    }
 
-    // Suscribirse a los cambios del campo de búsqueda con debounce
+    // Listen to search input changes
     this.searchControl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged()
     ).subscribe(value => {
-      this.currentSearch = value || ''; // Update the search string
-      this.currentPage = 0;             // Reset internal 0-based page index to 0
-      this.paginator.firstPage();       // Reset MatPaginator to first page (pageIndex becomes 0)
-      // Calls loadEmployees, passing (0 + 1) = 1 as the page number for the backend
-      this.loadEmployees(this.currentPage + 1, this.pageSize, this.currentSearch);
+      this.currentSearch = value || '';
+      this.currentPage = 0; // Reset to first page on new search
+      if (this.paginator) {
+        this.paginator.firstPage();
+      }
+
+      if (this.useClientSideSearch) {
+        // Usar búsqueda en cliente con Fuse.js
+        this.applyClientSideSearch(this.currentSearch);
+      } else {
+        // Usar búsqueda en servidor (comportamiento actual)
+        this.loadEmployees(this.currentPage + 1, this.pageSize, this.currentSearch);
+      }
     });
   }
 
   loadEmployees(pageNumber: number = 1, pageSize: number = 10, search: string = ''): void {
+    // Check if client-side search is active and all employees are loaded,
+    // if so, use client-side search instead.
+    if (this.useClientSideSearch && this.allEmployees.length > 0) {
+      this.applyClientSideSearch(this.currentSearch);
+      return;
+    }
+
     this.employeeService.getEmployees(pageNumber, pageSize, search).subscribe({
       next: (response) => {
         if (response?.items) {
-          this.dataSource = new MatTableDataSource<Employee>(response.items);
+          const employees = response.items;
+
+          this.dataSource.data = employees;
           this.totalItems = response.totalItems;
           this.pageSize = response.pageSize;
           this.currentPage = response.pageNumber - 1;
 
-          // Asigna el sort después de tener los datos
-          setTimeout(() => {
-            this.dataSource.sort = this.sort;
-            this.dataSource.sortingDataAccessor = (data: any, sortHeaderId: string) => {
-              // Lógica personalizada para sorting si es necesario
-              if (sortHeaderId === 'position') {
-                return this.getPositionName(data.positionID);
-              }
-              if (sortHeaderId === 'idtype') {
-                return this.getIdentificationTypeName(data.person.identificationTypeId);
-              }
-              if (sortHeaderId === 'firstname') return data.person.firstName;
-              if (sortHeaderId === 'lastname') return data.person.lastName;
-              if (sortHeaderId === 'email') return data.person.email;
-              if (sortHeaderId === 'idnumber') return data.person.identificationNumber;
-              // Para propiedades anidadas
-              if (sortHeaderId.includes('.')) {
-                return sortHeaderId.split('.').reduce((o, i) => o[i], data);
-              }
-              return data[sortHeaderId];
-            };
-          });
+          this.setupSortingAndPagination();
 
-          if (this.paginator) {
-            this.paginator.length = this.totalItems;
-            this.paginator.pageSize = this.pageSize;
-            this.paginator.pageIndex = this.currentPage;
-          }
         } else {
           console.error('La respuesta del API no tiene la estructura esperada:', response);
-          this.dataSource = new MatTableDataSource<Employee>([]);
+          this.dataSource.data = [];
         }
       },
       error: (err) => {
         console.error('Error al cargar empleados:', err);
-        this.dataSource = new MatTableDataSource<Employee>([]);
+        this.dataSource.data = [];
       }
     });
+  }
+
+  private setupSortingAndPagination(): void {
+    setTimeout(() => {
+      // Apply sorting logic for complex fields
+      this.dataSource.sort = this.sort;
+      this.dataSource.sortingDataAccessor = (data: any, sortHeaderId: string) => {
+        if (sortHeaderId === 'position') {
+          return this.getPositionName(data.positionID);
+        }
+        if (sortHeaderId === 'idtype') {
+          return this.getIdentificationTypeName(data.person.identificationTypeId);
+        }
+        if (sortHeaderId === 'firstname') return data.person.firstName;
+        if (sortHeaderId === 'lastname') return data.person.lastName;
+        if (sortHeaderId === 'email') return data.person.email;
+        if (sortHeaderId === 'idnumber') return data.person.identificationNumber;
+        // Default access for simple properties
+        return data[sortHeaderId];
+      };
+
+      // Update paginator values only when using server-side search or after a client-side search updates totalItems
+      if (!this.useClientSideSearch || this.currentSearch === '') {
+        if (this.paginator) {
+          this.paginator.length = this.totalItems;
+          this.paginator.pageSize = this.pageSize;
+          this.paginator.pageIndex = this.currentPage;
+        }
+      }
+    }, 0);
   }
 
   loadPositions(): void {
@@ -203,6 +252,76 @@ export class EmployeeListComponent implements AfterViewInit {
       error: (err) => {
         console.error('Error al cargar cargos:', err);
         this.positionsMap = {}; // Mapa vacío si hay error
+      }
+    });
+  }
+
+  private applyClientSideSearch(searchTerm: string): void {
+    if (!searchTerm.trim()) {
+      // If no search term, show all loaded employees with pagination
+      this.updateDataSourceWithPagination(this.allEmployees);
+      return;
+    }
+
+    if (!this.fuse) {
+      console.warn('Fuse instance not initialized. Loading employees first.');
+      // If for some reason fuse wasn't initialized, try to load all now.
+      this.loadAllEmployeesForClientSearch(true);
+      return;
+    }
+
+    // Perform search with Fuse.js
+    const searchResults = this.fuse.search(searchTerm);
+    const filteredEmployees = searchResults.map(result => result.item);
+
+    this.updateDataSourceWithPagination(filteredEmployees);
+  }
+
+  private updateDataSourceWithPagination(employees: Employee[]): void {
+    this.totalItems = employees.length;
+
+    // Check and adjust pageIndex if it's out of bounds after filtering
+    const maxPageIndex = Math.max(0, Math.ceil(this.totalItems / this.pageSize) - 1);
+    this.currentPage = Math.min(this.currentPage, maxPageIndex);
+
+    const startIndex = this.currentPage * this.pageSize;
+    const paginatedEmployees = employees.slice(startIndex, startIndex + this.pageSize);
+
+    this.dataSource.data = paginatedEmployees;
+
+    // Update the paginator's total length and page index
+    if (this.paginator) {
+      this.paginator.length = this.totalItems;
+      this.paginator.pageIndex = this.currentPage;
+    }
+
+    // Re-apply sorting on the new data slice
+    this.setupSortingAndPagination();
+  }
+
+  loadAllEmployeesForClientSearch(applyCurrentSearch: boolean = false): void {
+    // Use a very large number for pageSize to fetch all data.
+    // In a real application, you'd likely use a dedicated endpoint or carefully limit this.
+    this.employeeService.getEmployees(1, 10000, '').subscribe({
+      next: (response) => {
+        if (response?.items) {
+          this.allEmployees = response.items;
+          // Initialize Fuse with the complete dataset
+          this.fuse = new Fuse(this.allEmployees, this.fuseOptions);
+          this.useClientSideSearch = true; // Activate client search mode
+
+          if (applyCurrentSearch && this.currentSearch) {
+            this.applyClientSideSearch(this.currentSearch);
+          } else {
+            // Initial display of the first page of all loaded data
+            this.updateDataSourceWithPagination(this.allEmployees);
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Error al cargar todos los empleados:', err);
+        this.snackBar.open('Error al cargar datos para búsqueda mejorada', 'Cerrar', { duration: 5000 });
+        this.useClientSideSearch = false; // Fallback to server search
       }
     });
   }
@@ -298,6 +417,29 @@ export class EmployeeListComponent implements AfterViewInit {
     });
   }
 
+  toggleSearchMode(): void {
+    this.useClientSideSearch = !this.useClientSideSearch;
+   
+    this.currentPage = 0;
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+
+    if (this.useClientSideSearch && this.allEmployees.length === 0) {
+      // If switching to client-side and data is not loaded, load it.
+      this.loadAllEmployeesForClientSearch(true); // Re-apply search after load
+    } else {
+      // Use server-side: re-load first page with current search term
+      this.loadEmployees(1, this.pageSize, this.currentSearch);
+    }
+   
+    this.snackBar.open(
+      `Búsqueda ${this.useClientSideSearch ? 'mejorada (cliente)' : 'estándar (servidor)'} activada`,
+      'Cerrar',
+      { duration: 3000 }
+    );
+  }
+
   toggleEmployeeStatus(employee: EmployeeWithIDandPerson): void {
     const confirmationMessage = employee.status
       ? '¿Estás seguro de que deseas desactivar este empleado?'
@@ -347,4 +489,19 @@ export class EmployeeListComponent implements AfterViewInit {
   viewEmployeeDetails(projectId: number): void {
     this.router.navigate([projectId], { relativeTo: this.route });
   }
+
+  isAllSelected() {
+    const numSelected = this.selection.selected.length;
+    const numRows = this.dataSource.data.length;
+    return numSelected === numRows;
+  }
+
+  toggleAllRows() {
+    if (this.isAllSelected()) {
+      this.selection.clear();
+      return;
+    }
+
+    this.selection.select(...this.dataSource.data);
+  }
 }

@@ -1,13 +1,9 @@
 .sidenav-container {
   padding: 16px;
-  /* Establece la altura del contenedor al 100% del viewport */
-  /* Usa 'min-height' y 'max-height' para mayor control si es necesario */
   height: 100%;
   display: flex;
   flex-direction: column;
-  /* Importante: Asegura que el padding se incluya en la altura */
   box-sizing: border-box;
-  /* Evita que el propio contenedor principal tenga un scrollbar */
   overflow: hidden;
 }
 
@@ -18,7 +14,7 @@
   padding: 10px 16px;
   margin-bottom: 20px;
   text-align: center;
-  flex-shrink: 0; /* Prevent the logo from shrinking */
+  flex-shrink: 0;
 }
 
 .logo-img {
@@ -53,20 +49,29 @@
 
 mat-nav-list {
   padding: 0;
-  flex-grow: 1; /* Allow the nav list to take up remaining space */
-  overflow-y: auto; /* This is key: allow scrolling only for the list items */
-  -webkit-overflow-scrolling: touch; /* Improves scrolling on touch devices */
+  flex-grow: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-a.mdc-list-item {
-  position: relative; /* para posicionar el pseudo-elemento */
-  padding-left: 16px; /* espacio para el borde, ajusta según necesites */
-  border-left: 4px solid transparent; /* borde invisible por defecto */
+// Estilos para items del menú
+.menu-item {
+  position: relative;
+  padding-left: 16px;
+  border-left: 4px solid transparent;
   transition: border-color 0.3s ease;
 
   &:hover {
     color: var(--itg-primary) !important;
   }
+}
+
+.menu-icon {
+  margin-right: 8px;
+}
+
+.menu-text {
+  font-size: 14px;
 }
 
 .menu-items {
@@ -75,16 +80,26 @@ a.mdc-list-item {
 }
 
 .submenu-item {
-  padding-left: 5px !important;
+  padding-left: 40px !important;
+  border-left: 4px solid transparent;
+  transition: border-color 0.3s ease;
+
+  &:hover {
+    color: var(--itg-primary) !important;
+  }
 }
 
 .active-link {
   color: var(--itg-primary) !important;
+  border-left-color: var(--itg-primary) !important;
+  background-color: var(--itg-primary-bg) !important;
 
   &:hover {
     background-color: var(--itg-primary-bg) !important;
   }
 }
+
+// Estilos para expansion panels
 .menu-expansion-panel {
   box-shadow: none !important;
   background: transparent !important;
@@ -93,17 +108,27 @@ a.mdc-list-item {
   .menu-expansion-header {
     padding: 0 16px;
     height: 48px;
+    border-left: 4px solid transparent;
 
     .mat-content {
       align-items: center;
     }
 
-    .expansion-icon {
-      margin-left: auto;
+    &:hover {
+      color: var(--itg-primary) !important;
     }
   }
 
   .mat-expansion-panel-body {
     padding: 0 !important;
+  }
+}
+
+// Estilo para cuando el expansion panel está expandido
+.menu-expansion-panel.mat-expanded {
+  .menu-expansion-header {
+    color: var(--itg-primary) !important;
+    border-left-color: var(--itg-primary) !important;
+    background-color: var(--itg-primary-bg) !important;
   }
 }

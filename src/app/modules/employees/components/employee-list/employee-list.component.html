@@ -1,11 +1,22 @@
 <div>
 
   <div class="top-items">
+    <button
+      mat-raised-button
+      color="accent"
+      (click)="toggleSearchMode()"
+      matTooltip="Alternar entre búsqueda en servidor y búsqueda mejorada en cliente (Fuse.js)"
+    >
+      <mat-icon>{{ useClientSideSearch ? 'flash_on' : 'flash_off' }}</mat-icon>
+      Búsqueda: {{ useClientSideSearch ? 'Mejorada' : 'Estándar' }}
+    </button>
+
     <mat-form-field appearance="outline" class="search-field">
-      <input matInput
-             [formControl]="searchControl" placeholder="Buscar por nombres, número de identificación..."
-             #input>
-      <mat-icon matSuffix>search</mat-icon>
+      <input matInput [formControl]="searchControl">
+      <mat-icon matPrefix>search</mat-icon>
+      <button *ngIf="searchControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="searchControl.setValue('')">
+          <mat-icon>close</mat-icon>
+      </button>
     </mat-form-field>
 
     <button mat-flat-button class="add-button" (click)="openCreateDialog()">
