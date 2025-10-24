@@ -212,9 +212,9 @@ export class EmployeeDialogComponent implements OnInit {
     const initialPersonType = this.employeeForm.get('person.personType')?.value;
     this.updateIdentificationValidators(initialPersonType);
 
-    if (this.isEditMode) {
+    /*if (this.isEditMode) {
       this.employeeForm.get('employeeCode')?.disable();
-    }
+    }*/
   }
 
   loadCatalogs(): void {
@@ -374,9 +374,11 @@ export class EmployeeDialogComponent implements OnInit {
 
   this.employeeService.showLoading();
 
+  /*
   if (this.isEditMode && this.employeeForm.get('employeeCode')?.disabled) {
     this.employeeForm.get('employeeCode')?.enable();
   }
+    */
 
   const formValue = this.employeeForm?.getRawValue();
 
