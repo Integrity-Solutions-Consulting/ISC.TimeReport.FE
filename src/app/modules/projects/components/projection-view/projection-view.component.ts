@@ -664,7 +664,6 @@ export class ProjectionViewComponent implements OnInit, OnChanges {
       const method = this.determineSaveMethod(data);
 
       if (method === 'update') {
-        // UPDATE: PUT /api/Projection/{projectId}/update/{resourceTypeId}
         return this.projectService.updateProjection(
           this.projectId,
           data.resourceTypeId,
