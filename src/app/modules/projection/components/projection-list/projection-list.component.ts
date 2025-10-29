@@ -10,18 +10,23 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-
+import { ProjectModalComponent } from '../../../projects/components/project-modal/project-modal.component';
+import { LoadingComponent } from '../../../auth/components/login-loading/login-loading.component';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatInputModule } from '@angular/material/input';
 @Component({
   selector: 'projection-list',
   standalone: true,
   imports: [
     CommonModule,
     MatButtonModule,
+    MatDialogModule,
     MatExpansionModule,
     MatChipsModule,
+    MatInputModule,
     MatIconModule,
-    MatTableModule
-
+    MatTableModule,
+    LoadingComponent
   ],
   templateUrl: './projection-list.component.html',
   styleUrls: ['./projection-list.component.scss']
@@ -40,12 +45,15 @@ export class ProjectionListComponent implements OnInit {
     'period_quantity'
   ];
 
+  isLoading: boolean = false;
+
   urlBase: string = environment.URL_BASE;
 
   constructor(
     private http: HttpClient,
     private router: Router,
     private route: ActivatedRoute,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -55,6 +63,7 @@ export class ProjectionListComponent implements OnInit {
   loadProjections() {
     this.http.get<any[]>(`${this.urlBase}/api/ProjectionHour/get-all`).subscribe({
       next: (data) => {
+        console.log('Datos recibidos de la API:', data);
         this.projectionGroups = this.transformData(data);
       },
       error: (error) => {
@@ -116,5 +125,41 @@ export class ProjectionListComponent implements OnInit {
     this.router.navigate(['new'], { relativeTo: this.route });
     // O si prefieres una ruta absoluta:
     // this.router.navigate(['/projections/new']);
+  }
+
+  createProjectFromProjection(group: ProjectionGroup): void {
+    this.isLoading = true;
+
+    // Abrir el modal de creación de proyecto
+    const dialogRef = this.dialog.open(ProjectModalComponent, {
+      width: '800px',
+      maxWidth: '90vw',
+      data: {
+        // Puedes pasar datos de la proyección al modal si es necesario
+        projectionData: group
+      }
+    });
+
+    // Suscribirse al cierre del modal
+    dialogRef.afterClosed().subscribe(result => {
+      this.isLoading = false;
+
+      if (result) {
+        console.log('Proyecto creado exitosamente:', result);
+        // Aquí puedes agregar lógica adicional después de crear el proyecto
+        // Por ejemplo, mostrar un mensaje de éxito o actualizar la lista
+      }
+    });
+
+    // Manejar errores de apertura del modal
+    dialogRef.afterOpened().subscribe({
+      next: () => {
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Error al abrir el modal de proyecto:', error);
+      }
+    });
   }
 }
