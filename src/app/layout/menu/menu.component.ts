@@ -3,112 +3,178 @@ import { CommonModule } from '@angular/common';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { OrderByPipe } from '../menu/order-by-pipe';
 import { AuthService } from '../../modules/auth/services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, MatExpansionModule, MatListModule, MatIconModule, RouterModule, OrderByPipe],
+  imports: [
+    CommonModule,
+    MatExpansionModule,
+    MatListModule,
+    MatIconModule,
+    RouterModule,
+    OrderByPipe,
+  ],
   templateUrl: './menu.component.html',
-  styleUrls: ['./menu.component.scss']
+  styleUrls: ['./menu.component.scss'],
 })
 export class MenuComponent implements OnInit {
   menuItems: any[] = [];
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private router: Router) {}
+
+  onPanelClick(item: any, event: MouseEvent) {
+    const target = event.target as HTMLElement;
+
+
+    if (target.closest('.submenu-expansion')) {
+      event.stopPropagation();
+      return;
+    }
+
+    // Alternar expansión
+    item.expanded = !item.expanded;
+
+    // Si cierre PROYECTOS → cerrar también Reportes
+    if (!item.expanded && item.moduleName === 'Proyectos') {
+      item.options?.forEach((opt: any) => {
+        if (opt.type === 'expansion') {
+          opt.expanded = false;
+        }
+      });
+    }
+
+    // Al abrir PROYECTOS → navegar a su vista
+    if (item.expanded && item.moduleName === 'Proyectos') {
+      this.router.navigate([item.modulePath]);
+    }
+  }
 
   ngOnInit(): void {
     this.generateMenu();
   }
 
   private generateMenu(): void {
-    const allowedModules = this.authService.getAllowedModules();
-    this.menuItems = this.createMenuStructure(allowedModules);
+    const allowed = this.authService.getAllowedModules();
+    this.menuItems = this.createMenuStructure(allowed);
   }
-
   private createMenuStructure(modules: any[]): any[] {
-    // Procesar todos los módulos para agregar el prefijo /menu/
-    const processedModules = modules.map(module => ({
-      ...module,
-      modulePath: `/menu${module.modulePath.startsWith('/') ? module.modulePath : '/' + module.modulePath}`
+    const processed = modules.map((m) => ({
+      ...m,
+      modulePath: `/menu${
+        m.modulePath.startsWith('/') ? m.modulePath : '/' + m.modulePath
+      }`,
     }));
 
-    // Ordenar módulos por displayOrder
-    const sortedModules = [...processedModules].sort((a, b) => a.displayOrder - b.displayOrder);
+    const sorted = [...processed].sort(
+      (a, b) => a.displayOrder - b.displayOrder
+    );
 
     const menuItems: any[] = [];
-    const addedModuleIds = new Set<number>();
+    const added = new Set<number>();
 
-    // Primero identificar todos los módulos que van como ítems individuales
-    const individualModules = ['Dashboard', 'Proyectos', 'Colaboradores', 'Clientes', 'Líderes', 'Proyecciones'];
+    const mainModules = [
+      'Dashboard',
+      'Proyectos',
+      'Colaboradores',
+      'Clientes',
+      'Líderes',
+      'Proyecciones',
+    ];
 
-    // Procesar módulos individuales
-    sortedModules.forEach(module => {
-      if (addedModuleIds.has(module.id)) return;
-
-      if (individualModules.includes(module.moduleName)) {
-        menuItems.push({
-          type: 'item',
-          ...module
-        });
-        addedModuleIds.add(module.id);
+    // Ítems principales
+    sorted.forEach((m) => {
+      if (!added.has(m.id) && mainModules.includes(m.moduleName)) {
+        menuItems.push({ type: 'item', ...m });
+        added.add(m.id);
       }
     });
 
-    // Procesar módulos que van en el panel de Time Report
-    const timeReportModules = sortedModules.filter(module =>
-      ['Actividades', 'Seguimiento'].includes(module.moduleName) &&
-      !addedModuleIds.has(module.id)
-    );
+    // PROYECTOS con submenú
 
-    if (timeReportModules.length > 0) {
-      const timeReportPanel = {
+    // PROYECTOS con submenú
+    const projectItem = menuItems.find((m) => m.moduleName === 'Proyectos');
+
+    if (projectItem) {
+      projectItem.type = 'expansion';
+      projectItem.options = [];
+
+      // Crear panel REPORTES
+      const reportPanel = {
         type: 'expansion',
-        moduleName: 'Time Report',
-        icon: 'alarm',
+        moduleName: 'Reportes',
+        icon: 'summarize',
         expanded: false,
-        options: timeReportModules,
-        displayOrder: Math.min(...timeReportModules.map(m => m.displayOrder))
+        options: [] as any[],
       };
-      menuItems.push(timeReportPanel);
-      timeReportModules.forEach(module => addedModuleIds.add(module.id));
-    }
 
-    // Procesar módulos que van en el panel de Configuración
-    const configModules = sortedModules.filter(module =>
-      ['Roles', 'Usuarios', 'Días Festivos'].includes(module.moduleName) &&
-      !addedModuleIds.has(module.id)
-    );
+      // Insertar panel REPORTES dentro de PROYECTOS
+      projectItem.options.push(reportPanel);
 
-    if (configModules.length > 0) {
-      const configPanel = {
-        type: 'expansion',
-        moduleName: 'Configuración',
-        icon: 'settings',
-        expanded: false,
-        options: configModules,
-        displayOrder: Math.min(...configModules.map(m => m.displayOrder))
-      };
-      menuItems.push(configPanel);
-      configModules.forEach(module => addedModuleIds.add(module.id));
-    }
+      // Reportes reales
+      const reports = sorted.filter((m) =>
+        ['Proyecto por horas', 'Proyecto por fechas'].includes(m.moduleName)
+      );
 
-    // DEBUG: Agregar cualquier módulo restante que no haya sido procesado
-    const remainingModules = sortedModules.filter(module => !addedModuleIds.has(module.id));
-    if (remainingModules.length > 0) {
-      console.log('Módulos no procesados:', remainingModules);
-      remainingModules.forEach(module => {
-        menuItems.push({
+      // Insertar reportes dentro del panel REPORTES
+      reports.forEach((r) => {
+        reportPanel.options.push({
           type: 'item',
-          ...module
+          ...r,
+          modulePath: r.modulePath,
         });
-        addedModuleIds.add(module.id);
+
+        added.add(r.id);
       });
     }
 
-    // Ordenar final por displayOrder
-    return menuItems.sort((a, b) => a.displayOrder - b.displayOrder);
+    // Procesar módulos que van en el panel de Time Report
+    const timeModules = sorted.filter(
+      (m) =>
+        ['Actividades', 'Seguimiento'].includes(m.moduleName) &&
+        !added.has(m.id)
+    );
+
+    if (timeModules.length > 0) {
+      menuItems.push({
+        type: 'expansion',
+        moduleName: 'Time Report',
+        icon: 'alarm',
+        displayOrder: Math.min(...timeModules.map((m) => m.displayOrder)),
+        options: timeModules.map((m) => ({
+          type: 'item',
+          ...m,
+        })),
+      });
+
+      timeModules.forEach((m) => added.add(m.id));
+    }
+
+    // Procesar módulos que van en el panel de Configuración
+    const configModules = sorted.filter(
+      (m) =>
+        ['Roles', 'Usuarios', 'Días Festivos'].includes(m.moduleName) &&
+        !added.has(m.id)
+    );
+
+    if (configModules.length > 0) {
+      menuItems.push({
+        type: 'expansion',
+        moduleName: 'Configuración',
+        icon: 'settings',
+        displayOrder: Math.min(...configModules.map((m) => m.displayOrder)),
+        options: configModules.map((m) => ({
+          type: 'item',
+          ...m,
+        })),
+      });
+
+      configModules.forEach((m) => added.add(m.id));
+    }
+
+    return menuItems;
   }
 }

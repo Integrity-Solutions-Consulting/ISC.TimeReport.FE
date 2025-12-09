@@ -220,12 +220,12 @@ export class AuthService {
 
     // Mapeo de roles a módulos permitidos (basado en tu endpoint GetRoles)
     const roleModuleMap: {[key: string]: number[]} = {
-      'Administrador': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-      'Gerente': [2, 3, 4, 6, 7, 8],
-      'Lider': [2, 3, 4, 8],
-      'Colaborador': [3],
-      'Recursos Humanos': [1, 3, 4, 5],
-      'Administrativo': [1, 3, 4, 6]
+      'Administrador': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,13],
+      'Gerente': [2, 4, 5, 7, 8, 9],
+      'Lider': [2, 3, 4, 5, 9 ],
+      'Colaborador': [4],
+      'Recursos Humanos': [1, 4, 5, 6],
+      'Administrativo': [1, 4, 5, 7]
     };
 
     // Obtener todos los módulos permitidos para los roles del usuario

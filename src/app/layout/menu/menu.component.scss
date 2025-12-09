@@ -1,12 +1,20 @@
 .sidenav-container {
-  padding: 16px;
+  padding: 20px;
   height: 100%;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   overflow: hidden;
 }
-
+.submenu-title {
+  padding-left: 32px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  margin-top: 6px;
+  margin-bottom: 4px;
+}
 .logo-container {
   display: flex;
   flex-direction: column;
@@ -80,7 +88,7 @@ mat-nav-list {
 }
 
 .submenu-item {
-  padding-left: 40px !important;
+  padding-left: 20px !important;
   border-left: 4px solid transparent;
   transition: border-color 0.3s ease;
 
@@ -131,4 +139,37 @@ mat-nav-list {
     border-left-color: var(--itg-primary) !important;
     background-color: var(--itg-primary-bg) !important;
   }
+}
+/* Contenedor de submenús dentro de Proyectos */
+.submenu-expansion {
+  margin-left: -10px !important;  /* Acerca el panel a la izquierda */
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+
+.submenu-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 8px 8px 32px;
+  cursor: pointer;
+  gap: 8px;
+}
+
+/* Header del submenú (el botón "Reportes") */
+.submenu-expansion .mat-expansion-panel-header {
+  padding-left: 10px !important;
+}
+
+.submenu-body {
+  padding-left: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+/* Items dentro del submenú Reportes */
+.submenu-expansion .submenu-item {
+  padding-left: 15px !important;  /* Ajuste visual perfecto */
+  display: flex;
+  align-items: center;
 }
