@@ -1,4 +1,4 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { inject, Injectable, signal } from "@angular/core";
 import { environment } from "../../../../environments/environment";
 import { BehaviorSubject, Observable, catchError, map, of, switchMap, tap, throwError } from "rxjs";
@@ -51,7 +51,13 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this._httpClient.post<AuthResponse>(
       `${this.urlBase}/api/auth/login`,
-      credentials
+      credentials,
+      {
+        withCredentials: true,  // AÑADE ESTA LÍNEA
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json'
+        })
+      }
     ).pipe(
       switchMap((response: AuthResponse) => {
         if (response.code !== 200) {
