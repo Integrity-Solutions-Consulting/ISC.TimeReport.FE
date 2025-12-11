@@ -49,4 +49,3 @@ export class AppMenuPage implements OnInit{
     }
   }
 }
-
