@@ -1,4 +1,5 @@
 export const environment = {
+    production: false,
     URL_API:'https://github.com',
     //URL_BASE: 'http://147.93.181.146:8082',
     URL_BASE: 'http://147.93.181.146:7070',
