@@ -218,9 +218,27 @@ export interface ProjectionResponse {
   status?: boolean;
 }
 
+
 export interface PositionCatalog {
   positionId: number;
   positionName: string;
   description?: string;
   // Agrega otros campos si el endpoint los devuelve
+}
+
+export interface  ProyectoHoursResponse{
+  client: string;
+  monthNumber:5;
+  year: number;
+  resourceCount: number;
+  totalHours:number;
+
+}
+export interface ProyectoDataResponse {
+  clientName: string;
+  startDate: string;   // viene ISO string
+  endDate: string;      // viene ISO string
+  projectLeader: string;
+  resourceName: string;
+  position: string;
 }
