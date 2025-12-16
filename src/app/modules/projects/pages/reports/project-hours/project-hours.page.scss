@@ -20,3 +20,10 @@
     gap: 10px;
   }
 }
+:host ::ng-deep .mat-mdc-input-element,
+:host ::ng-deep .mat-mdc-select-value-text {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: normal;
+}

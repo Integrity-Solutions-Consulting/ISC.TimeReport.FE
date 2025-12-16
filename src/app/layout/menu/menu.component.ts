@@ -29,7 +29,6 @@ export class MenuComponent implements OnInit {
   onPanelClick(item: any, event: MouseEvent) {
     const target = event.target as HTMLElement;
 
-
     if (target.closest('.submenu-expansion')) {
       event.stopPropagation();
       return;
@@ -47,10 +46,10 @@ export class MenuComponent implements OnInit {
       });
     }
 
-    // Al abrir PROYECTOS → navegar a su vista
+    /* // Al abrir PROYECTOS → navegar a su vista
     if (item.expanded && item.moduleName === 'Proyectos') {
       this.router.navigate([item.modulePath]);
-    }
+    } */
   }
 
   ngOnInit(): void {
@@ -94,15 +93,21 @@ export class MenuComponent implements OnInit {
     });
 
     // PROYECTOS con submenú
-
-    // PROYECTOS con submenú
     const projectItem = menuItems.find((m) => m.moduleName === 'Proyectos');
 
     if (projectItem) {
       projectItem.type = 'expansion';
       projectItem.options = [];
 
-      // Crear panel REPORTES
+      // 🆕 CREACIÓN DE PROYECTOS (antes era la vista principal)
+      projectItem.options.push({
+        type: 'item',
+        moduleName: 'Creación de proyectos',
+        icon: projectItem.icon ?? 'assignment',
+        modulePath: projectItem.modulePath, // reutiliza la ruta original
+      });
+
+      // ===== PANEL REPORTES (NO SE TOCA) =====
       const reportPanel = {
         type: 'expansion',
         moduleName: 'Reportes',
@@ -111,15 +116,12 @@ export class MenuComponent implements OnInit {
         options: [] as any[],
       };
 
-      // Insertar panel REPORTES dentro de PROYECTOS
       projectItem.options.push(reportPanel);
 
-      // Reportes reales
       const reports = sorted.filter((m) =>
         ['Proyecto por horas', 'Proyecto por fechas'].includes(m.moduleName)
       );
 
-      // Insertar reportes dentro del panel REPORTES
       reports.forEach((r) => {
         reportPanel.options.push({
           type: 'item',
