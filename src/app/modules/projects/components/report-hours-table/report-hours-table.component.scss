@@ -76,3 +76,80 @@ button[mat-stroked-button] {
   from { opacity: 0; transform: translateY(3px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.filter-card {
+  padding: 15px;
+  background: white;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.filter-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-item {
+  width: 220px;
+}
+
+.export-btn-wrapper {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.table-wrapper {
+  position: relative;
+  min-height: 300px;
+}
+
+.table-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.full-table {
+  width: 100%;
+}
+
+.mat-paginator {
+  background: white;
+  border-radius: 10px;
+  margin-top: 12px;
+  padding: 10px;
+}
+
+/* CLIENTE → más grande */
+.filter-client {
+  width: 400px;
+
+  ::ng-deep .mat-mdc-input-element {
+    font-size: 13px !important;
+  }
+}
+
+/* AÑO y MES → más pequeños */
+.filter-year,
+.filter-month {
+  width: 160px;
+
+  ::ng-deep .mat-mdc-select-min-line {
+    font-size: 13px !important;
+  }
+}
+/* Forzar tipografía estable en inputs y selects */
+:host ::ng-deep .mat-mdc-input-element,
+:host ::ng-deep .mat-mdc-select-min-line {
+  font-family: var(--font-body) !important; /* Raleway en tu caso */
+  font-weight: 400;
+  font-size: 13px;
+}

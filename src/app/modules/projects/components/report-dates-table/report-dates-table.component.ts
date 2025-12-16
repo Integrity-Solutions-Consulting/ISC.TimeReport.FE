@@ -30,6 +30,7 @@ import { ProyectoDataResponse } from '../../interfaces/project.interface';
 import { CustomDateAdapter } from '../../../../shared/adapters/custom-date-adapter';
 import { MY_DATE_FORMATS } from '../project-modal/project-modal.component';
 
+
 @Component({
   selector: 'report-dates-table',
   standalone: true,
@@ -59,7 +60,7 @@ import { MY_DATE_FORMATS } from '../project-modal/project-modal.component';
   ],
   templateUrl: './report-dates-table.component.html',
   styleUrls: ['./report-dates-table.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
 })
 export class ReportDatesTableComponent implements OnInit {
   // ===== FILTROS =====
@@ -68,6 +69,8 @@ export class ReportDatesTableComponent implements OnInit {
   profileFilter = new FormControl<string | null>(null);
   startDateFilter = new FormControl<Date | null>(null);
   endDateFilter = new FormControl<Date | null>(null);
+  minEndDate: Date | null = null;
+  maxStartDate: Date | null = null;
 
   clients: string[] = [];
   filteredClients: string[] = []; // AUTOCOMPLETE
@@ -91,6 +94,7 @@ export class ReportDatesTableComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+
 
   constructor(
     private reportService: ProjectService,
@@ -164,6 +168,18 @@ export class ReportDatesTableComponent implements OnInit {
         setTimeout(() => {
           this.dataSource.paginator = this.paginator;
           this.dataSource.sort = this.sort;
+
+          if (this.dataSource.paginator) {
+            this.dataSource.paginator.firstPage();
+          }
+
+          const paginatorIntl = this.dataSource.paginator._intl;
+          paginatorIntl.itemsPerPageLabel = 'Mostrar:';
+          paginatorIntl.nextPageLabel = 'Siguiente';
+          paginatorIntl.previousPageLabel = 'Anterior';
+          paginatorIntl.firstPageLabel = 'Primera página';
+          paginatorIntl.lastPageLabel = 'Última página';
+
           this.loading = false;
         });
       },
@@ -201,23 +217,74 @@ export class ReportDatesTableComponent implements OnInit {
     };
 
     this.dataSource.filter = Math.random().toString();
+    if (this.dataSource.filteredData.length === 0) {
+      this.showMessage('No existen registros');
+    }
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
+  startDateFilterFn = (date: Date | null): boolean => {
+    if (!date) return false;
+
+    // Si NO hay fecha fin → no bloquear nada
+    if (!this.endDateFilter.value) {
+      return true;
+    }
+
+    // Si hay fecha fin → inicio debe ser <= fin
+    return date <= this.endDateFilter.value;
+  };
+
+  endDateFilterFn = (date: Date | null): boolean => {
+    if (!date) return false;
+
+    // ❗ Si NO hay fecha inicio → NO bloquear nada
+    if (!this.startDateFilter.value) {
+      return true;
+    }
+
+    // Si hay fecha inicio → fin debe ser >= inicio
+    return date >= this.startDateFilter.value;
+  };
 
   // ===== VALIDACIÓN DE FECHAS =====
   validateDates() {
     const start = this.startDateFilter.value;
     const end = this.endDateFilter.value;
 
-    if (!start || !end) return;
+    // Ajustar límites dinámicos en ambos sentidos
+    this.minEndDate = start ? new Date(start) : null;
+    this.maxStartDate = end ? new Date(end) : null;
 
-    if (start <= end) return;
+    // Caso 1 → No hay fechas
+    if (!start && !end) return;
 
-    this.startDateFilter.setValue(null, { emitEvent: false });
-    this.endDateFilter.setValue(null, { emitEvent: false });
+    // Caso 2 → Solo FIN sin INICIO
+    if (!start && end) {
+      this.endDateFilter.setValue(null, { emitEvent: false });
+      this.showMessage('Debes seleccionar primero la fecha de inicio.');
+      return;
+    }
 
-    this.applyFilters();
+    // Caso 3 → Solo INICIO (permitido)
+    if (start && !end) return;
 
-    this.showMessage('El rango de fechas es inválido. Revisa las fechas.');
+    // Caso 4 → Ambas fechas → validar rangos
+    if (start && end && end < start) {
+      this.endDateFilter.setValue(null, { emitEvent: false });
+      this.showMessage(
+        'La fecha fin debe ser mayor o igual a la fecha inicio.'
+      );
+      return;
+    }
+
+    if (start && end && start > end) {
+      this.startDateFilter.setValue(null, { emitEvent: false });
+      this.showMessage('La fecha inicio no puede ser mayor a la fecha fin.');
+      return;
+    }
   }
 
   showMessage(msg: string) {
@@ -230,18 +297,18 @@ export class ReportDatesTableComponent implements OnInit {
   }
 
   // ===== LIMPIAR =====
-  clearFilters() {
-    this.clientFilter.setValue('', { emitEvent: false });
-    this.leaderFilter.setValue('', { emitEvent: false });
-    this.profileFilter.setValue(null, { emitEvent: false });
-    this.startDateFilter.setValue(null, { emitEvent: false });
-    this.endDateFilter.setValue(null, { emitEvent: false });
+  clearFilters(): void {
+  this.clientFilter.setValue('', { emitEvent: false });
+  this.leaderFilter.setValue('', { emitEvent: false });
+  this.profileFilter.setValue(null, { emitEvent: false });
+  this.startDateFilter.setValue(null, { emitEvent: false });
+  this.endDateFilter.setValue(null, { emitEvent: false });
 
-    this.filteredClients = this.clients;
-    this.filteredLeaders = this.leaders;
+  this.filteredClients = this.clients;
+  this.filteredLeaders = this.leaders;
 
-    this.dataSource.filter = '';
-  }
+  this.dataSource.filter = '';
+}
 
   // ===== EXPORTAR =====
   exportToExcel() {

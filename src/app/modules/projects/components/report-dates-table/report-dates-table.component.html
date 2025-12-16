@@ -1,19 +1,16 @@
 <div class="filter-card">
   <div class="filter-row">
-
     <!-- CLIENTE AUTOCOMPLETE -->
-    <mat-form-field appearance="outline" class="filter-item">
-      <mat-label>Cliente</mat-label>
-
+    <mat-form-field appearance="outline" class="filter-item filter-client">
       <input
         matInput
-        placeholder="Buscar cliente"
+        placeholder="Buscar cliente..."
         [formControl]="clientFilter"
         [matAutocomplete]="autoClient"
       />
+      <mat-icon matSuffix>search</mat-icon>
 
-      <mat-autocomplete #autoClient="matAutocomplete">
-        <mat-option value="Todos">Todos</mat-option>
+      <mat-autocomplete #autoClient="matAutocomplete" hideSingleSelectionIndicator>
         <mat-option *ngFor="let c of filteredClients" [value]="c">
           <mat-icon class="option-icon">business</mat-icon>
           {{ c }}
@@ -22,9 +19,7 @@
     </mat-form-field>
 
     <!-- LÍDER AUTOCOMPLETE -->
-    <mat-form-field appearance="outline" class="filter-item">
-      <mat-label>Líder</mat-label>
-
+    <mat-form-field appearance="outline" class="filter-item filter-leader">
       <input
         matInput
         placeholder="Buscar líder"
@@ -32,8 +27,7 @@
         [matAutocomplete]="autoLeader"
       />
 
-      <mat-autocomplete #autoLeader="matAutocomplete">
-        <mat-option value="Todos">Todos</mat-option>
+      <mat-autocomplete #autoLeader="matAutocomplete" hideSingleSelectionIndicator>
         <mat-option *ngFor="let l of filteredLeaders" [value]="l">
           <mat-icon class="option-icon">person</mat-icon>
           {{ l }}
@@ -42,28 +36,36 @@
     </mat-form-field>
 
     <!-- FECHA INICIO -->
-    <mat-form-field appearance="outline" class="filter-item">
-      <mat-label>Fecha Inicio</mat-label>
+    <mat-form-field appearance="outline" class="filter-item filter-date">
       <input
         matInput
         [matDatepicker]="startPicker"
+        placeholder="Fecha Inicio"
         [formControl]="startDateFilter"
+        [matDatepickerFilter]="startDateFilterFn"
         (dateChange)="validateDates()"
       />
-      <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+      <mat-datepicker-toggle
+        matSuffix
+        [for]="startPicker"
+      ></mat-datepicker-toggle>
       <mat-datepicker #startPicker></mat-datepicker>
     </mat-form-field>
 
     <!-- FECHA FIN -->
-    <mat-form-field appearance="outline" class="filter-item">
-      <mat-label>Fecha Fin</mat-label>
+    <mat-form-field appearance="outline" class="filter-item filter-date">
       <input
         matInput
         [matDatepicker]="endPicker"
         [formControl]="endDateFilter"
+        placeholder="Fecha Fin"
+        [matDatepickerFilter]="endDateFilterFn"
         (dateChange)="validateDates()"
       />
-      <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+      <mat-datepicker-toggle
+        matSuffix
+        [for]="endPicker"
+      ></mat-datepicker-toggle>
       <mat-datepicker #endPicker></mat-datepicker>
     </mat-form-field>
 
@@ -74,27 +76,31 @@
         Exportar
       </button>
 
-      <button mat-button color="primary" class="clear-btn" (click)="clearFilters()">
+      <button
+        mat-button
+        color="primary"
+        class="clear-btn"
+        (click)="clearFilters()"
+      >
         <mat-icon>filter_alt_off</mat-icon>
         Limpiar filtros
       </button>
     </div>
-
   </div>
 </div>
 
-<!-- WRAPPER de la tabla -->
+<!-- TABLA -->
 <div class="table-wrapper">
-
-  <!-- LOADER sobre la tabla -->
   <div class="table-loading-overlay" *ngIf="loading">
     <mat-spinner diameter="60"></mat-spinner>
     <p>Cargando datos...</p>
   </div>
 
-  <!-- TABLA REAL -->
-  <table mat-table [dataSource]="dataSource" class="mat-elevation-z2 full-table">
-
+  <table
+    mat-table
+    [dataSource]="dataSource"
+    class="mat-elevation-z2 full-table"
+  >
     <ng-container matColumnDef="client">
       <th mat-header-cell *matHeaderCellDef>Cliente</th>
       <td mat-cell *matCellDef="let row">{{ row.client }}</td>
@@ -117,18 +123,26 @@
 
     <ng-container matColumnDef="start">
       <th mat-header-cell *matHeaderCellDef>Inicio</th>
-      <td mat-cell *matCellDef="let row">{{ row.start | date : "dd/MM/yyyy" }}</td>
+      <td mat-cell *matCellDef="let row">
+        {{ row.start | date : "dd/MM/yyyy" }}
+      </td>
     </ng-container>
 
     <ng-container matColumnDef="end">
       <th mat-header-cell *matHeaderCellDef>Fin</th>
-      <td mat-cell *matCellDef="let row">{{ row.end | date : "dd/MM/yyyy" }}</td>
+      <td mat-cell *matCellDef="let row">
+        {{ row.end | date : "dd/MM/yyyy" }}
+      </td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-
   </table>
 
-  <mat-paginator [pageSize]="10"></mat-paginator>
+  <mat-paginator
+    [pageSize]="10"
+    [pageSizeOptions]="[5, 10, 20, 50]"
+    showFirstLastButtons
+  >
+  </mat-paginator>
 </div>

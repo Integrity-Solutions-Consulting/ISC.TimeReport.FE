@@ -1,18 +1,22 @@
-.page-header {
+.page-container {
+  padding: 20px;
+}
+
+.header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 
   h1 {
-    margin: 0;
     font-size: 22px;
     font-weight: 600;
+    margin: 0;
   }
 
-  button {
+  .actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
   }
 }
