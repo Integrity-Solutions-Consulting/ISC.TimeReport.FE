@@ -1,42 +1,29 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
-import { environment } from '../../../../environments/environment';
-import {
-  BehaviorSubject,
-  Observable,
-  catchError,
-  map,
-  of,
-  switchMap,
-  tap,
-  throwError,
-} from 'rxjs';
-import {
-  LoginRequest,
-  AuthResponse,
-  Role,
-  Module,
-} from '../interfaces/auth.interface';
-import { UserWithFullName } from '../../roles/interfaces/role.interface';
-import { EmployeeWithPerson } from '../../employees/interfaces/employee.interface';
-import { jwtDecode } from 'jwt-decode';
-import { Router } from '@angular/router';
+import { HttpClient } from "@angular/common/http";
+import { inject, Injectable, signal } from "@angular/core";
+import { environment } from "../../../../environments/environment";
+import { BehaviorSubject, Observable, catchError, map, of, switchMap, tap, throwError } from "rxjs";
+import { LoginRequest, AuthResponse, Role, Module } from "../interfaces/auth.interface";
+import { UserWithFullName } from "../../roles/interfaces/role.interface";
+import { EmployeeWithPerson } from "../../employees/interfaces/employee.interface";
+import { jwtDecode } from "jwt-decode";
+import { Router } from "@angular/router";
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class AuthService {
   private urlBase: string = environment.URL_BASE;
   private _isAuthenticated = signal<boolean>(false);
   private _userMenus = signal<string[]>([]);
   private _userRoles = signal<Role[]>([]);
-  private usernameSubject = new BehaviorSubject<string>(
-    this.getUsernameFromStorage()
-  );
+  private usernameSubject = new BehaviorSubject<string>(this.getUsernameFromStorage());
   username$ = this.usernameSubject.asObservable();
   private currentEmployeeId = new BehaviorSubject<number | null>(null);
 
-  constructor(private _httpClient: HttpClient, private router: Router) {
+  constructor(
+    private _httpClient: HttpClient,
+    private router: Router
+  ) {
     this.initializeAuthState();
     this.loadInitialData();
   }
@@ -62,27 +49,28 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this._httpClient
-      .post<AuthResponse>(`${this.urlBase}/api/auth/login`, credentials)
-      .pipe(
-        switchMap((response: AuthResponse) => {
-          if (response.code !== 200) {
-            throw new Error(response.message);
-          }
-          // The setSession method now returns an Observable<void>,
-          // which we switch to.
-          return this.setSession(response).pipe(
-            map(() => {
-              this._isAuthenticated.set(true);
-              return response; // We return the original response
-            })
-          );
-        }),
-        catchError((error) => {
-          this.clearSession();
-          return throwError(() => error);
-        })
-      );
+    return this._httpClient.post<AuthResponse>(
+      `${this.urlBase}/api/auth/login`,
+      credentials
+    ).pipe(
+      switchMap((response: AuthResponse) => {
+        if (response.code !== 200) {
+          throw new Error(response.message);
+        }
+        // The setSession method now returns an Observable<void>,
+        // which we switch to.
+        return this.setSession(response).pipe(
+          map(() => {
+            this._isAuthenticated.set(true);
+            return response; // We return the original response
+          })
+        );
+      }),
+      catchError(error => {
+        this.clearSession();
+        return throwError(() => error);
+      })
+    );
   }
 
   logout(): void {
@@ -99,9 +87,7 @@ export class AuthService {
   isAdmin(): boolean {
     try {
       const roles = JSON.parse(localStorage.getItem('roles') || '[]');
-      const isAdmin = roles.some(
-        (role: any) => role.id === 1 && role.roleName === 'Administrador'
-      );
+      const isAdmin = roles.some((role: any) => role.id === 1 && role.roleName === "Administrador");
       return isAdmin;
     } catch (error) {
       return false;
@@ -155,38 +141,34 @@ export class AuthService {
       return false;
     }
     const userRoles = this.getCurrentUserRoles();
-    return requiredRoleNames.some((requiredRoleName) =>
-      userRoles.some((userRole) => userRole.roleName === requiredRoleName)
+    return requiredRoleNames.some(requiredRoleName =>
+      userRoles.some(userRole => userRole.roleName === requiredRoleName)
     );
   }
 
   // Nuevo método para verificar permisos
   checkRoutePermission(requestedUrl: string): boolean {
     const menus = this._userMenus();
-    return menus.some((menu) => requestedUrl.startsWith(menu));
+    return menus.some(menu => requestedUrl.startsWith(menu));
   }
 
   loadUserMenus(): Observable<string[]> {
     // Esto es útil si los menús no vienen en el login y necesitas un endpoint dedicado
-    return this._httpClient
-      .get<string[]>(`${this.urlBase}/api/user/menus`)
-      .pipe(
-        tap((menus) => {
-          this._userMenus.set(menus);
-          localStorage.setItem('menus', JSON.stringify(menus));
-        }),
-        catchError((error) => {
-          console.error('Error loading user menus:', error);
-          return of([]); // Retorna un observable vacío o maneja el error
-        })
-      );
+    return this._httpClient.get<string[]>(`${this.urlBase}/api/user/menus`).pipe(
+      tap(menus => {
+        this._userMenus.set(menus);
+        localStorage.setItem('menus', JSON.stringify(menus));
+      }),
+      catchError(error => {
+        console.error('Error loading user menus:', error);
+        return of([]); // Retorna un observable vacío o maneja el error
+      })
+    );
   }
 
   private setSession(authResult: AuthResponse): Observable<void> {
     if (!authResult.data?.token) {
-      return throwError(
-        () => new Error('Invalid authentication response: token is missing')
-      );
+      return throwError(() => new Error('Invalid authentication response: token is missing'));
     }
 
     // Guardar datos básicos
@@ -195,18 +177,13 @@ export class AuthService {
 
     // Guardar toda la data del usuario
     localStorage.setItem('userData', JSON.stringify(authResult.data));
-    localStorage.setItem(
-      'user',
-      JSON.stringify({
-        userID: authResult.data.userID,
-        employeeID: authResult.data.employeeID,
-      })
-    );
+    localStorage.setItem('user', JSON.stringify({
+      userID: authResult.data.userID,
+      employeeID: authResult.data.employeeID
+    }));
 
     // Guardar roles y módulos
-    const menuPaths = authResult.data.modules.map(
-      (module: Module) => module.modulePath
-    );
+    const menuPaths = authResult.data.modules.map((module: Module) => module.modulePath);
     localStorage.setItem('menus', JSON.stringify(menuPaths));
     this._userMenus.set(menuPaths);
 
@@ -229,11 +206,11 @@ export class AuthService {
   }
 
   private getEmployeeInfo(employeeID: number): Observable<any> {
-    return this._httpClient
-      .get<EmployeeWithPerson>(
-        `${this.urlBase}/api/Employee/GetEmployeeByID/${employeeID}`
-      )
-      .pipe(catchError(() => of(null)));
+    return this._httpClient.get<EmployeeWithPerson>(
+      `${this.urlBase}/api/Employee/GetEmployeeByID/${employeeID}`
+    ).pipe(
+      catchError(() => of(null))
+    );
   }
 
   getAllowedModules(): any[] {
@@ -242,25 +219,29 @@ export class AuthService {
     const roleNames = userRoles.map((role: any) => role.roleName);
 
     // Mapeo de roles a módulos permitidos (basado en tu endpoint GetRoles)
-    const roleModuleMap: { [key: string]: number[] } = {
+    const roleModuleMap: {[key: string]: number[]} = {
       /* 'Administrador': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,13],
       'Gerente': [2, 4, 5, 7, 8, 9],
       'Lider': [2, 3, 4, 5, 9 ],
       'Colaborador': [4], */
-
-      'Administrador': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-      'Gerente': [2, 3, 4, 5, 6, 9, 10],
-      'Lider': [2, 3, 4 , 5, 6, 10],
-      'Recursos Humanos': [1, 6, 7, 8],
-      'Administrativo': [1, 6, 7, 9],
-      'Colaborador': [5],
+      /* 'Administrador': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+      'Gerente': [2, 3, 4, 6, 7, 8],
+      'Lider': [2, 3, 4, 8],
+      'Recursos Humanos': [1, 4, 5, 6],
+      'Administrativo': [1, 4, 5, 7] */
+      'Administrador': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12],
+      'Gerente': [2, 3, 4, 6, 7, 8,11,12],
+      'Lider': [2, 3, 4, 8, 11, 12],
+      'Colaborador': [3],
+      'Recursos Humanos': [1, 3, 4, 5],
+      'Administrativo': [1, 3, 4, 6]
     };
 
     // Obtener todos los módulos permitidos para los roles del usuario
     const allowedModuleIds = new Set<number>();
     roleNames.forEach((roleName: string) => {
       const moduleIds = roleModuleMap[roleName] || [];
-      moduleIds.forEach((id) => allowedModuleIds.add(id));
+      moduleIds.forEach(id => allowedModuleIds.add(id));
     });
 
     // Filtrar módulos basado en los IDs permitidos
@@ -295,100 +276,77 @@ export class AuthService {
   // }
 
   requestPasswordRecovery(username: string): Observable<any> {
-    return this._httpClient.post(
-      `${this.urlBase}/api/auth/recuperar-password`,
-      { username }
-    );
+    return this._httpClient.post(`${this.urlBase}/api/auth/recuperar-password`, { username });
   }
 
-  resetPassword(
-    token: string,
-    newPassword: string,
-    confirmPassword: string
-  ): Observable<any> {
-    return this._httpClient.post(
-      `${this.urlBase}/api/auth/reset-password`,
-      { newPassword, confirmPassword },
+  resetPassword(token: string, newPassword: string, confirmPassword: string): Observable<any> {
+    return this._httpClient.post(`${this.urlBase}/api/auth/reset-password`, { newPassword, confirmPassword },
       {
-        params: { token },
+        params: { token }
       }
     );
   }
 
   getRoles(): Observable<Role[]> {
-    return this._httpClient
-      .get<{ data: Role[] }>(`${this.urlBase}/api/auth/GetRoles`)
-      .pipe(map((response) => response.data));
+    return this._httpClient.get<{data: Role[]}>(`${this.urlBase}/api/auth/GetRoles`).pipe(
+      map(response => response.data)
+    );
   }
 
-  createRole(role: {
-    roleName: string;
-    description: string;
-    moduleIds: number[];
-  }): Observable<any> {
+  createRole(role: {roleName: string, description: string, moduleIds: number[]}): Observable<any> {
     return this._httpClient.post(`${this.urlBase}/api/auth/roles`, role);
   }
 
-  updateRole(
-    id: number,
-    role: { roleName: string; description: string; moduleIds: number[] }
-  ): Observable<any> {
-    return this._httpClient.put(
-      `${this.urlBase}/api/auth/UpdateRole/${id}`,
-      role
-    );
+  updateRole(id: number, role: {roleName: string, description: string, moduleIds: number[]}): Observable<any> {
+    return this._httpClient.put(`${this.urlBase}/api/auth/UpdateRole/${id}`, role);
   }
 
   assignRolesToUser(userID: number, rolesIDs: number[]): Observable<boolean> {
     const payload = {
-      userID: Number(userID),
-      rolesIDs: rolesIDs.map((id) => Number(id)),
+        userID: Number(userID),
+        rolesIDs: rolesIDs.map(id => Number(id))
     };
 
-    return this._httpClient
-      .post(`${this.urlBase}/api/users/AssignRolesToUser`, payload)
-      .pipe(
-        map((response: any) => {
-          // Asume éxito si no hay error
-          return true;
-        }),
-        catchError((error) => {
-          console.error('Error en asignación:', error);
-          return of(false);
-        })
-      );
+    return this._httpClient.post(`${this.urlBase}/api/users/AssignRolesToUser`, payload).pipe(
+      map((response: any) => {
+        // Asume éxito si no hay error
+        return true;
+      }),
+      catchError(error => {
+        console.error('Error en asignación:', error);
+        return of(false);
+      })
+    );
   }
 
   private enrichUserData(user: UserWithFullName): Observable<UserWithFullName> {
     if (!user?.employeeID) {
       return of({
         ...user,
-        fullName: 'Nombre no disponible',
+        fullName: 'Nombre no disponible'
       });
     }
 
-    return this._httpClient
-      .get<EmployeeWithPerson>(
-        `${this.urlBase}/api/Employee/GetEmployeeByID/${user.employeeID}`
-      )
-      .pipe(
-        map((employee) => ({
-          ...user,
-          fullName: `${employee.person.firstName} ${employee.person.lastName}`,
-        })),
-        catchError(() =>
-          of({
-            ...user,
-            fullName: 'Nombre no disponible',
-          })
-        )
-      );
+    return this._httpClient.get<EmployeeWithPerson>(
+      `${this.urlBase}/api/Employee/GetEmployeeByID/${user.employeeID}`
+    ).pipe(
+      map(employee => ({
+        ...user,
+        fullName: `${employee.person.firstName} ${employee.person.lastName}`
+      })),
+      catchError(() => of({
+        ...user,
+        fullName: 'Nombre no disponible'
+      }))
+    );
   }
 
   private getUpdatedUser(userID: number): Observable<UserWithFullName> {
-    return this._httpClient
-      .get<UserWithFullName>(`${this.urlBase}/api/users/${userID}`)
-      .pipe(switchMap((user) => this.enrichUserData(user)));
+    return this._httpClient.get<UserWithFullName>(
+      `${this.urlBase}/api/users/${userID}`
+    ).pipe(
+      switchMap(user => this.enrichUserData(user))
+    );
   }
 
   private loadInitialData(): void {
@@ -418,16 +376,13 @@ export class AuthService {
 
   hasModuleAccess(moduleName: string): boolean {
     const modules = this.getUserModules();
-    return modules.some(
-      (module: any) =>
-        module.moduleName === moduleName && module.status === true
+    return modules.some((module: any) =>
+      module.moduleName === moduleName && module.status === true
     );
   }
 
   getRolesOfUser(userId: number): Observable<any> {
-    return this._httpClient.get(
-      `${this.urlBase}/api/users/GetRolesOfUser/${userId}`
-    );
+    return this._httpClient.get(`${this.urlBase}/api/users/GetRolesOfUser/${userId}`);
   }
 
   getDecodedToken(): any {
@@ -444,14 +399,11 @@ export class AuthService {
 
     try {
       const decoded = jwtDecode(token) as {
-        UserID?: string; // ¡Atención al casing! (UserID vs userID)
+        UserID?: string;  // ¡Atención al casing! (UserID vs userID)
         userID?: string;
       };
-      return decoded.UserID
-        ? Number(decoded.UserID)
-        : decoded.userID
-        ? Number(decoded.userID)
-        : null;
+      return decoded.UserID ? Number(decoded.UserID) :
+            decoded.userID ? Number(decoded.userID) : null;
     } catch (error) {
       console.error('Error decodificando token:', error);
       return null;
@@ -486,7 +438,7 @@ export class AuthService {
     return this.currentEmployeeId.value;
   }
 
-  // En tu AuthService
+    // En tu AuthService
   isTokenExpired(): boolean {
     const token = this.getToken();
     if (!token) return true;
@@ -510,4 +462,5 @@ export class AuthService {
     }
     return false;
   }
+
 }
