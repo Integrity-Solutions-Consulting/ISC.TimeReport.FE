@@ -37,7 +37,7 @@ export class AppMenuPage implements OnInit{
     this.checkScreenWidth();
   }
 
-  @HostListener('window:resize', ['$event'])
+  @HostListener('window:resize',)
   onResize() {
     this.checkScreenWidth();
   }
@@ -49,4 +49,3 @@ export class AppMenuPage implements OnInit{
     }
   }
 }
-
