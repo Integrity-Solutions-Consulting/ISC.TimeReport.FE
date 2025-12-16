@@ -45,11 +45,6 @@ export class MenuComponent implements OnInit {
         }
       });
     }
-
-    /* // Al abrir PROYECTOS → navegar a su vista
-    if (item.expanded && item.moduleName === 'Proyectos') {
-      this.router.navigate([item.modulePath]);
-    } */
   }
 
   ngOnInit(): void {
@@ -99,11 +94,11 @@ export class MenuComponent implements OnInit {
       projectItem.type = 'expansion';
       projectItem.options = [];
 
-      // 🆕 CREACIÓN DE PROYECTOS (antes era la vista principal)
+      // CREACIÓN DE PROYECTOS (antes era la vista principal)
       projectItem.options.push({
         type: 'item',
         moduleName: 'Creación de proyectos',
-        icon: projectItem.icon ?? 'assignment',
+        icon:'assignment_add',
         modulePath: projectItem.modulePath, // reutiliza la ruta original
       });
 
