@@ -11,8 +11,7 @@
         placeholder="Ej: Proyecto Desarrollo Web 2024"
         maxlength="100"
         autocomplete="off"
-        #projectNameInput
-      />
+        #projectNameInput>
       <mat-hint align="end">{{ data.projectName?.length || 0 }}/100</mat-hint>
     </mat-form-field>
   </mat-dialog-content>
@@ -23,8 +22,7 @@
       mat-raised-button
       color="primary"
       (click)="onConfirm()"
-      [disabled]="!data.projectName || data.projectName.trim() === ''"
-    >
+      [disabled]="!data.projectName || data.projectName.trim() === ''">
       Confirmar
     </button>
   </mat-dialog-actions>
