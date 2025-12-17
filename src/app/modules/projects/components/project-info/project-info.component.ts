@@ -12,7 +12,12 @@ import { MatError } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { ClientService } from '../../../clients/services/client.service';
 import { Client } from '../../../clients/interfaces/client.interface';
-import { EmployeePersonInfo, EmployeeProject, Project, ProjectDetails } from '../../interfaces/project.interface';
+import {
+  EmployeePersonInfo,
+  EmployeeProject,
+  Project,
+  ProjectDetails,
+} from '../../interfaces/project.interface';
 import { forkJoin, switchMap } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 
@@ -28,16 +33,15 @@ import { MatTableModule } from '@angular/material/table';
     MatButtonModule,
     MatProgressSpinner,
     MatIconModule,
-    MatTableModule
+    MatTableModule,
   ],
   providers: [DatePipe],
   templateUrl: './project-info.component.html',
-  styleUrl: './project-info.component.scss'
+  styleUrl: './project-info.component.scss',
 })
-export class ProjectInfoComponent implements OnInit{
-
+export class ProjectInfoComponent implements OnInit {
   project: Project | null = null; // Usando la interfaz Project
-  client: Client | null = null;   // Usando la interfaz Client
+  client: Client | null = null; // Usando la interfaz Client
   isLoading = true;
   error: string | null = null;
 
@@ -51,13 +55,22 @@ export class ProjectInfoComponent implements OnInit{
     private projectService: ProjectService,
     private clientService: ClientService,
     private datePipe: DatePipe
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.loadProjectDetails(+id);
+    const idParam = this.route.snapshot.paramMap.get('id');
+
+    if (!idParam) {
+      return; // 🚫 No es vista de proyecto
     }
+
+    const projectId = Number(idParam);
+
+    if (isNaN(projectId) || projectId <= 0) {
+      return; // 🚫 Evita NaN y llamadas indebidas
+    }
+
+    this.loadProjectDetails(projectId);
   }
 
   loadProjectDetails(id: number): void {
@@ -65,53 +78,60 @@ export class ProjectInfoComponent implements OnInit{
 
     forkJoin({
       basicInfo: this.projectService.getProjectById(id),
-      detailInfo: this.projectService.getProjectDetailByID(id)
-    }).pipe(
-      switchMap(({basicInfo, detailInfo}) => {
-        // Combinamos la información básica con los detalles
-        this.project = {
-          ...basicInfo,
-          ...detailInfo,
-          status: basicInfo.status // O usa detailInfo.projectStatusID según necesites
-        };
+      detailInfo: this.projectService.getProjectDetailByID(id),
+    })
+      .pipe(
+        switchMap(({ basicInfo, detailInfo }) => {
+          // Combinamos la información básica con los detalles
+          this.project = {
+            ...basicInfo,
+            ...detailInfo,
+            status: basicInfo.status, // O usa detailInfo.projectStatusID según necesites
+          };
 
-        // Procesamos los recursos asignados del detalle
-        if (detailInfo.employeeProjects && detailInfo.employeesPersonInfo) {
-          this.dataSource = detailInfo.employeeProjects
-          .filter(ep => ep.status === true)
-          .map((ep: EmployeeProject) => {
-            const employeeInfo = detailInfo.employeesPersonInfo.find(
-              epi => epi.id === ep.employeeID
-            );
+          // Procesamos los recursos asignados del detalle
+          if (detailInfo.employeeProjects && detailInfo.employeesPersonInfo) {
+            this.dataSource = detailInfo.employeeProjects
+              .filter((ep) => ep.status === true)
+              .map((ep: EmployeeProject) => {
+                const employeeInfo = detailInfo.employeesPersonInfo.find(
+                  (epi) => epi.id === ep.employeeID
+                );
 
-            return {
-              type: ep.supplierID ? 'Proveedor' : 'Empleado',
-              name: employeeInfo ?
-                  `${employeeInfo.firstName} ${employeeInfo.lastName}` :
-                  (ep.supplierID ? 'Proveedor Externo' : 'Desconocido'),
-              role: ep.assignedRole,
-              cost: ep.costPerHour,
-              hours: ep.allocatedHours
-            };
-          });
-        } else {
-          this.dataSource = [];
-        }
+                return {
+                  type: ep.supplierID ? 'Proveedor' : 'Empleado',
+                  name: employeeInfo
+                    ? `${employeeInfo.firstName} ${employeeInfo.lastName}`
+                    : ep.supplierID
+                    ? 'Proveedor Externo'
+                    : 'Desconocido',
+                  role: ep.assignedRole,
+                  cost: ep.costPerHour,
+                  hours: ep.allocatedHours,
+                };
+              });
+          } else {
+            this.dataSource = [];
+          }
 
-        // Obtenemos la información del cliente
-        return this.clientService.getClientByID(basicInfo.clientID || detailInfo.clientID);
-      })
-    ).subscribe({
-      next: (clientData) => {
-        this.client = clientData;
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Error loading data', err);
-        this.isLoading = false;
-        this.error = 'No se pudo cargar la información del proyecto o del cliente.';
-      }
-    });
+          // Obtenemos la información del cliente
+          return this.clientService.getClientByID(
+            basicInfo.clientID || detailInfo.clientID
+          );
+        })
+      )
+      .subscribe({
+        next: (clientData) => {
+          this.client = clientData;
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Error loading data', err);
+          this.isLoading = false;
+          this.error =
+            'No se pudo cargar la información del proyecto o del cliente.';
+        },
+      });
   }
 
   formatDate(date: string): string {
@@ -121,5 +141,4 @@ export class ProjectInfoComponent implements OnInit{
   goBack(): void {
     this.router.navigate(['../'], { relativeTo: this.route });
   }
-
 }

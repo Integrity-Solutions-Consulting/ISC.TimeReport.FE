@@ -12,7 +12,7 @@
         maxlength="100"
         autocomplete="off"
         #projectNameInput>
-      <mat-hint align="end">{{ data.projectName.length || 0 }}/100</mat-hint>
+      <mat-hint align="end">{{ data.projectName?.length || 0 }}/100</mat-hint>
     </mat-form-field>
   </mat-dialog-content>
 
