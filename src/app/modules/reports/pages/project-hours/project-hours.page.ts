@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
-import { ReportHoursTableComponent } from '../../../components/report-hours-table/report-hours-table.component';
+
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from "@angular/material/card";
+import { ReportHoursTableComponent } from '../../components/report-hours-table/report-hours-table.component';
 
 @Component({
   selector: 'project-hours-page',

@@ -25,10 +25,12 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ExcelExporter } from '../../../../shared/exporters/excel-exporter';
-import { ProjectService } from '../../services/project.service';
-import { ProyectoDataResponse } from '../../interfaces/project.interface';
+
 import { CustomDateAdapter } from '../../../../shared/adapters/custom-date-adapter';
-import { MY_DATE_FORMATS } from '../project-modal/project-modal.component';
+import { MY_DATE_FORMATS } from '../../../employees/components/employee-dialog/employee-dialog.component';
+import { ProyectoDataResponse } from '../../interfaces/reports';
+import { ReportsService } from '../../services/Reports.service';
+
 
 
 @Component({
@@ -97,7 +99,7 @@ export class ReportDatesTableComponent implements OnInit {
 
 
   constructor(
-    private reportService: ProjectService,
+    private reportService: ReportsService,
     private snackBar: MatSnackBar
   ) {}
 

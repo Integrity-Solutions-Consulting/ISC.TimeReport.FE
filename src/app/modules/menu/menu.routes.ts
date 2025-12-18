@@ -12,75 +12,102 @@ export const menuRoutes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'dashboard' // Redirige a dashboard por defecto
+        redirectTo: 'dashboard', // Redirige a dashboard por defecto
       },
       {
         path: 'dashboard',
-        loadChildren: () => import('../dashboard/dashboard.routes').then((m) => m.dashboardRoutes),
+        loadChildren: () =>
+          import('../dashboard/dashboard.routes').then(
+            (m) => m.dashboardRoutes
+          ),
         //data: { roles: ['Administrador'] }
       },
       {
         path: 'clients',
-        loadChildren: () => import('../clients/clients.routes').then((m) => m.clientsRoutes),
+        loadChildren: () =>
+          import('../clients/clients.routes').then((m) => m.clientsRoutes),
         //canActivate: [RoleGuard],
         //data: { roles: ['Administrador', 'Gerente'] }
       },
       {
         path: 'leaders',
-        loadChildren: () => import('../leaders/leaders.routes').then((m) => m.LeaderRoutes),
+        loadChildren: () =>
+          import('../leaders/leaders.routes').then((m) => m.LeaderRoutes),
         //canActivate: [RoleGuard],
-       // data: { roles: ['Administrador', 'Gerente'] }
+        // data: { roles: ['Administrador', 'Gerente'] }
       },
       {
         path: 'persons',
-        loadChildren: () => import('../persons/persons.routes').then((m) => m.personsRoutes),
+        loadChildren: () =>
+          import('../persons/persons.routes').then((m) => m.personsRoutes),
         //canActivate: [RoleGuard],
         //data: { roles: ['Administrador'] }
       },
       {
         path: 'employees',
-        loadChildren: () => import('../employees/employees.routes').then((m) => m.employeesRoutes),
+        loadChildren: () =>
+          import('../employees/employees.routes').then(
+            (m) => m.employeesRoutes
+          ),
         //canActivate: [RoleGuard],
         //data: { roles: ['Administrador'] }
       },
       {
         path: 'projects',
-        loadChildren: () => import('../projects/projects.routes').then((m) => m.projectsRoutes),
+        loadChildren: () =>
+          import('../projects/projects.routes').then((m) => m.projectsRoutes),
         //canActivate: [RoleGuard],
         //data: { roles: ['Administrador', 'Gerente', 'Lider'] }
       },
       {
         path: 'projection',
-        loadChildren: () => import('../projection/projection.routes').then((m) => m.projectionRoutes),
+        loadChildren: () =>
+          import('../projection/projection.routes').then(
+            (m) => m.projectionRoutes
+          ),
         //canActivate: [RoleGuard],
         //data: { roles: ['Administrador', 'Gerente', 'Lider'] }
       },
       {
         path: 'activities',
-        loadChildren: () => import('../activities/activities.routes').then((m) => m.activitiesRoutes),
+        loadChildren: () =>
+          import('../activities/activities.routes').then(
+            (m) => m.activitiesRoutes
+          ),
         //canActivate: [RoleGuard],
         //data: { roles: ['Administrador', 'Gerente', 'Lider', 'Colaborador'] }
       },
       {
         path: 'assignments',
-        loadChildren: () => import('../assigments/assigment.routes').then((m) => m.assignmentsRoutes),
+        loadChildren: () =>
+          import('../assigments/assigment.routes').then(
+            (m) => m.assignmentsRoutes
+          ),
         //canActivate: [RoleGuard],
         //data: { roles: ['Administrador', 'Gerente', 'Lider'] }
       },
       {
         path: 'settings',
-        loadChildren: () => import('../roles/roles.routes').then((m) => m.rolesRoutes),
+        loadChildren: () =>
+          import('../roles/roles.routes').then((m) => m.rolesRoutes),
         //canActivate: [AdminGuard] // Solo para admin
       },
       {
         path: 'holidays',
-        loadChildren: () => import('../holidays/holidays.routes').then((m) => m.HolidaysRoutes)
+        loadChildren: () =>
+          import('../holidays/holidays.routes').then((m) => m.HolidaysRoutes),
       },
       {
         path: 'users',
-        loadChildren: () => import('../users/users.routes').then((m) => m.usersRoutes),
+        loadChildren: () =>
+          import('../users/users.routes').then((m) => m.usersRoutes),
         //canActivate: [AdminGuard] // Solo para admin
-      }
-    ]
-  }
+      },
+      {
+        path: 'reports',
+        loadChildren: () =>
+          import('../reports/reports.routes').then((m) => m.REPORTES_ROUTES),
+      },
+    ],
+  },
 ];

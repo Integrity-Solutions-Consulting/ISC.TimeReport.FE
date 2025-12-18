@@ -4,15 +4,6 @@ import { InfoProjectPage } from './pages/info-project/info-project.page';
 import { ProjectionPage } from './pages/projection/projection.page';
 
 export const projectsRoutes: Routes = [
-
-
-  {
-    path: 'reports',
-    loadChildren: () =>
-      import('./pages/reports/reports.routes').then(m => m.default),
-  },
-
-
   {
     path: 'projection/:projectId',
     component: ProjectionPage,
