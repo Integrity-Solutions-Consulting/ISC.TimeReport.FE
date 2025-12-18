@@ -1,14 +1,15 @@
 import { Routes } from '@angular/router';
+import { ProjectHoursPage } from './pages/project-hours/project-hours.page';
+import { ProjectDatesPage } from './pages/project-dates/project-dates.page';
 
-import { ProjectDatesPage } from './project-dates/project-dates.page';
-import { ProjectHoursPage } from './project-hours/project-hours.page';
+
 
 export const REPORTES_ROUTES: Routes = [
   {
     path: '',
     children: [
       { path: 'hours', component: ProjectHoursPage },
-      { path: 'date', component: ProjectDatesPage }
+      { path: 'dates', component: ProjectDatesPage }
     ]
   }
 ];

@@ -15,8 +15,11 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { ExcelExporter } from '../../../../shared/exporters/excel-exporter';
-import { ProjectService } from '../../services/project.service';
-import { ProyectoHoursResponse } from '../../interfaces/project.interface';
+
+import { ProyectoHoursResponse } from '../../interfaces/reports';
+import { ReportsService } from '../../services/Reports.service';
+
+
 
 @Component({
   selector: 'report-hours-table',
@@ -59,7 +62,7 @@ export class ReportHoursTableComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-  constructor(private reportService: ProjectService) {}
+  constructor(private reportService:ReportsService ) {}
 
   ngOnInit(): void {
     this.loadDataFromAPI();

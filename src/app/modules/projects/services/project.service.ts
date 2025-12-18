@@ -587,14 +587,5 @@ export class ProjectService {
       })
       .pipe(finalize(() => this.hideLoading()));
   }
-  getResourcesByClient(): Observable<ProyectoHoursResponse[]> {
-    return this.http.get<ProyectoHoursResponse[]>(
-      `${this.urlBase}/api/Report/client-resource`
-    );
-  }
-  getProjectResources(): Observable<ProyectoDataResponse[]> {
-    return this.http.get<ProyectoDataResponse[]>(
-      `${this.urlBase}/api/Report/project-resource`
-    );
-  }
+
 }
