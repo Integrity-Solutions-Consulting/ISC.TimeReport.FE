@@ -77,6 +77,7 @@ export class MenuComponent implements OnInit {
       'Clientes',
       'Líderes',
       'Proyecciones',
+
     ];
 
     // Ítems principales
@@ -87,45 +88,11 @@ export class MenuComponent implements OnInit {
       }
     });
 
-    // PROYECTOS con submenú
+    // PROYECTOS
     const projectItem = menuItems.find((m) => m.moduleName === 'Proyectos');
 
     if (projectItem) {
-      projectItem.type = 'expansion';
-      projectItem.options = [];
-
-      // CREACIÓN DE PROYECTOS (antes era la vista principal)
-      projectItem.options.push({
-        type: 'item',
-        moduleName: 'Creación de proyectos',
-        icon:'assignment_add',
-        modulePath: projectItem.modulePath, // reutiliza la ruta original
-      });
-
-      // ===== PANEL REPORTES (NO SE TOCA) =====
-      const reportPanel = {
-        type: 'expansion',
-        moduleName: 'Reportes',
-        icon: 'summarize',
-        expanded: false,
-        options: [] as any[],
-      };
-
-      projectItem.options.push(reportPanel);
-
-      const reports = sorted.filter((m) =>
-        ['Proyecto por horas', 'Proyecto por fechas'].includes(m.moduleName)
-      );
-
-      reports.forEach((r) => {
-        reportPanel.options.push({
-          type: 'item',
-          ...r,
-          modulePath: r.modulePath,
-        });
-
-        added.add(r.id);
-      });
+      projectItem.type = 'item';
     }
 
     // Procesar módulos que van en el panel de Time Report
@@ -170,6 +137,27 @@ export class MenuComponent implements OnInit {
       });
 
       configModules.forEach((m) => added.add(m.id));
+    }
+    const reportModules = sorted.filter(
+      (m) =>
+        ['Proyecto por horas', 'Proyecto por fechas'].includes(m.moduleName) &&
+        !added.has(m.id)
+    );
+
+    if (reportModules.length > 0) {
+      menuItems.push({
+        type: 'expansion', // Reportes se despliega
+        moduleName: 'Reportes',
+        icon: 'summarize',
+        displayOrder: Math.min(...reportModules.map((m) => m.displayOrder)),
+        options: reportModules.map((m) => ({
+          type: 'item',
+          ...m,
+        })),
+      });
+
+      // Marcar los reportes como ya agregados al menú
+      reportModules.forEach((m) => added.add(m.id));
     }
 
     return menuItems;
